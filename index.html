@@ -310,14 +310,15 @@ function setChainFilter(chain){ currentChain=chain; document.querySelectorAll('#
 function filterGames(){ renderGrid(); }
 
 async function loadGames(){
-  const res = await fetch('./games.json?t='+Date.now());
-  if(!res.ok) throw new Error('games.json no encontrado: ' + res.status);
-  GAMES = await res.json();
-  console.log('LEYENDO DESDE games.json:', GAMES);
-  renderGrid();
-}catch(e){
+  try{
+    const res = await fetch('./games.json?t='+Date.now());
+    if(!res.ok) throw new Error('404');
+    GAMES = await res.json();
+    console.log('JSON OK:', GAMES);
+  }catch(e){
+    console.warn('Fallo games.json, usando fallback:', e);
     GAMES = [
-      {slug:'wasa-invaders', title:'WASA INVADERS', cat:'arcade action', chain:'bnb', icon:'👾', live:true, popular:100},
+      {slug:'space-invaders', title:'SPACE INVADERS', cat:'arcade action', chain:'bnb', icon:'👾', live:true, popular:100},
       {slug:'wasa-crypto', title:'WASA CRYPTO', cat:'arcade action', chain:'opbnb', icon:'🪙', live:true, popular:90}
     ];
   }
