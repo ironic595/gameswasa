@@ -1,4 +1,4 @@
 [
-  { "slug": "space-invaders", "title": "SPACE INVADERS", "cat": "arcade action", "chain": "bnb", "icon": "👾", "live": true }
-  { "slug": "banatron", "title": "BANATRON REVELATION", "cat": "arcade action", "chain": "bnb", "icon": "👾", "live": true }
+  { "slug": "space-invaders", "title": "SPACE INVADERS", "cat": "arcade action", "live": true },
+  { "slug": "banatron", "title": "BANATRON REVELATION", "cat": "arcade", "live": true }
 ]
