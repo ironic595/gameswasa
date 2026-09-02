@@ -6,11 +6,9 @@
 <title>games.wasa.chat - arcade for onchain games</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  body{background:#0a0a0a;color:#f5f5f5;font-family:Inter,system-ui,sans-serif;font-size:13px;line-height:1.5}
+  body{background:#0a0a0a;color:#f5f5f5;font-family:Inter,system-ui,sans-serif;font-size:13px;line-height:1.5;overflow-x:hidden}
   a{color:inherit;text-decoration:none}
   button{cursor:pointer;border:0;background:0;color:inherit;font:inherit}
-  
-  /* HEADER */
   header{position:sticky;top:0;z-index:10;background:#0a0a0a;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;gap:16px;padding:12px 20px;height:52px}
   .logo{font-weight:700;letter-spacing:-0.02em;font-size:14px}
   .logo span{color:#888;font-weight:400;margin-left:6px}
@@ -23,60 +21,59 @@
   .dot.bnb{background:#f0b90b}.dot.opbnb{background:#ff6a00}
   .wallet{border:1px solid #222;border-radius:20px;padding:5px 12px;font-size:11px}
   .wallet.connected{background:#f5f5f5;color:#0a0a0a;border-color:#f5f5f5}
-
-  /* LAYOUT */
   .wrap{max-width:1400px;margin:0 auto;display:flex}
   aside{width:180px;flex-shrink:0;padding:20px;border-right:1px solid #1a1a1a;position:sticky;top:52px;height:calc(100vh - 52px);overflow:auto}
-  main{flex:1;padding:20px}
+  main{flex:1;padding:20px;min-width:0}
   .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
   .subtitle{color:#666;font-size:12px}
   .sort{color:#666;font-size:11px;display:flex;gap:8px}
   .sort button{color:#666}.sort button.active{color:#f5f5f5;text-decoration:underline}
-
-  /* FILTERS */
   .filter-title{font-size:10px;letter-spacing:0.08em;color:#666;text-transform:uppercase;margin:20px 0 8px}
   .filter-title:first-child{margin-top:0}
   .filter{display:flex;flex-direction:column;gap:4px}
   .filter button{text-align:left;padding:4px 6px;border-radius:6px;color:#888;font-size:12px}
   .filter button.active{background:#141414;color:#f5f5f5}
-
-  /* GRID */
   .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
   @media(max-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}}
-  @media(max-width:700px){.wrap{flex-direction:column}aside{width:100%;height:auto;position:static;border-right:0;border-bottom:1px solid #1a1a1a;display:flex;gap:20px;overflow:auto}.filter{flex-direction:row}.grid{grid-template-columns:repeat(2,1fr)}header{flex-wrap:wrap;height:auto}.search{order:3;max-width:none;width:100%;margin-top:8px}}
-
+  @media(max-width:700px){.wrap{flex-direction:column}aside{width:100%;height:auto;position:static;border-right:0;border-bottom:1px solid #1a1a1a;display:flex;gap:20px;overflow:auto;white-space:nowrap}.filter{flex-direction:row}.grid{grid-template-columns:repeat(2,1fr)}header{flex-wrap:wrap;height:auto}.search{order:3;max-width:none;width:100%;margin-top:8px}}
   .card{border:1px solid #1e1e1e;border-radius:12px;overflow:hidden;background:#111;position:relative;transition:border-color .15s}
   .card:hover{border-color:#2a2a2a}
   .card.live{border-color:#222}
-  .thumb{aspect-ratio:16/10;background:#141414;display:flex;align-items:center;justify-content:center;font-size:28px;position:relative}
+  .thumb{aspect-ratio:16/10;background:#141414;display:flex;align-items:center;justify-content:center;font-size:28px;position:relative;overflow:hidden}
+  .thumb img{width:100%;height:100%;object-fit:cover}
   .thumb.soon{background:#0f0f0f;color:#333}
-  .badge{position:absolute;top:8px;left:8px;font-size:9px;letter-spacing:0.05em;padding:2px 6px;border-radius:20px;background:#0a0a0a;border:1px solid #222}
+  .badge{position:absolute;top:8px;left:8px;font-size:9px;letter-spacing:0.05em;padding:2px 6px;border-radius:20px;background:#0a0a0a;border:1px solid #222;z-index:2}
   .badge.live{background:#f5f5f5;color:#0a0a0a;border-color:#f5f5f5}
   .info{padding:10px 12px}
-  .title{font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px}
+  .title{font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;text-transform:uppercase}
   .chain-dot{width:5px;height:5px;border-radius:50%;display:inline-block}
   .meta{font-size:11px;color:#666;margin-top:2px;display:flex;gap:8px}
-  .play{position:absolute;inset:0;background:rgba(10,10,10,0.85);display:flex;align-items:center;justify-content:center;opacity:0;transition:.15s}
+  .play{position:absolute;inset:0;background:rgba(10,10,10,0.85);display:flex;align-items:center;justify-content:center;opacity:0;transition:.15s;z-index:3}
   .card:hover .play{opacity:1}
-  .play span{border:1px solid #f5f5f5;border-radius:20px;padding:6px 14px;font-size:12px;background:#f5f5f5;color:#0a0a0a}
-
-  /* MODAL */
-  #modal{display:none;position:fixed;inset:0;z-index:50;background:#0a0a0a;padding:20px}
-  #modal.open{display:flex;flex-direction:column}
-  #gameFrame{flex:1;border:1px solid #222;border-radius:12px;background:#000}
+  .play span{border:1px solid #f5f5f5;border-radius:20px;padding:6px 14px;font-size:12px;background:#f5f5f5;color:#0a0a0a;cursor:pointer}
+  #modal{display:none;position:fixed;inset:0;z-index:50;background:#050505;flex-direction:column}
+  #modal.open{display:flex}
+  #modalTop{height:52px;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:12px;flex-shrink:0}
+  #modalTitle{font-weight:600;font-size:13px;letter-spacing:0.02em}
+  #modalMeta{display:flex;align-items:center;gap:10px}
+  .pill{border:1px solid #222;border-radius:20px;padding:4px 10px;font-size:11px;background:#111}
+  .pill.hd{border-color:#333;color:#888}
+  .pill.coins{background:#f5f5f5;color:#0a0a0a;border-color:#f5f5f5;font-weight:600}
+  #modalClose{border:1px solid #222;border-radius:20px;padding:6px 14px;font-size:11px;background:#111}
+  #modalClose:hover{background:#1a1a1a}
+  #modalContainer{flex:1;display:flex;align-items:center;justify-content:center;background:#000;position:relative;overflow:hidden}
+  @media(min-width:900px){#modal{padding:24px}#modalTop{border-radius:12px 12px 0 0;background:#0a0a0a}#modalContainer{border:1px solid #1a1a1a;border-top:0;border-radius:0 0 12px 12px}}
 </style>
 </head>
 <body>
-
 <header>
   <div class="logo">WASA <span>games.wasa.chat — arcade for onchain games</span></div>
-  <div class="search"><input id="q" placeholder="Search games, tags, chains..." oninput="filter()"></div>
+  <div class="search"><input id="q" placeholder="Search games, tags, chains..." oninput="filterGames()"></div>
   <div class="right">
     <button class="chain" onclick="toggleChain()"><span class="dot bnb" id="chainDot"></span><span id="chainName">BNB Chain</span></button>
     <button class="wallet" id="walletBtn" onclick="toggleWallet()">Connect Wallet</button>
   </div>
 </header>
-
 <div class="wrap">
   <aside>
     <div class="filter-title">Category</div>
@@ -93,127 +90,123 @@
       <button data-chain="bnb" onclick="setChainFilter('bnb')">BNB Chain</button>
       <button data-chain="opbnb" onclick="setChainFilter('opbnb')">opBNB</button>
     </div>
-    <div class="filter-title">Build</div>
-    <div style="color:#444;font-size:11px;line-height:1.4">12 games<br>2 live<br>GitHub CDN<br>No card needed</div>
+    <div class="filter-title">Auto</div>
+    <div style="color:#444;font-size:11px;line-height:1.4">Grilla auto desde<br>games.json<br>Thumb: /thumbs/slug.png</div>
   </aside>
-
   <main>
-    <div class="topbar">
-      <div class="subtitle" id="count">12 games — 2 live on <span id="countChain">BNB Chain</span></div>
-      <div class="sort">
-        <button class="active" onclick="sortBy('newest')">Newest</button>
-        <button onclick="sortBy('popular')">Popular</button>
-        <button onclick="sortBy('volume')">Volume</button>
-      </div>
-    </div>
-
-    <div class="grid" id="grid">
-      <!-- LOS 2 REALES -->
-      <div class="card live" data-title="wasa invaders" data-cat="arcade action" data-chain="bnb" data-popular="100">
-        <div class="thumb">👾<span class="badge live">LIVE</span></div>
-        <div class="info"><div class="title"><span class="chain-dot" style="background:#f0b90b"></span>WASA INVADERS</div><div class="meta"><span>arcade</span><span>·</span><span>BNB</span><span>·</span><span>1.2k plays</span></div></div>
-        <div class="play"><span onclick="openGame('wasa-invaders')">Play Now</span></div>
-      </div>
-
-      <div class="card live" data-title="wasa crypto" data-cat="arcade action" data-chain="opbnb" data-popular="90">
-        <div class="thumb">🪙<span class="badge live">LIVE</span></div>
-        <div class="info"><div class="title"><span class="chain-dot" style="background:#ff6a00"></span>WASA CRYPTO</div><div class="meta"><span>arcade</span><span>·</span><span>opBNB</span><span>·</span><span>890 plays</span></div></div>
-        <div class="play"><span onclick="openGame('wasa-crypto')">Play Now</span></div>
-      </div>
-
-      <!-- ESQUEMA 10 MAS -->
-      <div class="card" data-title="wasa runner" data-cat="action arcade" data-chain="opbnb" data-popular="0"><div class="thumb soon">🏃<span class="badge">SOON</span></div><div class="info"><div class="title"><span class="chain-dot" style="background:#ff6a00"></span>WASA RUNNER</div><div class="meta"><span>action</span><span>·</span><span>opBNB</span></div></div></div>
-      <div class="card" data-title="wasa stack" data-cat="puzzle" data-chain="bnb" data-popular="0"><div class="thumb soon">🧱<span class="badge">SOON</span></div><div class="info"><div class="title"><span class="chain-dot" style="background:#f0b90b"></span>WASA STACK</div><div class="meta"><span>puzzle</span><span>·</span><span>BNB</span></div></div></div>
-      <div class="card" data-title="wasa flappy" data-cat="arcade" data-chain="bnb" data-popular="0"><div class="thumb soon">🐤<span class="badge">SOON</span></div><div class="info"><div class="title"><span class="chain-dot" style="background:#f0b90b"></span>WASA FLAPPY</div><div class="meta"><span>arcade</span><span>·</span><span>BNB</span></div></div></div>
-      <div class="card" data-title="wasa 2048" data-cat="puzzle strategy" data-chain="opbnb" data-popular="0"><div class="thumb soon">🔢<span class="badge">SOON</span></div><div class="info"><div class="title"><span class="chain-dot" style="background:#ff6a00"></span>WASA 2048</div><div class="meta"><span>puzzle</span><span>·</span><span>opBNB</span></div></div></div>
-      <div class="card" data-title="wasa mines" data-cat="strategy" data-chain="bnb" data-popular="0"><div class="thumb soon">💣<span class="badge">SOON</span></div><div class="info"><div class="title"><span class="chain-dot" style="background:#f0b90b"></span>WASA MINES</div><div class="meta"><span>strategy</span><span>·</span><span>BNB</span></div></div></div>
-      <div class="card" data-title="wasa snake" data-cat="arcade" data-chain="opbnb" data-popular="0"><div class="thumb soon">🐍<span class="badge">SOON</span></div><div class="info"><div class="title"><span class="chain-dot" style="background:#ff6a00"></span>WASA SNAKE</div><div class="meta"><span>arcade</span><span>·</span><span>opBNB</span></div></div></div>
-      <div class="card" data-title="wasa poker" data-cat="strategy" data-chain="bnb" data-popular="0"><div class="thumb soon">♠️<span class="badge">SOON</span></div><div class="info"><div class="title"><span class="chain-dot" style="background:#f0b90b"></span>WASA POKER</div><div class="meta"><span>strategy</span><span>·</span><span>BNB</span></div></div></div>
-      <div class="card" data-title="wasa tetris" data-cat="puzzle arcade" data-chain="opbnb" data-popular="0"><div class="thumb soon">🟦<span class="badge">SOON</span></div><div class="info"><div class="title"><span class="chain-dot" style="background:#ff6a00"></span>WASA TETRIS</div><div class="meta"><span>puzzle</span><span>·</span><span>opBNB</span></div></div></div>
-      <div class="card" data-title="wasa racer" data-cat="action" data-chain="bnb" data-popular="0"><div class="thumb soon">🏎️<span class="badge">SOON</span></div><div class="info"><div class="title"><span class="chain-dot" style="background:#f0b90b"></span>WASA RACER</div><div class="meta"><span>action</span><span>·</span><span>BNB</span></div></div></div>
-      <div class="card" data-title="wasa slots" data-cat="strategy" data-chain="opbnb" data-popular="0"><div class="thumb soon">🎰<span class="badge">SOON</span></div><div class="info"><div class="title"><span class="chain-dot" style="background:#ff6a00"></span>WASA SLOTS</div><div class="meta"><span>strategy</span><span>·</span><span>opBNB</span></div></div></div>
-    </div>
+    <div class="topbar"><div class="subtitle" id="count">Loading...</div><div class="sort"><button class="active">Newest</button></div></div>
+    <div class="grid" id="grid"></div>
   </main>
 </div>
-
-<!-- MODAL JUEGO -->
 <div id="modal">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-    <div id="modalTitle" style="font-size:13px">WASA INVADERS</div>
-    <div style="display:flex;gap:8px">
-      <button onclick="buyCoins()" style="border:1px solid #222;border-radius:20px;padding:6px 12px;font-size:11px">Buy 1000 coins - 0.001 BNB</button>
-      <button onclick="closeGame()" style="border:1px solid #222;border-radius:20px;padding:6px 12px;font-size:11px">✕ Close</button>
-    </div>
+  <div id="modalTop">
+    <div style="display:flex;align-items:center;gap:12px"><div id="modalTitle">WASA</div><div class="pill hd" id="modalQuality">HD</div></div>
+    <div id="modalMeta"><div class="pill coins" id="modalCoins">0 $WASA</div><button id="modalClose" onclick="closeGame()">✕ Close</button></div>
   </div>
-  <iframe id="gameFrame" src=""></iframe>
+  <div id="modalContainer"></div>
 </div>
-
 <script>
+let GAMES = [];
 let currentCat='all', currentChain='all', currentChainSel='bnb', wallet=false;
+function getCoins(){ return parseInt(localStorage.getItem('wasa_coins')||'0'); }
+function setCoins(n){ localStorage.setItem('wasa_coins', n); document.getElementById('modalCoins').textContent = n + ' $WASA'; }
+function addCoins(n){ setCoins(getCoins()+n); }
+function toggleChain(){ currentChainSel = currentChainSel==='bnb'?'opbnb':'bnb'; document.getElementById('chainName').textContent = currentChainSel==='bnb'?'BNB Chain':'opBNB'; document.getElementById('chainDot').className='dot '+(currentChainSel==='bnb'?'bnb':'opbnb'); }
+function toggleWallet(){ wallet=!wallet; const btn=document.getElementById('walletBtn'); if(wallet){btn.textContent='0x1234…WASA';btn.classList.add('connected')}else{btn.textContent='Connect Wallet';btn.classList.remove('connected')} }
+function setCat(cat){ currentCat=cat; document.querySelectorAll('#catFilter button').forEach(b=>b.classList.toggle('active', b.dataset.cat===cat)); renderGrid(); }
+function setChainFilter(chain){ currentChain=chain; document.querySelectorAll('#chainFilter button').forEach(b=>b.classList.toggle('active', b.dataset.chain===chain)); renderGrid(); }
+function filterGames(){ renderGrid(); }
 
-function toggleChain(){
-  currentChainSel = currentChainSel==='bnb'?'opbnb':'bnb';
-  document.getElementById('chainName').textContent = currentChainSel==='bnb'?'BNB Chain':'opBNB';
-  document.getElementById('chainDot').className='dot '+(currentChainSel==='bnb'?'bnb':'opbnb');
-  document.getElementById('countChain').textContent = currentChainSel==='bnb'?'BNB Chain':'opBNB';
-  // acá harías switchChain() con wagmi
+async function loadGames(){
+  try{
+    // Intenta cargar games.json (tu fuente de verdad)
+    const res = await fetch('./games.json?t='+Date.now());
+    GAMES = await res.json();
+  }catch(e){
+    // fallback si no existe
+    GAMES = [
+      {slug:'wasa-invaders', title:'WASA INVADERS', cat:'arcade action', chain:'bnb', icon:'👾', live:true, popular:100},
+      {slug:'wasa-crypto', title:'WASA CRYPTO', cat:'arcade action', chain:'opbnb', icon:'🪙', live:true, popular:90}
+    ];
+  }
+  renderGrid();
 }
 
-function toggleWallet(){
-  wallet=!wallet;
-  const btn=document.getElementById('walletBtn');
-  if(wallet){btn.textContent='0x1234…WASA';btn.classList.add('connected')}else{btn.textContent='Connect Wallet';btn.classList.remove('connected')}
-}
-
-function setCat(cat){
-  currentCat=cat;
-  document.querySelectorAll('#catFilter button').forEach(b=>b.classList.toggle('active', b.dataset.cat===cat));
-  filter();
-}
-function setChainFilter(chain){
-  currentChain=chain;
-  document.querySelectorAll('#chainFilter button').forEach(b=>b.classList.toggle('active', b.dataset.chain===chain));
-  filter();
-}
-function filter(){
-  const q=document.getElementById('q').value.toLowerCase();
-  let visible=0;
-  document.querySelectorAll('.card').forEach(card=>{
-    const title=card.dataset.title;
-    const cat=card.dataset.cat;
-    const chain=card.dataset.chain;
-    const matchQ=!q||title.includes(q)||cat.includes(q)||chain.includes(q);
-    const matchCat=currentCat==='all'||cat.includes(currentCat);
-    const matchChain=currentChain==='all'||chain===currentChain;
-    const show=matchQ&&matchCat&&matchChain;
-    card.style.display=show?'':'none';
-    if(show)visible++;
+function renderGrid(){
+  const grid = document.getElementById('grid');
+  const q = (document.getElementById('q').value||'').toLowerCase();
+  const filtered = GAMES.filter(g=>{
+    const matchQ = !q || g.slug.includes(q) || g.title.toLowerCase().includes(q) || g.cat.includes(q);
+    const matchCat = currentCat==='all' || g.cat.includes(currentCat);
+    const matchChain = currentChain==='all' || g.chain===currentChain;
+    return matchQ && matchCat && matchChain;
   });
-  document.getElementById('count').innerHTML=visible+' games — <span style="color:#f5f5f5">'+document.querySelectorAll('.card.live').length+' live</span> on <span id="countChain">'+(currentChainSel==='bnb'?'BNB Chain':'opBNB')+'</span>';
-}
-function sortBy(type){
-  const grid=document.getElementById('grid');
-  const cards=[...grid.children];
-  cards.sort((a,b)=>{
-    if(type==='popular') return (b.dataset.popular||0)-(a.dataset.popular||0);
-    return 0;
+  document.getElementById('count').textContent = filtered.length + ' games — ' + GAMES.filter(g=>g.live).length + ' live';
+  grid.innerHTML = filtered.map(g=>{
+    const dotColor = g.chain==='bnb' ? '#f0b90b' : '#ff6a00';
+    const thumbId = `thumb-${g.slug}`;
+    return `
+      <div class="card ${g.live?'live':''}" data-title="${g.title.toLowerCase()}" data-cat="${g.cat}" data-chain="${g.chain}">
+        <div class="thumb ${g.live?'':'soon'}" id="${thumbId}">
+          ${g.icon||'🎮'}
+          <span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>
+        </div>
+        <div class="info"><div class="title"><span class="chain-dot" style="background:${dotColor}"></span>${g.title}</div><div class="meta"><span>${g.cat.split(' ')[0]}</span><span>·</span><span>${g.chain}</span></div></div>
+        <div class="play"><span onclick="openGame('${g.slug}')">Play Now</span></div>
+      </div>
+    `;
+  }).join('');
+  // Intenta cargar thumbs reales: /thumbs/slug.png o .webp o /games/slug/thumb.png
+  filtered.forEach(g=>{
+    const el = document.getElementById(`thumb-${g.slug}`);
+    if(!el) return;
+    const img = new Image();
+    img.onload = ()=>{ el.innerHTML = `<img src="${img.src}"><span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>`; };
+    img.onerror = ()=>{
+      const img2 = new Image();
+      img2.onload = ()=>{ el.innerHTML = `<img src="${img2.src}"><span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>`; };
+      img2.onerror = ()=>{
+        const img3 = new Image();
+        img3.onload = ()=>{ el.innerHTML = `<img src="${img3.src}"><span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>`; };
+        img3.src = `./games/${g.slug}/thumb.webp`;
+      };
+      img2.src = `./games/${g.slug}/thumb.png`;
+    };
+    img.src = `./thumbs/${g.slug}.png`;
   });
-  cards.forEach(c=>grid.appendChild(c));
-  document.querySelectorAll('.sort button').forEach(b=>b.classList.remove('active'));
-  event.target.classList.add('active');
 }
-function openGame(id){
-  document.getElementById('modal').classList.add('open');
-  document.getElementById('modalTitle').textContent=id.toUpperCase();
-  // ACA CARGAS TU JUEGO REAL DESDE GITHUB:
-  // document.getElementById('gameFrame').src=`https://raw.githack.com/tuuser/wasa-games/main/games/${id}/index.html`
-  // o por ahora:
-  document.getElementById('gameFrame').srcdoc=`<body style="background:#000;color:#0f0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:monospace">LOADING ${id}...<br><br>Reemplaza esta linea con tu game.js real</body>`;
+
+async function openGame(slug){
+  const modal = document.getElementById('modal');
+  const container = document.getElementById('modalContainer');
+  const titleEl = document.getElementById('modalTitle');
+  const qualityEl = document.getElementById('modalQuality');
+  const isLowEnd = (navigator.deviceMemory||4) <= 2 || (navigator.hardwareConcurrency||4) <= 4;
+  const isMobile = window.innerWidth < 900;
+  const quality = (isMobile || isLowEnd) ? 'lite' : 'hd';
+  titleEl.textContent = slug.replace(/-/g,' ').toUpperCase();
+  qualityEl.textContent = quality.toUpperCase();
+  setCoins(getCoins());
+  modal.classList.add('open'); document.body.style.overflow='hidden';
+  history.pushState({}, '', `/play?game=${slug}`);
+  container.innerHTML = `<div style="color:#666;font-size:12px">Loading ${slug} (${quality})...</div>`;
+  try{
+    const mod = await import(`./games/${slug}/game.js`);
+    container.innerHTML = '';
+    if(mod.init){ mod.init(container, { quality, getCoins, addCoins, setCoins, slug }); }
+  }catch(e){
+    console.error(e);
+    container.innerHTML = `<div style="text-align:center;color:#888;font-size:12px">Juego <b style="color:#fff">${slug}</b> no encontrado<br>/games/${slug}/game.js</div>`;
+  }
 }
-function closeGame(){document.getElementById('modal').classList.remove('open');document.getElementById('gameFrame').src=''}
-function buyCoins(){
-  alert('Acá va wagmi writeContract:\n\nbuyCoins(1000) en '+(currentChainSel==='bnb'?'BNB Chain - 0.001 BNB':'opBNB - 0.0001 BNB'));
-}
+function closeGame(){ document.getElementById('modal').classList.remove('open'); document.getElementById('modalContainer').innerHTML=''; document.body.style.overflow=''; history.pushState({}, '', `/`); }
+window.addEventListener('keydown', e=>{ if(e.key==='Escape') closeGame(); });
+window.addEventListener('DOMContentLoaded', ()=>{
+  loadGames();
+  const p = new URLSearchParams(location.search);
+  const g = p.get('game');
+  if(g) openGame(g);
+});
 </script>
 </body>
 </html>
