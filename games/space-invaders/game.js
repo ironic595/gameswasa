@@ -1,19 +1,10 @@
 export function init(container, args){
-  const quality = args.quality || 'hd';
-  const getCoins = args.getCoins || (()=>0);
-  const setCoins = args.setCoins || (()=>{});
+  const quality = args.quality||'hd';
+  const getCoins = args.getCoins||(()=>parseInt(localStorage.getItem('wasa_coins')||'0'));
+  const setCoins = args.setCoins||((n)=>localStorage.setItem('wasa_coins',n));
   const showAd = args.showAd || (async ()=>{});
-  const slug = args.slug || 'space-invaders';
-
-  container.innerHTML = `
-    <style>
-      .wg{width:100%;height:100%;position:relative;background:linear-gradient(180deg,#2046a3 0%,#315bd5 100%);overflow:hidden;font-family:Inter,system-ui,sans-serif}
-      .wg canvas{width:100%;height:100%;display:block}
-      .wg-ui{position:absolute;inset:0;pointer-events:none}
-      .wg-ui button{pointer-events:auto;cursor:pointer;border:0;font:inherit}
-    </style>
-    <div class="wg"><canvas id="c"></canvas><div id="ui" class="wg-ui"></div></div>
-  `;
+  
+  container.innerHTML = `<style>.wg{width:100%;height:100%;position:relative;background:linear-gradient(180deg,#21418f 0%,#315bd5 100%);overflow:hidden;font-family:Inter,system-ui,sans-serif}.wg canvas{width:100%;height:100%;display:block}.wg-ui{position:absolute;inset:0;pointer-events:none}.wg-ui button{pointer-events:auto}</style><div class="wg"><canvas id="c"></canvas><div id="ui" class="wg-ui"></div></div>`;
   const wrap=container.querySelector('.wg');
   const canvas=container.querySelector('#c');
   const ctx=canvas.getContext('2d');
@@ -22,98 +13,187 @@ export function init(container, args){
   function resize(){W=wrap.clientWidth;H=wrap.clientHeight;const dpr=devicePixelRatio||1;canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);}
   resize(); const ro=new ResizeObserver(resize); ro.observe(wrap);
 
+  let ups=JSON.parse(localStorage.getItem('wasa_upgrades_final')||'{"d":{"main":0,"sub":0},"c":{"main":0,"sub":0},"p":{"main":0,"sub":0}}');
   let maxLevel=parseInt(localStorage.getItem('wasa_max_level')||'1');
-  let game={ships:[],cross:{x:W/2,y:H*0.62,dir:1,speed:420},power:{v:50,dir:1,speed:82,state:'moving',locked:50},bullets:[],stars:[],level:1,points:0,misses:0,levelStart:0};
-  let state='menu', tempCoins=0,tempPoints=0,adUses=0;
-  for(let i=0;i<(quality==='lite'?60:140);i++) game.stars.push({x:Math.random()*W,y:Math.random()*H*0.8,size:Math.random()*1.6+0.4,tw:Math.random()*2+0.5,off:Math.random()*6});
+  let game={ships:[],cross:{x:W/2,y:H*0.62,dir:1,speed:420},power:{v:0,dir:1,speed:82,state:'moving',locked:50},bullets:[],parts:[],stars:[],level:1,points:0,misses:0,levelStart:0,lastTime:0,lastMult:1,lastBase:0};
+  let state='menu', tempCoins=0,tempPoints=0,last=performance.now(),adUses=0, pauseBefore=null;
 
-  function getCfg(lv){
-    const tier=Math.min(Math.floor((lv-1)/10),9);
-    const names=['SCOUT','RAIDER','DUO','ACORAZADO','FANTASMA','ZIGZAG','AVISPA','BOMBER','TELEPORT','BOSS TITAN'];
-    return {name:names[tier],w:78+tier*8,h:26,hp:20+tier*8+lv*4,speed:90+tier*5,count:(tier===2||tier===6)?2:1};
+  for(let i=0;i<(quality==='lite'?70:140);i++) game.stars.push({x:Math.random()*W,y:Math.random()*H*0.85,size:Math.random()*1.8+0.3,tw:Math.random()*2+0.5,off:Math.random()*6});
+
+  function getShipConfig(level){
+    const tier=Math.min(Math.floor((level-1)/10),9);
+    const configs=[
+      {name:'SCOUT', colors:{body:'#cfe0ff', belly:'#5a7bd6', cockpit:['#ffffff','#9ef0ff','#3a6bff'], lights:['#ffde59','#ff6b6b']}, w:78, h:26, hp:20, speed:90, behavior:'normal'},
+      {name:'RAIDER ROJO', colors:{body:'#ffcfe0', belly:'#d65a7b', cockpit:['#ffffff','#ff9eb0','#ff3a5a'], lights:['#ffde59','#ff4444']}, w:82, h:28, hp:28, speed:110, behavior:'normal'},
+      {name:'DUO', colors:{body:'#cfe0ff', belly:'#5a7bd6', cockpit:['#ffffff','#9ef0ff','#3a6bff'], lights:['#ffde59','#ff6b6b']}, w:78, h:26, hp:22, speed:100, behavior:'duo', count:2},
+      {name:'ACORAZADO', colors:{body:'#e0cfff', belly:'#7b5ad6', cockpit:['#ffffff','#c99eff','#7b3aff'], lights:['#a0ff59','#ff6bff']}, w:120, h:34, hp:45, speed:70, behavior:'zigzag'},
+      {name:'FANTASMA', colors:{body:'#cffff0', belly:'#5ad6b0', cockpit:['#ffffff','#9effdd','#3affaa'], lights:['#59ffde','#6bff8a']}, w:75, h:24, hp:30, speed:130, behavior:'ghost'},
+      {name:'ZIGZAG', colors:{body:'#ffefcf', belly:'#d6a05a', cockpit:['#ffffff','#ffe09e','#ffaa3a'], lights:['#ffde59','#ff8a2a']}, w:80, h:26, hp:35, speed:95, behavior:'zigzag_fast'},
+      {name:'AVISPA', colors:{body:'#d0ffc0', belly:'#6bd65a', cockpit:['#ffffff','#b0ff9e','#5aff3a'], lights:['#ffde59','#a0ff00']}, w:48, h:18, hp:18, speed:180, behavior:'tiny_fast', count:2},
+      {name:'BOMBER', colors:{body:'#ffcfa0', belly:'#d67b5a', cockpit:['#ffffff','#ffc99e','#ff7b3a'], lights:['#ff9e59','#ff4444']}, w:100, h:30, hp:55, speed:60, behavior:'bomber'},
+      {name:'TELEPORT', colors:{body:'#c0f0ff', belly:'#5ab4d6', cockpit:['#ffffff','#9ed9ff','#3ab4ff'], lights:['#59deff','#59a0ff']}, w:85, h:28, hp:40, speed:120, behavior:'teleport'},
+      {name:'BOSS TITAN', colors:{body:'#ffd700', belly:'#b89600', cockpit:['#ffffff','#ffec8a','#ffcc00'], lights:['#ff0000','#ffff00']}, w:160, h:48, hp:120, speed:45, behavior:'boss'},
+    ]; return configs[tier];
   }
-  function createShip(lv,i=0,tot=1){const cfg=getCfg(lv);return {x:Math.random()>0.5?-120:W+120,y:H*0.12+i*(H*0.22/tot)+Math.random()*H*0.1,w:cfg.w,h:cfg.h,hp:cfg.hp,maxHp:cfg.hp,dir:Math.random()>0.5?1:-1,speed:cfg.speed+lv*2,hitFlash:0,cfg};}
-  function initShips(lv){const cfg=getCfg(lv);const cnt=cfg.count||1;game.ships=[];for(let k=0;k<cnt;k++) game.ships.push(createShip(lv,k,cnt));}
-  function startGame(lv=1){game.level=lv;game.points=lv>1?(lv-1)*100:0;game.misses=0;game.bullets=[];game.power={v:50,dir:1,speed:82,state:'moving',locked:50};game.cross={x:W/2,y:H*0.62,dir:1,speed:420};initShips(lv);game.levelStart=performance.now();state='playing';adUses=0;render();}
+  function createShip(level, idx=0, tot=1){
+    const cfg=getShipConfig(level); const hp=cfg.hp+(level-1)*(cfg.behavior==='boss'?12:5); const dir=Math.random()>0.5?1:-1;
+    const yBase=H*0.12+(idx*(H*0.25/tot))+Math.random()*H*0.15;
+    return {x:dir===1?-120-idx*150:W+120+idx*150,y:yBase,w:cfg.w,h:cfg.h,hp,maxHp:hp,dir,speed:cfg.speed+(level-1)*2,hitFlash:0,type:Math.floor((level-1)/10),cfg,ghostTimer:0,zigTimer:0,teleportTimer:0,originalY:yBase};
+  }
+  function initShips(lvl){const cfg=getShipConfig(lvl); const cnt=cfg.count||1; game.ships=[]; for(let i=0;i<cnt;i++) game.ships.push(createShip(lvl,i,cnt)); game.cross.speed=Math.max(80,(420+(lvl-1)*35)*(1-ups.c.main*0.012)); game.power.speed=Math.max(20,(82+(lvl-1)*8)*(1-ups.p.main*0.015));}
+  function startGame(from=1){game.level=from;game.points=from>1?(from-1)*100:0;game.misses=0;game.bullets=[];game.parts=[];game.power={v:50,dir:1,speed:82*(1-ups.p.main*0.015),state:'moving',locked:50};game.cross={x:W/2,y:H*0.62,dir:1,speed:420*(1-ups.c.main*0.012)};initShips(from);game.levelStart=performance.now();state='playing';adUses=0;renderUI();}
 
-  function render(){
-    let h='';
+  function drawShip(s){
+    if(s.cfg.behavior==='ghost'){s.ghostTimer+=0.016; if(Math.sin(s.ghostTimer*2)>0.7) return;}
+    ctx.save();ctx.translate(s.x,s.y);const alpha=s.cfg.behavior==='ghost'?0.6+Math.sin(s.ghostTimer*5)*0.4:1;ctx.globalAlpha=alpha;
+    if(s.hitFlash>0){ctx.shadowColor="#ff4444";ctx.shadowBlur=30;}else{ctx.shadowColor=s.cfg.colors.body;ctx.shadowBlur=s.type>=3?22:18;}
+    ctx.fillStyle=s.hitFlash>0?"#ffaaaa":s.cfg.colors.body;ctx.beginPath();ctx.ellipse(0,6,s.w*0.52,s.h*0.72,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=s.hitFlash>0?"#ff5555":s.cfg.colors.belly;ctx.beginPath();ctx.ellipse(0,10,s.w*0.48,s.h*0.5,0,0,Math.PI);ctx.fill();ctx.shadowBlur=0;
+    const g=ctx.createRadialGradient(-4,-6,2,0,-2,18);g.addColorStop(0,s.cfg.colors.cockpit[0]);g.addColorStop(0.3,s.cfg.colors.cockpit[1]);g.addColorStop(1,s.cfg.colors.cockpit[2]);
+    ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(0,-4,s.w*0.28,s.h*0.85,0,Math.PI,Math.PI*2);ctx.fill();
+    for(let i=-2;i<=2;i++){ctx.fillStyle=i%2===0?s.cfg.colors.lights[0]:s.cfg.colors.lights[1];ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=8;ctx.beginPath();ctx.arc(i*(s.w/5.5),10,s.type===9?4.5:3.2,0,Math.PI*2);ctx.fill();}
+    if(s.type===9){ctx.fillStyle="#ff0000";ctx.shadowColor="#ff0000";ctx.shadowBlur=12;ctx.fillRect(-s.w*0.4,-s.h*0.5,s.w*0.8,4);}
+    ctx.restore();ctx.globalAlpha=1;
+  }
+  function drawCross(x,y,locked,t){ctx.save();ctx.translate(x,y);const sc=1+Math.sin(t*0.01)*0.12;ctx.scale(sc,sc);ctx.strokeStyle=locked?"rgba(255,222,89,0.95)":"rgba(255,255,255,0.92)";ctx.lineWidth=locked?2.2:1.8;ctx.shadowColor=locked?"#ffde59":"#ffffff";ctx.shadowBlur=locked?18:14;ctx.beginPath();ctx.arc(0,0,40,0,Math.PI*2);ctx.stroke();ctx.lineWidth=1.8;ctx.beginPath();ctx.arc(0,0,14,0,Math.PI*2);ctx.stroke();ctx.lineWidth=locked?2.2:1.6;ctx.beginPath();ctx.moveTo(-62,0);ctx.lineTo(-22,0);ctx.moveTo(22,0);ctx.lineTo(62,0);ctx.moveTo(0,-62);ctx.lineTo(0,-22);ctx.moveTo(0,22);ctx.lineTo(0,62);ctx.stroke();ctx.fillStyle=locked?"#ffde59":"#ffffff";ctx.shadowColor="#ffde59";ctx.shadowBlur=16;ctx.beginPath();ctx.arc(0,0,5,0,Math.PI*2);ctx.fill();ctx.restore();}
+
+  function renderUI(){
+    if(!ui) return; const cfg=getShipConfig(game.level); let h='';
+    h+=`<div style="position:absolute;top:0;left:0;right:0;padding:10px;display:flex;justify-content:space-between;pointer-events:auto"><div style="display:flex;gap:6px;align-items:center"><div style="width:22px;height:22px;border-radius:50%;background:white;color:#21418f;font-weight:900;font-size:10px;display:flex;align-items:center;justify-content:center">W</div><span style="color:white;font-weight:900;font-size:10px;letter-spacing:0.15em">wasa.chat</span><span style="margin-left:6px;font-size:8px;padding:2px 6px;border-radius:999px;background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.6)">${cfg.name} • NIVEL ${game.level}/100</span>${state==='playing'?`<button id="pauseBtn" style="margin-left:8px;width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:white;font-size:10px">⏸</button>`:''}</div><div style="display:flex;gap:6px;align-items:center"><div style="display:flex;align-items:center;gap:4px;background:rgba(0,0,0,0.3);padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,0.1)"><span style="font-size:8px;color:rgba(255,255,255,0.5);font-weight:700">TIROS</span><div style="display:flex;gap:3px">${Array.from({length:5}).map((_,i)=>`<div style="width:8px;height:8px;border-radius:50%;background:${i<5-game.misses?'#ffde59':'rgba(255,255,255,0.15)'}"></div>`).join('')}</div></div><div style="background:linear-gradient(135deg,#38bdf8,#818cf8);color:#0f172a;padding:4px 10px;border-radius:999px;font-size:10px;font-weight:800">💰 ${getCoins()}</div></div></div>`;
+    if(state==='playing'){
+      h+=`<div style="position:absolute;top:82px;left:50%;transform:translateX(-50%);pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:4px">${game.power.state==='moving'?`<div style="background:#ffde59;color:black;font-weight:900;font-size:9px;letter-spacing:0.1em;padding:6px 12px;border-radius:999px;border:2px solid black">1° CLICK: FIJAR POTENCIA → 2° CLICK: DISPARAR</div>`:`<div style="background:white;color:black;font-weight:900;font-size:10px;padding:6px 14px;border-radius:999px;border:2px solid black">POTENCIA ${Math.round(game.power.locked)}% FIJADA • ¡DISPARA! 🎯</div>`}<div style="font-size:8px;color:rgba(255,255,255,0.5);background:rgba(0,0,0,0.2);padding:2px 6px;border-radius:999px">${cfg.name} • ${game.ships.length} nave(s)</div></div>`;
+      h+=`<div style="position:absolute;bottom:0;left:0;right:0;padding:8px 12px;display:flex;justify-content:space-between;align-items:end;pointer-events:none;gap:8px"><div style="pointer-events:auto;display:flex;flex-direction:column;gap:6px;align-items:center;width:90px"><div style="font-size:8px;font-weight:900;letter-spacing:0.15em;color:rgba(255,255,255,0.8);width:90px;text-align:center">POTENCIA ${Math.round(game.power.state==='locked'?game.power.locked:game.power.v)}%</div><div style="width:40px;height:160px;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.15);border-radius:18px;padding:6px;display:flex;flex-direction:column;justify-content:end;position:relative"><div style="width:100%;border-radius:12px;height:${game.power.state==='locked'?game.power.locked:game.power.v}%;background:linear-gradient(180deg,#fff7a0,#ffde59 60%,#ff6a2a)"></div><div style="position:absolute;left:0;right:0;height:3px;background:white;box-shadow:0 0 12px white;bottom:${game.power.state==='locked'?game.power.locked:game.power.v}%"></div></div><button id="powBtn" style="width:90px;padding:7px;border-radius:999px;font-weight:900;font-size:9px;background:${game.power.state==='locked'?'#ffde59':'rgba(255,255,255,0.1)'};color:${game.power.state==='locked'?'black':'white'};border:1px solid rgba(255,255,255,0.2)">${game.power.state==='locked'?Math.round(game.power.locked)+'% DESBLOQ':'FIJAR'}</button></div><div style="pointer-events:auto;flex:1;display:flex;justify-content:center;margin:0 8px"><div style="background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.15);border-radius:999px;padding:6px 12px;display:flex;gap:10px;align-items:center"><div style="display:flex;gap:4px;align-items:center"><span style="font-size:7px;color:rgba(255,255,255,0.4);font-weight:800">DMG</span><span style="font-size:11px;font-weight:900;color:#ffde59">${50+ups.d.main}</span></div><div style="width:1px;height:12px;background:rgba(255,255,255,0.15)"></div><div style="display:flex;gap:4px;align-items:center"><span style="font-size:7px;color:rgba(255,255,255,0.4)">POT</span><span style="font-size:11px;font-weight:900;color:white">${Math.round(game.power.state==='locked'?game.power.locked:game.power.v)}%</span></div><div style="width:1px;height:12px;background:rgba(255,255,255,0.15)"></div><div style="display:flex;gap:4px;align-items:center"><span style="font-size:7px;color:rgba(255,255,255,0.4)">HP</span><span style="font-size:11px;font-weight:900;color:white">${game.ships[0]?game.ships[0].hp:0}/${game.ships[0]?game.ships[0].maxHp:0}</span></div></div></div><div style="pointer-events:auto"><button id="shootBtn" style="padding:12px 24px;border-radius:999px;font-weight:900;font-size:13px;background:${game.power.state==='locked'?'#ffde59':'rgba(255,255,255,0.2)'};color:${game.power.state==='locked'?'black':'rgba(255,255,255,0.7)'};border:2.5px solid black">${game.power.state==='moving'?'FIJAR POTENCIA':'DISPARAR ↗'}</button></div></div>`;
+    }
     if(state==='menu'){
-      h=`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(5,8,20,0.5);backdrop-filter:blur(10px);pointer-events:auto"><div style="width:100%;max-width:460px;border-radius:28px;background:#0a0f24;border:1px solid rgba(56,189,248,0.2);padding:24px"><div style="color:#94a3b8;font-weight:700;font-size:10px;letter-spacing:0.15em">WASA ARCADE • ${quality.toUpperCase()}</div><h1 style="margin-top:10px;color:white;font-weight:900;font-size:34px;line-height:0.9">STAR<br><span style="color:#38bdf8">SHOOTER</span></h1><div style="margin-top:12px;background:rgba(15,23,42,0.8);border:1px solid rgba(56,189,248,0.15);border-radius:12px;padding:10px;color:#38bdf8;font-weight:700">MAX NIVEL ${maxLevel} • ${getCfg(maxLevel).name}</div><button id="b-ckpt" style="margin-top:16px;width:100%;background:linear-gradient(135deg,#38bdf8,#818cf8);color:#0f172a;font-weight:800;padding:14px;border-radius:999px">CONTINUAR NIVEL ${maxLevel} ${maxLevel>1?'• 100 💰 O ANUNCIO':''}</button><button id="b1" style="margin-top:8px;width:100%;background:rgba(15,23,42,0.8);color:white;padding:12px;border-radius:999px;border:1px solid rgba(56,189,248,0.15)">DESDE NIVEL 1</button></div></div>`;
-    }else if(state==='playing'){
-      h=`<div style="position:absolute;top:0;left:0;right:0;padding:12px;display:flex;justify-content:space-between;pointer-events:auto"><div style="display:flex;gap:8px"><div style="background:rgba(0,0,0,0.4);padding:6px 12px;border-radius:999px;color:white;font-size:11px;font-weight:800">NIVEL ${game.level}</div><div style="background:rgba(0,0,0,0.4);padding:6px 12px;border-radius:999px;color:white;font-size:11px;font-weight:800">${game.points} PTS</div><div style="background:linear-gradient(135deg,#38bdf8,#818cf8);color:#0f172a;padding:6px 12px;border-radius:999px;font-size:11px;font-weight:800">💰 ${getCoins()}</div></div><div style="display:flex;gap:6px">${Array.from({length:5}).map((_,i)=>`<div style="width:10px;height:10px;border-radius:50%;background:${i<5-game.misses?'#38bdf8':'rgba(255,255,255,0.15)'}"></div>`).join('')}</div></div><div style="position:absolute;bottom:0;left:0;right:0;padding:12px;display:flex;justify-content:space-between;align-items:end;pointer-events:none"><div style="pointer-events:auto"><div style="font-size:9px;color:white;margin-bottom:4px;font-weight:700">POTENCIA ${Math.round(game.power.state==='locked'?game.power.locked:game.power.v)}%</div><div style="width:40px;height:160px;background:rgba(0,0,0,0.45);border-radius:18px;padding:6px;display:flex;flex-direction:column;justify-content:end;border:1px solid rgba(56,189,248,0.15)"><div style="width:100%;border-radius:12px;height:${game.power.state==='locked'?game.power.locked:game.power.v}%;background:linear-gradient(180deg,#fff,#38bdf8 60%,#818cf8)"></div></div></div><button id="shoot" style="pointer-events:auto;padding:14px 28px;border-radius:999px;font-weight:900;background:${game.power.state==='locked'?'#38bdf8':'rgba(255,255,255,0.2)'};color:${game.power.state==='locked'?'#0f172a':'white'};border:2px solid black">${game.power.state==='moving'?'FIJAR':'DISPARAR'}</button></div>`;
-    }else if(state==='levelup'){
-      h=`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(5,8,20,0.6);backdrop-filter:blur(10px);pointer-events:auto"><div style="background:#0a0f24;border:1px solid rgba(56,189,248,0.2);border-radius:24px;padding:22px;text-align:center;max-width:360px;width:100%"><div style="color:#38bdf8;font-weight:900;letter-spacing:0.15em;font-size:11px">¡DESTRUIDA!</div><div style="color:white;font-weight:900;font-size:22px;margin-top:4px">NIVEL ${game.level} → ${game.level+1}</div><div style="margin-top:10px;display:flex;gap:8px;justify-content:center"><span style="background:rgba(255,255,255,0.08);padding:5px 10px;border-radius:999px;color:white;font-size:11px">+${tempPoints} PTS</span><span style="background:linear-gradient(135deg,#38bdf8,#818cf8);color:#0f172a;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:800">+${tempCoins} 💰</span></div><button id="c1" style="margin-top:14px;width:100%;background:white;color:black;font-weight:800;padding:12px;border-radius:999px">CONTINUAR SIN X2</button><button id="c2" style="margin-top:8px;width:100%;background:linear-gradient(135deg,#38bdf8,#818cf8);color:#0f172a;font-weight:800;padding:12px;border-radius:999px">🎬 DUPLICAR X2 CON ANUNCIO</button></div></div>`;
-    }else if(state==='gameover'){
-      h=`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(5,8,20,0.7);backdrop-filter:blur(12px);pointer-events:auto"><div style="background:#0a0f24;border:1px solid rgba(56,189,248,0.2);border-radius:24px;padding:22px;text-align:center;max-width:340px;width:100%"><div style="color:#fca5a5;font-weight:800;font-size:11px">MISIÓN FALLIDA</div><h2 style="color:white;font-weight:900;font-size:26px;margin-top:4px">GAME OVER</h2><button id="ad-lives" ${adUses>=3?'disabled':''} style="margin-top:14px;width:100%;background:${adUses>=3?'rgba(255,255,255,0.1)':'linear-gradient(135deg,#38bdf8,#818cf8)'};color:${adUses>=3?'rgba(255,255,255,0.3)':'#0f172a'};font-weight:800;padding:12px;border-radius:999px">🎬 +3 TIROS (${adUses}/3)</button><button id="rest" style="margin-top:8px;width:100%;background:rgba(255,255,255,0.08);color:white;padding:12px;border-radius:999px;border:1px solid rgba(255,255,255,0.1)">REINICIAR</button></div></div>`;
-    }else if(state==='reward'){
-      h=`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);pointer-events:auto;z-index:10"><div style="background:#0a0f24;border:1px solid rgba(56,189,248,0.3);border-radius:24px;padding:22px;text-align:center;max-width:340px;width:100%"><div style="width:56px;height:56px;margin:0 auto;border-radius:50%;background:linear-gradient(135deg,#38bdf8,#818cf8);display:flex;align-items:center;justify-content:center;font-size:26px">🎁</div><div style="margin-top:10px;color:#38bdf8;font-weight:900">¡RECOMPENSA!</div><div style="margin-top:4px;color:white;font-size:13px" id="rw-text"></div><button id="rw-claim" style="margin-top:14px;width:100%;background:linear-gradient(135deg,#38bdf8,#818cf8);color:#0f172a;font-weight:800;padding:12px;border-radius:999px">CONTINUAR →</button></div></div>`;
+      h+=`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(33,65,143,0.55);backdrop-filter:blur(10px);pointer-events:auto"><div style="width:100%;max-width:520px;border-radius:28px;background:rgba(15,27,62,0.92);border:1px solid rgba(255,255,255,0.15);padding:24px"><div style="display:flex;justify-content:space-between"><span style="color:white;font-weight:900;font-size:11px;letter-spacing:0.2em">wasa.chat</span><span style="font-size:8px;padding:3px 8px;border-radius:999px;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5)">100 NIVELES • 10 NAVES</span></div><h1 style="margin-top:14px;color:white;font-weight:900;font-size:34px;line-height:0.9">STAR<br><span style="color:#ffde59">SHOOTER WARS</span></h1><div style="margin-top:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:10px;display:flex;justify-content:space-between"><div><div style="font-size:9px;color:rgba(255,255,255,0.4);font-weight:700">MAX NIVEL</div><div style="color:#ffde59;font-weight:900">NIVEL ${maxLevel} • ${getShipConfig(maxLevel).name}</div></div><div style="font-size:18px">🚀</div></div><div style="margin-top:14px;display:flex;flex-direction:column;gap:8px"><button id="btn-ckpt" style="width:100%;background:#ffde59;color:black;font-weight:900;padding:14px;border-radius:999px;border:2.5px solid black">CONTINUAR DESDE NIVEL ${maxLevel} ${maxLevel>1?'• 100 💰 O ANUNCIO':''}</button><button id="btn-n1" style="width:100%;background:rgba(255,255,255,0.08);color:white;font-weight:900;padding:12px;border-radius:999px;border:1px solid rgba(255,255,255,0.15)">JUGAR DESDE NIVEL 1 • FARMEAR</button></div></div></div>`;
+    }
+    if(state==='levelup'){
+      h+=`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(10,20,48,0.6);backdrop-filter:blur(10px);pointer-events:auto"><div style="background:rgba(15,27,62,0.95);border:1px solid rgba(255,255,255,0.15);border-radius:28px;padding:22px;text-align:center;max-width:380px;width:100%"><div style="color:#ffde59;font-weight:900;font-size:11px;letter-spacing:0.2em">¡DESTRUIDA! • ${getShipConfig(game.level).name}</div><div style="color:white;font-weight:900;font-size:22px;margin-top:4px">NIVEL ${game.level} → ${game.level+1}</div><div style="margin-top:8px;display:inline-flex;gap:6px"><span style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);padding:4px 10px;border-radius:999px;color:white;font-size:11px">+${tempPoints} PTS</span><span style="background:#ffde59;color:black;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:900">+${tempCoins} 💰</span></div><div style="margin-top:6px;font-size:8px;color:rgba(255,255,255,0.4)">${game.lastTime.toFixed(1)}s • x${game.lastMult} = ${tempCoins} 💰 ${game.lastTime<10?'⚡ RAPIDO x2':game.lastTime<20?'🔥 x1.75':game.lastTime<30?'⏱ x1.5':'🐢 x1'}</div>${(game.level+1)%10===1?`<div style="margin-top:8px;background:rgba(255,222,89,0.15);border:1px solid rgba(255,222,89,0.3);border-radius:999px;padding:4px 8px;font-size:10px;color:#ffde59;font-weight:800">🚀 CHECKPOINT • NUEVA NAVE: ${getShipConfig(game.level+1).name}</div>`:''}<div style="margin-top:14px;display:flex;flex-direction:column;gap:8px"><button id="cont-nox2" style="width:100%;background:white;color:black;font-weight:900;padding:12px;border-radius:999px">CONTINUAR SIN DUPLICAR</button><button id="cont-x2" style="width:100%;background:#ffde59;color:black;font-weight:900;padding:12px;border-radius:999px;border:2px solid black;box-shadow:0 0 20px rgba(255,222,89,0.3)">🎬 DUPLICAR x2 VIENDO ANUNCIO</button></div></div></div>`;
+    }
+    if(state==='gameover'){
+      h+=`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(10,20,48,0.7);backdrop-filter:blur(12px);pointer-events:auto"><div style="width:100%;max-width:380px;border-radius:28px;background:rgba(15,27,62,0.95);border:1px solid rgba(255,255,255,0.15);padding:22px;text-align:center"><div style="width:48px;height:48px;margin:0 auto;border-radius:50%;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.3);display:flex;align-items:center;justify-content:center"><div style="width:24px;height:24px;border-radius:50%;background:#ef4444"></div></div><div style="margin-top:10px;color:#fca5a5;font-weight:900;font-size:10px;letter-spacing:0.2em">MISIÓN FALLIDA • ${getShipConfig(game.level).name}</div><h2 style="margin-top:4px;color:white;font-weight:900;font-size:26px">GAME OVER</h2><div style="margin-top:8px;display:inline-flex;gap:6px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:999px;padding:6px 10px;font-size:10px"><span style="color:rgba(255,255,255,0.5)">PUNTOS</span><span style="color:white;font-weight:800">${game.points}</span><span style="color:rgba(255,255,255,0.15)">|</span><span style="color:rgba(255,255,255,0.5)">NIVEL</span><span style="color:#ffde59;font-weight:800">${game.level}</span></div><div style="margin-top:14px;display:flex;flex-direction:column;gap:8px"><button id="ad-lives" ${adUses>=3?'disabled':''} style="width:100%;font-weight:900;padding:13px;border-radius:999px;border:2.5px solid black;background:${adUses>=3?'rgba(255,255,255,0.1)':'#ffde59'};color:${adUses>=3?'rgba(255,255,255,0.3)':'black'}">🎬 VER ANUNCIO +3 TIROS (${adUses}/3)</button><button id="restart" style="width:100%;background:rgba(255,255,255,0.08);color:white;font-weight:800;padding:12px;border-radius:999px;border:1px solid rgba(255,255,255,0.15)">REINICIAR DESDE NIVEL 1</button><button id="go-menu" style="width:100%;background:transparent;color:rgba(255,255,255,0.5);font-size:11px;padding:8px">MENU • CHECKPOINT NIVEL ${maxLevel}</button></div></div></div>`;
+    }
+    if(state==='reward_modal'){
+      h+=`<div style="position:absolute;inset:0;z-index:70;background:rgba(0,0,0,0.9);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:16px;pointer-events:auto"><div style="background:linear-gradient(180deg,#1e1e1e,#0f0f0f);border:1px solid rgba(255,222,89,0.3);border-radius:24px;padding:22px;text-align:center;max-width:340px;width:100%"><div style="width:64px;height:64px;margin:0 auto;border-radius:50%;background:linear-gradient(135deg,#ffde59,#ff8a2a);display:flex;align-items:center;justify-content:center;font-size:28px">🎁</div><div style="margin-top:10px;color:#ffde59;font-weight:900;font-size:16px">¡RECOMPENSA!</div><div style="margin-top:6px;color:rgba(255,255,255,0.7);font-size:13px" id="rw-msg"></div><button id="rw-claim" style="margin-top:14px;width:100%;background:#ffde59;color:black;font-weight:900;padding:12px;border-radius:999px;border:2.5px solid black">CONTINUAR →</button></div></div>`;
+    }
+    if(state==='paused'){
+      h+=`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(10,20,48,0.7);backdrop-filter:blur(12px);pointer-events:auto"><div style="background:rgba(15,27,62,0.95);border:1px solid rgba(255,255,255,0.15);border-radius:28px;padding:22px;text-align:center;max-width:320px;width:100%"><div style="color:rgba(255,255,255,0.4);font-weight:800;font-size:9px;letter-spacing:0.15em">PAUSA • ${getShipConfig(game.level).name}</div><h2 style="color:white;font-weight:900;font-size:18px;margin-top:4px">NIVEL ${game.level} • ${game.points} PTS</h2><button id="resume" style="margin-top:14px;width:100%;background:#ffde59;color:black;font-weight:900;padding:12px;border-radius:999px;border:2.5px solid black">CONTINUAR</button><button id="to-menu" style="margin-top:8px;width:100%;background:rgba(255,255,255,0.08);color:white;padding:11px;border-radius:999px;border:1px solid rgba(255,255,255,0.1)">IR AL MENU</button></div></div>`;
     }
     ui.innerHTML=h;
-    ui.querySelector('#b-ckpt')?.addEventListener('click',async()=>{
+    // Listeners con pausa correcta del ad
+    ui.querySelector('#pauseBtn')?.addEventListener('click',()=>{pauseBefore=state;state='paused';renderUI();});
+    ui.querySelector('#resume')?.addEventListener('click',()=>{state=pauseBefore||'playing';pauseBefore=null;renderUI();});
+    ui.querySelector('#to-menu')?.addEventListener('click',()=>{state='menu';pauseBefore=null;renderUI();});
+    ui.querySelector('#btn-ckpt')?.addEventListener('click',async()=>{
       if(maxLevel<=1){startGame(1);return;}
       if(getCoins()>=100){
-        if(confirm(`Continuar desde nivel ${maxLevel} cuesta 100 monedas o ver anuncio. ¿Pagar 100?`)){ setCoins(getCoins()-100); startGame(maxLevel); }
-        else { await showAd('checkpoint'); startGame(maxLevel); }
-      }else{ await showAd('checkpoint'); startGame(maxLevel); }
+        if(confirm(`Continuar desde nivel ${maxLevel} cuesta 100 monedas o ver anuncio. ¿Pagar 100?`)){setCoins(getCoins()-100);startGame(maxLevel);}
+        else{
+          // PAUSAR JUEGO mientras ad
+          const prev=state; state='paused'; renderUI();
+          await showAd('checkpoint');
+          state='playing'; startGame(maxLevel);
+        }
+      }else{
+        const prev=state; state='paused'; renderUI();
+        await showAd('checkpoint');
+        startGame(maxLevel);
+      }
     });
-    ui.querySelector('#b1')?.addEventListener('click',()=>startGame(1));
-    ui.querySelector('#shoot')?.addEventListener('click',doShoot);
-    ui.querySelector('#c1')?.addEventListener('click',()=>{ setCoins(getCoins()+tempCoins); nextLevel(); });
-    ui.querySelector('#c2')?.addEventListener('click',async()=>{ await showAd('double'); setCoins(getCoins()+tempCoins*2); game.points+=tempPoints; nextLevel(true); });
-    ui.querySelector('#ad-lives')?.addEventListener('click',async()=>{ if(adUses>=3) return; await showAd('lives'); game.misses=Math.max(0,game.misses-3); game.bullets=[]; game.power.state='moving'; adUses++; state='playing'; render(); });
-    ui.querySelector('#rest')?.addEventListener('click',()=>startGame(1));
+    ui.querySelector('#btn-n1')?.addEventListener('click',()=>startGame(1));
+    ui.querySelector('#powBtn')?.addEventListener('click',togglePower);
+    ui.querySelector('#shootBtn')?.addEventListener('click',handleShoot);
+    ui.querySelector('#cont-nox2')?.addEventListener('click',continueWithoutDouble);
+    ui.querySelector('#cont-x2')?.addEventListener('click',async()=>{
+      const prev=state; state='paused'; renderUI();
+      await showAd('double');
+      // x2
+      setCoins(getCoins()+tempCoins);
+      game.points+=tempPoints;
+      maxLevel=Math.max(maxLevel,game.level+1); localStorage.setItem('wasa_max_level',maxLevel);
+      game.level+=1;game.misses=0;game.bullets=[];game.power.state='moving';game.power.v=20;initShips(game.level);game.levelStart=performance.now();state='playing';renderUI();
+    });
+    ui.querySelector('#ad-lives')?.addEventListener('click',async()=>{
+      if(adUses>=3) return;
+      const prev=state; state='paused'; renderUI();
+      await showAd('lives');
+      game.misses=Math.max(0,game.misses-3);game.bullets=[];game.power.state='moving';game.power.v=50;adUses++;state='playing';renderUI();
+    });
+    ui.querySelector('#restart')?.addEventListener('click',()=>startGame(1));
+    ui.querySelector('#go-menu')?.addEventListener('click',()=>{state='menu';renderUI();});
+    ui.querySelector('#rw-claim')?.addEventListener('click',()=>{state='playing';renderUI();});
   }
-  function nextLevel(doubled=false){
-    if(!doubled){ /* coins already added in c1 */ }
-    maxLevel=Math.max(maxLevel,game.level+1); localStorage.setItem('wasa_max_level',maxLevel);
-    game.level+=1; game.misses=0; game.bullets=[]; game.power.state='moving'; game.power.v=20; initShips(game.level); game.levelStart=performance.now(); state='playing'; render();
+
+  function togglePower(){if(state!=='playing') return;if(game.power.state==='moving'){game.power.state='locked';game.power.locked=Math.round(game.power.v||65);}else{game.power.state='moving';}renderUI();}
+  function handleShoot(){if(state!=='playing') return;if(game.power.state==='moving'){game.power.state='locked';game.power.locked=Math.round(game.power.v||65);renderUI();return;}if(game.bullets.length>0)return;const vel=260+game.power.locked*5.2+(game.level-1)*8;const cx=W/2,cy=H-88,tx=game.cross.x,ty=game.cross.y,dy=cy-ty,time=Math.max(dy/vel,0.18),vx=(tx-cx)/time,vy=-vel;game.bullets.push({x:cx,y:cy,vx,vy,trail:[]});}
+  function continueWithoutDouble(){
+    setCoins(getCoins()+tempCoins);maxLevel=Math.max(maxLevel,game.level+1);localStorage.setItem('wasa_max_level',maxLevel);
+    game.level+=1;game.misses=0;game.bullets=[];game.power.state='moving';game.power.v=20;initShips(game.level);game.levelStart=performance.now();state='playing';renderUI();
   }
-  function doShoot(){
-    if(state!=='playing') return;
-    if(game.power.state==='moving'){game.power.state='locked';game.power.locked=Math.round(game.power.v||65);render();return;}
-    if(game.bullets.length>0) return;
-    const vel=260+game.power.locked*5.2+(game.level-1)*8;
-    const cx=W/2,cy=H-88,tx=game.cross.x,ty=game.cross.y,dy=cy-ty,time=Math.max(dy/vel,0.18),vx=(tx-cx)/time,vy=-vel;
-    game.bullets.push({x:cx,y:cy,vx,vy});
-  }
-  let raf,last=performance.now();
+
+  let raf; 
   function loop(now){
-    const dt=Math.min((now-last)/1000,0.033); last=now;
+    // FIX: si hay ad playing en la base, NO avanzar logica
+    if(window._wasaAd && window._wasaAd.playing){ raf=requestAnimationFrame(loop); return; }
+    const dt=Math.min((now-last)/1000,0.033);last=now;
     if(state==='playing'){
-      for(let s of game.ships){s.x+=s.dir*s.speed*dt; if(s.dir===1&&s.x>W+140)s.x=-140; else if(s.dir===-1&&s.x<-140)s.x=W+140; if(s.hitFlash>0)s.hitFlash-=dt*4;}
+      for(let s of game.ships){
+        if(s.cfg.behavior==='zigzag'||s.cfg.behavior==='zigzag_fast'){s.zigTimer+=dt*(s.cfg.behavior==='zigzag_fast'?4:2); s.y=s.originalY+Math.sin(s.zigTimer)*(s.cfg.behavior==='zigzag_fast'?80:40);}
+        if(s.cfg.behavior==='teleport'){s.teleportTimer+=dt; if(s.teleportTimer>2.5){s.teleportTimer=0;s.x=Math.random()*(W-100)+50;s.y=H*0.1+Math.random()*H*0.35;}}
+        s.x+=s.dir*s.speed*dt;
+        if(s.dir===1&&s.x>W+140){s.x=-140;s.y=H*0.1+Math.random()*H*0.32;s.originalY=s.y;s.dir=Math.random()>0.5?1:-1;if(s.dir===-1)s.x=W+140;}
+        else if(s.dir===-1&&s.x<-140){s.x=W+140;s.y=H*0.1+Math.random()*H*0.32;s.originalY=s.y;s.dir=Math.random()>0.5?1:-1;if(s.dir===1)s.x=-140;}
+        if(s.hitFlash>0)s.hitFlash-=dt*4;
+      }
       game.cross.x+=game.cross.dir*game.cross.speed*dt; if(game.cross.x>W-30){game.cross.x=W-30;game.cross.dir=-1;} if(game.cross.x<30){game.cross.x=30;game.cross.dir=1;}
-      if(game.power.state==='moving'){game.power.v+=game.power.dir*game.power.speed*dt; if(game.power.v>=100){game.power.v=100;game.power.dir=-1;} if(game.power.v<=0){game.power.v=0;game.power.dir=1;}} else game.power.v=game.power.locked;
+      if(game.power.state==='moving'){game.power.v+=game.power.dir*game.power.speed*dt; if(game.power.v>=100){game.power.v=100;game.power.dir=-1;} if(game.power.v<=0){game.power.v=0;game.power.dir=1;}}else game.power.v=game.power.locked;
       for(let i=game.bullets.length-1;i>=0;i--){
-        const b=game.bullets[i]; b.x+=b.vx*dt; b.y+=b.vy*dt;
-        for(let si=game.ships.length-1;si>=0;si--){
-          const sh=game.ships[si];
-          if(Math.abs(b.y-sh.y)<26&&Math.abs(b.x-sh.x)<sh.w*0.5){
-            sh.hp-=50; sh.hitFlash=1; game.bullets.splice(i,1); game.power.state='moving';
+        const b=game.bullets[i];b.trail.push({x:b.x,y:b.y});if(b.trail.length>8)b.trail.shift();b.x+=b.vx*dt;b.y+=b.vy*dt;
+        let hit=false;
+        for(let sIdx=game.ships.length-1;sIdx>=0;sIdx--){
+          const sh=game.ships[sIdx];
+          if(Math.abs(b.y-sh.y)<28&&Math.abs(b.x-sh.x)<sh.w*0.5){
+            const dmg=50+ups.d.main;sh.hp-=dmg;sh.hitFlash=1;
+            for(let k=0;k<12;k++){const ang=Math.random()*Math.PI*2,sp=Math.random()*120+40;game.parts.push({x:sh.x,y:sh.y,vx:Math.cos(ang)*sp+sh.dir*20,vy:Math.sin(ang)*sp,life:1,size:Math.random()*2+1,color:Math.random()>0.5?"#ffde59":"#ff8a4d"});}
+            game.bullets.splice(i,1);game.power.state='moving';hit=true;
             if(sh.hp<=0){
-              game.ships.splice(si,1);
+              game.ships.splice(sIdx,1);
+              for(let k=0;k<24;k++){const ang=Math.random()*Math.PI*2,sp=Math.random()*260+40;game.parts.push({x:sh.x,y:sh.y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,life:1,size:Math.random()*4+2,color:`hsl(${40+Math.random()*30},100%,60%)`});}
               if(game.ships.length===0){
-                const el=(performance.now()-game.levelStart)/1000;
-                tempPoints=100*game.level; tempCoins=Math.round((20+game.level*5)/15 * (el<10?2:el<20?1.75:el<30?1.5:1));
-                game.points+=tempPoints; state='levelup'; render(); setTimeout(()=>{if(state==='levelup'){setCoins(getCoins()+tempCoins); nextLevel();}},5000);
+                const elapsed=(performance.now()-game.levelStart)/1000;
+                tempPoints=100*game.level;
+                const base=(20+game.level*5)/15; let mult=1;
+                if(elapsed<10) mult=2; else if(elapsed<20) mult=1.75; else if(elapsed<30) mult=1.5;
+                tempCoins=Math.round(base*mult);
+                game.lastTime=elapsed;game.lastMult=mult;game.lastBase=Math.round(base);
+                game.points+=tempPoints; state='levelup'; renderUI();
+                setTimeout(()=>{if(state==='levelup') continueWithoutDouble();},5000);
               }
             }
             break;
           }
         }
-        if(game.bullets[i] && (b.y<-30||b.x<-30||b.x>W+30)){game.bullets.splice(i,1); game.misses++; game.power.state='moving'; if(game.misses>=5){state='gameover';render();}}
+        if(hit) continue;
+        if(b.y<-30||b.x<-30||b.x>W+30){game.bullets.splice(i,1);game.misses+=1;game.power.state='moving';if(game.misses>=5){state='gameover';renderUI();}}
       }
     }
-    const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,"#2046a3"); g.addColorStop(1,"#315bd5"); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-    for(const s of game.stars){const a=0.5+Math.sin(Date.now()*0.001*s.tw+s.off)*0.5; ctx.fillStyle=`rgba(255,255,255,${0.3+a*0.6})`; ctx.beginPath(); ctx.arc(s.x,s.y,s.size,0,Math.PI*2); ctx.fill();}
-    for(let sh of game.ships){ctx.save();ctx.translate(sh.x,sh.y);ctx.fillStyle=sh.hitFlash>0?"#ffaaaa":sh.cfg.body||"#cfe0ff";ctx.beginPath();ctx.ellipse(0,6,sh.w*0.52,sh.h*0.72,0,0,Math.PI*2);ctx.fill();ctx.restore();}
+    for(let i=game.parts.length-1;i>=0;i--){const p=game.parts[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=0.98;p.vy+=80*dt;p.life-=dt*0.9;if(p.life<=0)game.parts.splice(i,1);}
+
+    const grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,"#21418f");grad.addColorStop(1,"#5e80e1");ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+    for(const s of game.stars){const a=0.5+Math.sin(Date.now()*0.001*s.tw+s.off)*0.5;ctx.fillStyle=`rgba(255,255,255,${0.3+a*0.7})`;ctx.beginPath();ctx.arc(s.x,s.y,s.size*(0.7+a*0.6),0,Math.PI*2);ctx.fill();}
+    for(let sh of game.ships) drawShip(sh);
+    if(state==='playing'||state==='levelup'){
+      for(const b of game.bullets){for(let j=0;j<b.trail.length;j++){const t=b.trail[j],a=j/b.trail.length;ctx.fillStyle=`rgba(255,222,89,${a*0.6})`;ctx.beginPath();ctx.arc(t.x,t.y,2+a*2,0,Math.PI*2);ctx.fill();}ctx.shadowColor="#ffde59";ctx.shadowBlur=12;ctx.fillStyle="#fffe8a";ctx.beginPath();ctx.arc(b.x,b.y,5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}
+      for(const p of game.parts){ctx.globalAlpha=p.life;ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=6;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.globalAlpha=1;}
+      if(state==='playing') drawCross(game.cross.x,game.cross.y,game.power.state==='locked',Date.now());
+      const cx=W/2,cy=H-100;ctx.save();ctx.translate(cx,cy);ctx.shadowColor="#ffde59";ctx.shadowBlur=16;ctx.fillStyle="#1a2a5a";ctx.beginPath();ctx.ellipse(0,0,26,10,0,0,Math.PI*2);ctx.fill();if(state==='playing'){const ang=Math.atan2(game.cross.y-cy,game.cross.x-cx);ctx.rotate(ang);ctx.fillStyle="#e6e8ff";ctx.fillRect(0,-5,36,10);ctx.fillStyle="#ffde59";ctx.fillRect(32,-3,10,6);}ctx.restore();
+    }
     if(state==='playing'){
-      for(const b of game.bullets){ctx.fillStyle="#fff";ctx.shadowColor="#38bdf8";ctx.shadowBlur=12;ctx.beginPath();ctx.arc(b.x,b.y,5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}
-      ctx.save();ctx.translate(game.cross.x,game.cross.y);ctx.strokeStyle=game.power.state==='locked'?"#38bdf8":"#fff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,38,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(-60,0);ctx.lineTo(-20,0);ctx.moveTo(20,0);ctx.lineTo(60,0);ctx.moveTo(0,-60);ctx.lineTo(0,-20);ctx.moveTo(0,20);ctx.lineTo(0,60);ctx.stroke();ctx.restore();
+      // actualizar valores de barra
     }
     raf=requestAnimationFrame(loop);
   }
-  render(); initShips(1); raf=requestAnimationFrame(loop);
-  canvas.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;doShoot();});
-  container._cleanup=()=>{cancelAnimationFrame(raf);ro.disconnect();};
+  renderUI(); initShips(1); raf=requestAnimationFrame(loop);
+  canvas.addEventListener('pointerdown',e=>{if(e.target.closest('button')) return; if(state==='playing') handleShoot();});
+  container._cleanup=()=>{cancelAnimationFrame(raf);ro.disconnect(); if(window._wasaAd) window._wasaAd.playing=false;};
 }
