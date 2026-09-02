@@ -12,16 +12,15 @@
     font-family:Inter,system-ui,sans-serif;
     font-size:13px;line-height:1.5;overflow-x:hidden;min-height:100vh;
   }
-  a{color:inherit;text-decoration:none}
   button{cursor:pointer;border:0;background:0;color:inherit;font:inherit}
   header{position:sticky;top:0;z-index:10;background:rgba(5,8,20,0.75);backdrop-filter:blur(12px);border-bottom:1px solid rgba(56,189,248,0.15);display:flex;align-items:center;gap:16px;padding:12px 20px;height:52px}
   .logo{font-weight:700;letter-spacing:-0.02em;font-size:14px;background:linear-gradient(135deg,#38bdf8 0%,#818cf8 50%,#c084fc 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
   .logo span{color:#94a3b8;-webkit-text-fill-color:initial;font-weight:400;margin-left:6px}
   .search{flex:1;max-width:420px;margin:0 auto}
-  .search input{width:100%;background:#0f172a;border:1px solid rgba(56,189,248,0.2);border-radius:8px;padding:7px 12px;color:#f8fafc;font-size:13px;outline:none;transition:all .2s}
+  .search input{width:100%;background:#0f172a;border:1px solid rgba(56,189,248,0.2);border-radius:8px;padding:7px 12px;color:#f8fafc;font-size:13px;outline:none}
   .search input:focus{border-color:#38bdf8;box-shadow:0 0 12px rgba(56,189,248,0.25)}
   .right{display:flex;align-items:center;gap:12px}
-  .wallet{border:1px solid rgba(56,189,248,0.3);border-radius:20px;padding:5px 12px;font-size:11px;background:linear-gradient(135deg, rgba(56,189,248,0.1), rgba(168,85,247,0.1));transition:all .2s}
+  .wallet{border:1px solid rgba(56,189,248,0.3);border-radius:20px;padding:5px 12px;font-size:11px;background:linear-gradient(135deg, rgba(56,189,248,0.1), rgba(168,85,247,0.1))}
   .wallet.connected{background:linear-gradient(135deg,#38bdf8 0%,#818cf8 100%);color:#0f172a;border-color:transparent;font-weight:600}
   .wrap{max-width:1400px;margin:0 auto;display:flex}
   aside{width:180px;flex-shrink:0;padding:20px;border-right:1px solid rgba(56,189,248,0.12);position:sticky;top:52px;height:calc(100vh - 52px);overflow:auto}
@@ -31,7 +30,7 @@
   .filter-title{font-size:10px;letter-spacing:0.08em;color:#94a3b8;text-transform:uppercase;margin:20px 0 8px;font-weight:600}
   .filter-title:first-child{margin-top:0}
   .filter{display:flex;flex-direction:column;gap:4px}
-  .filter button{text-align:left;padding:4px 6px;border-radius:6px;color:#94a3b8;font-size:12px;transition:all .15s}
+  .filter button{text-align:left;padding:4px 6px;border-radius:6px;color:#94a3b8;font-size:12px}
   .filter button.active{background:linear-gradient(135deg, rgba(56,189,248,0.15), rgba(129,140,248,0.15));color:#38bdf8;border:1px solid rgba(56,189,248,0.25)}
   .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
   @media(max-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}}
@@ -45,32 +44,85 @@
   .badge{position:absolute;top:8px;left:8px;font-size:9px;letter-spacing:0.05em;padding:2px 6px;border-radius:20px;background:#050814;border:1px solid rgba(56,189,248,0.2);color:#94a3b8;z-index:2}
   .badge.live{background:linear-gradient(135deg,#38bdf8,#818cf8);color:#0f172a;font-weight:700;border:none}
   .info{padding:10px 12px}
-  .title{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;text-transform:uppercase;color:#f1f5f9}
-  .meta{font-size:11px;color:#94a3b8;margin-top:2px;display:flex;gap:8px}
+  .title{font-size:13px;font-weight:600;text-transform:uppercase;color:#f1f5f9}
+  .meta{font-size:11px;color:#94a3b8;margin-top:2px}
   .play{position:absolute;inset:0;background:rgba(5,8,20,0.85);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;opacity:0;transition:.15s;z-index:3}
   .card:hover .play{opacity:1}
-  .play span{border:none;border-radius:20px;padding:6px 14px;font-size:12px;background:linear-gradient(135deg,#38bdf8 0%,#818cf8 50%,#c084fc 100%);color:#0f172a;font-weight:700;cursor:pointer;box-shadow:0 0 16px rgba(56,189,248,0.4)}
+  .play span{border-radius:20px;padding:6px 14px;font-size:12px;background:linear-gradient(135deg,#38bdf8 0%,#818cf8 50%,#c084fc 100%);color:#0f172a;font-weight:700;box-shadow:0 0 16px rgba(56,189,248,0.4)}
   #modal{display:none;position:fixed;inset:0;z-index:50;background:rgba(3,6,16,0.95);backdrop-filter:blur(10px);flex-direction:column}
   #modal.open{display:flex}
   #modalTop{height:52px;border-bottom:1px solid rgba(56,189,248,0.2);display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:12px;flex-shrink:0;background:#0a0f24}
-  #modalTitle{font-weight:600;font-size:13px;letter-spacing:0.02em;color:#f8fafc}
+  #modalTitle{font-weight:600;font-size:13px;color:#f8fafc}
   #modalMeta{display:flex;align-items:center;gap:10px}
   .pill{border:1px solid rgba(56,189,248,0.25);border-radius:20px;padding:4px 10px;font-size:11px;background:#0f172a}
   .pill.hd{border-color:rgba(56,189,248,0.4);color:#38bdf8}
   .pill.coins{background:linear-gradient(135deg,#38bdf8 0%,#818cf8 100%);color:#0f172a;border:none;font-weight:700}
-  #modalClose{border:1px solid rgba(56,189,248,0.25);border-radius:20px;padding:6px 14px;font-size:11px;background:#0f172a;color:#e2e8f0;transition:all .15s}
-  #modalClose:hover{background:#1e293b;border-color:#38bdf8}
+  #modalClose{border:1px solid rgba(56,189,248,0.25);border-radius:20px;padding:6px 14px;font-size:11px;background:#0f172a;color:#e2e8f0}
   #modalContainer{flex:1;display:flex;align-items:center;justify-content:center;background:#030712;position:relative;overflow:hidden}
-  @media(min-width:900px){#modal{padding:24px}#modalTop{border-radius:12px 12px 0 0;background:#0a0f24}#modalContainer{border:1px solid rgba(56,189,248,0.2);border-top:0;border-radius:0 0 12px 12px}}
+  @media(min-width:900px){#modal{padding:24px}#modalTop{border-radius:12px 12px 0 0}#modalContainer{border:1px solid rgba(56,189,248,0.2);border-top:0;border-radius:0 0 12px 12px}}
+  #adOverlay{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.92);align-items:center;justify-content:center;flex-direction:column}
+  #adOverlay.open{display:flex}
+  #gmVideo{position:fixed;inset:0;z-index:101;background:#000;display:none}
+  #gmVideo.active{display:block}
+  @keyframes spin{to{transform:rotate(360deg)}}
 </style>
+<script>
+  window._wasaAd={playing:false, ready:false, shown:false, timer:null, resolve:null};
+  window.SDK_OPTIONS={
+    gameId:"4kci7og3klgj0ivy2wz3gdvd9dth5e7n",
+    onEvent:function(a){
+      if(a.name==='SDK_GAME_PAUSE'){window._wasaAd.playing=true;window._wasaAd.shown=true;}
+      if(a.name==='SDK_GAME_START'||a.name==='SDK_ERROR'){
+        window._wasaAd.playing=false;
+        if(window._wasaAd.resolve){var r=window._wasaAd.resolve;window._wasaAd.resolve=null;r();}
+      }
+      if(a.name==='SDK_READY') window._wasaAd.ready=true;
+    }
+  };
+  (function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(d.getElementById(id))return;js=d.createElement(s);js.id=id;js.src="https://api.gamemonetize.com/sdk.js";fjs.parentNode.insertBefore(js,fjs);})(document,"script","gamemonetize-sdk");
+  (function(){var s=document.createElement('script');s.src="https://api.gamemonetize.com/video.js?gameid=4kci7og3klgj0ivy2wz3gdvd9dth5e7n";s.async=true;document.head.appendChild(s);})();
+  window.WASA={
+    showAd:function(type){
+      return new Promise(function(resolve){
+        var overlay=document.getElementById('adOverlay');
+        var gmVideo=document.getElementById('gmVideo');
+        window._wasaAd.resolve=function(){ 
+          overlay.classList.remove('open'); gmVideo.classList.remove('active'); gmVideo.style.display='none'; gmVideo.innerHTML='';
+          if(window._wasaAd.timer) clearTimeout(window._wasaAd.timer);
+          window._wasaAd.playing=false; window._wasaAd.shown=false; resolve();
+        };
+        window._wasaAd.playing=true; window._wasaAd.shown=false;
+        overlay.classList.add('open');
+        setTimeout(function(){
+          overlay.classList.remove('open');
+          if(typeof sdk!=='undefined'&&sdk.showBanner){
+            try{
+              sdk.showBanner();
+              setTimeout(function(){
+                if(!window._wasaAd.shown){
+                  gmVideo.style.display='block'; gmVideo.classList.add('active');
+                  gmVideo.innerHTML='<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#fff"><div style="text-align:center"><div style="width:36px;height:36px;border:3px solid #38bdf8;border-top-color:transparent;border-radius:50%;margin:0 auto 10px;animation:spin 1s linear infinite"></div>Anuncio</div></div>';
+                  window._wasaAd.timer=setTimeout(function(){window._wasaAd.resolve();},4000);
+                }
+              },2500);
+            }catch(e){ window._wasaAd.resolve(); }
+          }else{
+            window._wasaAd.resolve();
+          }
+          window._wasaAd.timer=setTimeout(function(){if(window._wasaAd.resolve) window._wasaAd.resolve();},30000);
+        },300);
+      });
+    }
+  };
+</script>
 </head>
 <body>
+<div id="adOverlay"><div style="width:36px;height:36px;border:3px solid #38bdf8;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite"></div><div style="margin-top:12px;color:white;font-weight:700;font-size:13px">Cargando anuncio...</div><div style="margin-top:4px;color:rgba(255,255,255,0.4);font-size:10px" id="adType"></div></div>
+<div id="gmVideo"></div>
 <header>
   <div class="logo">WASA <span>games.wasa.chat — arcade for onchain games</span></div>
   <div class="search"><input id="q" placeholder="Search games..." oninput="filterGames()"></div>
-  <div class="right">
-    <button class="wallet" id="walletBtn" onclick="toggleWallet()">Connect Wallet</button>
-  </div>
+  <div class="right"><button class="wallet" id="walletBtn" onclick="toggleWallet()">Connect Wallet</button></div>
 </header>
 <div class="wrap">
   <aside>
@@ -83,7 +135,7 @@
       <button data-cat="strategy" onclick="setCat('strategy')">Strategy</button>
     </div>
     <div class="filter-title">Info</div>
-    <div style="color:#94a3b8;font-size:11px;line-height:1.5">Thumbs auto desde<br>slug.png / slug.webp<br>en /thumbs/ o /games/slug/</div>
+    <div style="color:#94a3b8;font-size:11px;line-height:1.5">Thumbs auto<br>slug.png / .webp</div>
   </aside>
   <main>
     <div class="topbar"><div class="subtitle" id="count">Loading...</div></div>
@@ -98,112 +150,65 @@
   <div id="modalContainer"></div>
 </div>
 <script>
-let GAMES = [];
+let GAMES=[];
 let currentCat='all';
-function getCoins(){ return parseInt(localStorage.getItem('wasa_coins')||'0'); }
-function setCoins(n){ localStorage.setItem('wasa_coins', n); document.getElementById('modalCoins').textContent = n + ' $WASA'; }
-function addCoins(n){ setCoins(getCoins()+n); }
-function toggleWallet(){ const btn=document.getElementById('walletBtn'); const isConnected=btn.classList.contains('connected'); if(isConnected){btn.textContent='Connect Wallet';btn.classList.remove('connected')}else{btn.textContent='0x1234…WASA';btn.classList.add('connected')} }
-function setCat(cat){ currentCat=cat; document.querySelectorAll('#catFilter button').forEach(b=>b.classList.toggle('active', b.dataset.cat===cat)); renderGrid(); }
-function filterGames(){ renderGrid(); }
-
+function getCoins(){return parseInt(localStorage.getItem('wasa_coins')||'0');}
+function setCoins(n){localStorage.setItem('wasa_coins',n);document.getElementById('modalCoins').textContent=n+' $WASA';}
+function addCoins(n){setCoins(getCoins()+n);}
+function toggleWallet(){const b=document.getElementById('walletBtn');const c=b.classList.contains('connected');if(c){b.textContent='Connect Wallet';b.classList.remove('connected');}else{b.textContent='0x1234…WASA';b.classList.add('connected');}}
+function setCat(cat){currentCat=cat;document.querySelectorAll('#catFilter button').forEach(b=>b.classList.toggle('active',b.dataset.cat===cat));renderGrid();}
+function filterGames(){renderGrid();}
 async function loadGames(){
-  try{
-    const res = await fetch('./games.json?t='+Date.now());
-    if(!res.ok) throw new Error('404');
-    GAMES = await res.json();
-    console.log('JSON OK', GAMES);
-  }catch(e){
-    console.warn('No se pudo cargar games.json', e);
-    GAMES = [
-      {slug:'space-invaders', title:'SPACE INVADERS', cat:'arcade action', live:true},
-      {slug:'wasa-crypto', title:'WASA CRYPTO', cat:'arcade', live:true}
-    ];
-  }
+  try{const r=await fetch('./games.json?t='+Date.now());if(!r.ok) throw 0;GAMES=await r.json();}
+  catch(e){GAMES=[{slug:'space-invaders',title:'SPACE INVADERS',cat:'arcade action',live:true},{slug:'wasa-crypto',title:'WASA CRYPTO',cat:'arcade',live:true}];}
   renderGrid();
 }
-
 function renderGrid(){
-  const grid = document.getElementById('grid');
-  const q = (document.getElementById('q').value||'').toLowerCase();
-  const filtered = GAMES.filter(g=>{
-    const matchQ = !q || g.slug.includes(q) || g.title.toLowerCase().includes(q) || (g.cat||'').includes(q);
-    const matchCat = currentCat==='all' || (g.cat||'').includes(currentCat);
-    return matchQ && matchCat;
+  const grid=document.getElementById('grid');
+  const q=(document.getElementById('q').value||'').toLowerCase();
+  const filtered=GAMES.filter(g=>{
+    const mq=!q||g.slug.includes(q)||g.title.toLowerCase().includes(q)||(g.cat||'').includes(q);
+    const mc=currentCat==='all'||(g.cat||'').includes(currentCat);
+    return mq&&mc;
   });
-  document.getElementById('count').textContent = filtered.length + ' games — ' + GAMES.filter(g=>g.live).length + ' live';
-  grid.innerHTML = filtered.map(g=>{
-    const thumbId = `thumb-${g.slug}`;
-    return `
-      <div class="card ${g.live?'live':''}">
-        <div class="thumb ${g.live?'':'soon'}" id="${thumbId}">
-          <span style="color:#334155;font-size:11px">loading...</span>
-          <span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>
-        </div>
-        <div class="info"><div class="title">${g.title}</div><div class="meta"><span>${(g.cat||'').split(' ')[0]}</span></div></div>
-        <div class="play"><span onclick="openGame('${g.slug}')">Play Now</span></div>
-      </div>
-    `;
-  }).join('');
-
-  // Carga automatica de imagen por slug: /thumbs/slug.png -> .webp -> /games/slug/thumb.png -> .webp
+  document.getElementById('count').textContent=filtered.length+' games — '+GAMES.filter(g=>g.live).length+' live';
+  grid.innerHTML=filtered.map(g=>`<div class="card ${g.live?'live':''}"><div class="thumb ${g.live?'':'soon'}" id="thumb-${g.slug}"><span style="color:#334155;font-size:11px">loading...</span><span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span></div><div class="info"><div class="title">${g.title}</div><div class="meta"><span>${(g.cat||'').split(' ')[0]}</span></div></div><div class="play"><span onclick="openGame('${g.slug}')">Play Now</span></div></div>`).join('');
   filtered.forEach(g=>{
-    const el = document.getElementById(`thumb-${g.slug}`);
-    if(!el) return;
-    const candidates = [
-      `./thumbs/${g.slug}.png`,
-      `./thumbs/${g.slug}.webp`,
-      `./games/${g.slug}/thumb.png`,
-      `./games/${g.slug}/thumb.webp`,
-      `./games/${g.slug}/${g.slug}.png`,
-      `./games/${g.slug}/${g.slug}.webp`
-    ];
-    let idx = 0;
-    function tryNext(){
-      if(idx >= candidates.length){
-        el.innerHTML = `<span style="font-size:24px">🎮</span><span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>`;
-        return;
-      }
-      const img = new Image();
-      img.onload = ()=>{ el.innerHTML = `<img src="${img.src}" alt="${g.title}"><span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>`; };
-      img.onerror = ()=>{ idx++; tryNext(); };
-      img.src = candidates[idx];
-    }
-    tryNext();
+    const el=document.getElementById('thumb-'+g.slug); if(!el) return;
+    const cand=[`./thumbs/${g.slug}.png`,`./thumbs/${g.slug}.webp`,`./games/${g.slug}/thumb.png`,`./games/${g.slug}/thumb.webp`,`./games/${g.slug}/${g.slug}.png`,`./games/${g.slug}/${g.slug}.webp`];
+    let i=0;function next(){if(i>=cand.length){el.innerHTML=`<span style="font-size:24px">🎮</span><span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>`;return;}const img=new Image();img.onload=()=>{el.innerHTML=`<img src="${img.src}" alt="${g.title}"><span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>`;};img.onerror=()=>{i++;next();};img.src=cand[i];}next();
   });
 }
-
 async function openGame(slug){
-  const modal = document.getElementById('modal');
-  const container = document.getElementById('modalContainer');
-  const titleEl = document.getElementById('modalTitle');
-  const qualityEl = document.getElementById('modalQuality');
-  const isLowEnd = (navigator.deviceMemory||4) <= 2 || (navigator.hardwareConcurrency||4) <= 4;
-  const isMobile = window.innerWidth < 900;
-  const quality = (isMobile || isLowEnd) ? 'lite' : 'hd';
-  const game = GAMES.find(g=>g.slug===slug);
-  titleEl.textContent = (game?.title || slug.replace(/-/g,' ')).toUpperCase();
-  qualityEl.textContent = quality.toUpperCase();
+  const modal=document.getElementById('modal');
+  const container=document.getElementById('modalContainer');
+  const titleEl=document.getElementById('modalTitle');
+  const qualityEl=document.getElementById('modalQuality');
+  const isLow=(navigator.deviceMemory||4)<=2||(navigator.hardwareConcurrency||4)<=4;
+  const isMob=innerWidth<900;
+  const quality=isLow||isMob?'lite':'hd';
+  const game=GAMES.find(g=>g.slug===slug);
+  titleEl.textContent=(game?.title||slug.replace(/-/g,' ')).toUpperCase();
+  qualityEl.textContent=quality.toUpperCase();
   setCoins(getCoins());
   modal.classList.add('open'); document.body.style.overflow='hidden';
-  history.pushState({}, '', `/play?game=${slug}`);
-  container.innerHTML = `<div style="color:#94a3b8;font-size:12px">Loading ${slug} (${quality})...</div>`;
+  history.pushState({},'',`/play?game=${slug}`);
+  container.innerHTML=`<div style="color:#94a3b8;font-size:12px">Loading ${slug} (${quality})...</div>`;
   try{
-    const mod = await import(`./games/${slug}/game.js`);
-    container.innerHTML = '';
-    if(mod.init){ mod.init(container, { quality, getCoins, addCoins, setCoins, slug }); }
-  }catch(e){
-    console.error(e);
-    container.innerHTML = `<div style="text-align:center;color:#94a3b8;font-size:12px">Juego <b style="color:#fff">${slug}</b> no encontrado<br>/games/${slug}/game.js</div>`;
-  }
+    const mod=await import(`./games/${slug}/game.js`);
+    container.innerHTML='';
+    if(mod.init){ mod.init(container,{quality,getCoins,addCoins,setCoins,showAd:window.WASA.showAd,slug}); }
+  }catch(e){console.error(e);container.innerHTML=`<div style="text-align:center;color:#94a3b8;font-size:12px">Juego <b style="color:#fff">${slug}</b> no encontrado<br>/games/${slug}/game.js</div>`;}
 }
-function closeGame(){ document.getElementById('modal').classList.remove('open'); document.getElementById('modalContainer').innerHTML=''; document.body.style.overflow=''; history.pushState({}, '', `/`); }
-window.addEventListener('keydown', e=>{ if(e.key==='Escape') closeGame(); });
-window.addEventListener('DOMContentLoaded', ()=>{
+function closeGame(){document.getElementById('modal').classList.remove('open');document.getElementById('modalContainer').innerHTML='';document.body.style.overflow='';history.pushState({},'',`/`);
+  if(document.getElementById('adOverlay')) document.getElementById('adOverlay').classList.remove('open');
+  if(document.getElementById('gmVideo')){document.getElementById('gmVideo').classList.remove('active');document.getElementById('gmVideo').style.display='none';}
+  window._wasaAd.playing=false;
+}
+addEventListener('keydown',e=>{if(e.key==='Escape') closeGame();});
+addEventListener('DOMContentLoaded',()=>{
   loadGames();
-  const p = new URLSearchParams(location.search);
-  const g = p.get('game');
-  if(g) openGame(g);
+  const p=new URLSearchParams(location.search);const g=p.get('game');if(g) openGame(g);
 });
 </script>
 </body>
