@@ -310,10 +310,12 @@ function setChainFilter(chain){ currentChain=chain; document.querySelectorAll('#
 function filterGames(){ renderGrid(); }
 
 async function loadGames(){
-  try{
-    const res = await fetch('./games.json?t='+Date.now());
-    GAMES = await res.json();
-  }catch(e){
+  const res = await fetch('./games.json?t='+Date.now());
+  if(!res.ok) throw new Error('games.json no encontrado: ' + res.status);
+  GAMES = await res.json();
+  console.log('LEYENDO DESDE games.json:', GAMES);
+  renderGrid();
+}catch(e){
     GAMES = [
       {slug:'wasa-invaders', title:'WASA INVADERS', cat:'arcade action', chain:'bnb', icon:'👾', live:true, popular:100},
       {slug:'wasa-crypto', title:'WASA CRYPTO', cat:'arcade action', chain:'opbnb', icon:'🪙', live:true, popular:90}
