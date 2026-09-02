@@ -241,7 +241,7 @@ async function openGame(slug){
   history.pushState({},'',`/play?game=${slug}`);
   container.innerHTML=`<div style="color:#94a3b8;font-size:12px">Loading ${slug} (${quality})...</div>`;
   try{
-    const mod=await import(`./games/${slug}/game.js`);
+    const mod=await import(`/games/${slug}/game.js?t=${Date.now()}`);
     container.innerHTML='';
     if(mod.init){ mod.init(container,{quality,getCoins,addCoins,setCoins,showAd:window.WASA.showAd,slug}); }
   }catch(e){console.error(e);container.innerHTML=`<div style="text-align:center;color:#94a3b8;font-size:12px">Juego <b style="color:#fff">${slug}</b> no encontrado<br>/games/${slug}/game.js</div>`;}
