@@ -66,55 +66,101 @@
   #gmVideo.active{display:block}
   @keyframes spin{to{transform:rotate(360deg)}}
 </style>
+
 <script>
-  window._wasaAd={playing:false, ready:false, shown:false, timer:null, resolve:null};
+  window._wasaAd={playing:false, ready:false, shown:false, timer:null, resolve:null, fallbackTimer:null};
   window.SDK_OPTIONS={
     gameId:"4kci7og3klgj0ivy2wz3gdvd9dth5e7n",
     onEvent:function(a){
-      if(a.name==='SDK_GAME_PAUSE'){window._wasaAd.playing=true;window._wasaAd.shown=true;}
-      if(a.name==='SDK_GAME_START'||a.name==='SDK_ERROR'){
-        window._wasaAd.playing=false;
-        if(window._wasaAd.resolve){var r=window._wasaAd.resolve;window._wasaAd.resolve=null;r();}
+      console.log('[GM]',a.name);
+      if(a.name==='SDK_GAME_PAUSE'){
+        window._wasaAd.playing=true;
+        window._wasaAd.shown=true;
+        // cuando el SDK muestra el ad real, ocultamos nuestro spinner para dejar ver el video
+        var ov=document.getElementById('adOverlay');
+        if(ov) ov.classList.remove('open');
+      }
+      if(a.name==='SDK_GAME_START'||a.name==='SDK_ERROR'||a.name==='SDK_GAME_END'){
+        // el ad termino o se skippeo
+        if(window._wasaAd.resolve){
+          var r=window._wasaAd.resolve;
+          window._wasaAd.resolve=null;
+          r();
+        }
       }
       if(a.name==='SDK_READY') window._wasaAd.ready=true;
     }
   };
   (function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(d.getElementById(id))return;js=d.createElement(s);js.id=id;js.src="https://api.gamemonetize.com/sdk.js";fjs.parentNode.insertBefore(js,fjs);})(document,"script","gamemonetize-sdk");
   (function(){var s=document.createElement('script');s.src="https://api.gamemonetize.com/video.js?gameid=4kci7og3klgj0ivy2wz3gdvd9dth5e7n";s.async=true;document.head.appendChild(s);})();
+
   window.WASA={
     showAd:function(type){
       return new Promise(function(resolve){
         var overlay=document.getElementById('adOverlay');
         var gmVideo=document.getElementById('gmVideo');
-        window._wasaAd.resolve=function(){ 
-          overlay.classList.remove('open'); gmVideo.classList.remove('active'); gmVideo.style.display='none'; gmVideo.innerHTML='';
-          if(window._wasaAd.timer) clearTimeout(window._wasaAd.timer);
-          window._wasaAd.playing=false; window._wasaAd.shown=false; resolve();
-        };
-        window._wasaAd.playing=true; window._wasaAd.shown=false;
-        overlay.classList.add('open');
-        setTimeout(function(){
+        var adTypeEl=document.getElementById('adType');
+        if(adTypeEl) adTypeEl.textContent=type;
+        
+        // limpiar timers previos
+        if(window._wasaAd.timer) clearTimeout(window._wasaAd.timer);
+        if(window._wasaAd.fallbackTimer) clearTimeout(window._wasaAd.fallbackTimer);
+        
+        window._wasaAd.resolve=function(){
+          console.log('[WASA] Ad finished, resolving',type);
           overlay.classList.remove('open');
-          if(typeof sdk!=='undefined'&&sdk.showBanner){
+          gmVideo.classList.remove('active');
+          gmVideo.style.display='none';
+          gmVideo.innerHTML='';
+          if(window._wasaAd.timer) clearTimeout(window._wasaAd.timer);
+          if(window._wasaAd.fallbackTimer) clearTimeout(window._wasaAd.fallbackTimer);
+          window._wasaAd.playing=false;
+          window._wasaAd.shown=false;
+          window._wasaAd.resolve=null;
+          resolve();
+        };
+
+        window._wasaAd.playing=true;
+        window._wasaAd.shown=false;
+        overlay.classList.add('open');
+        gmVideo.classList.remove('active');
+        gmVideo.style.display='none';
+
+        // intentar mostrar ad real despues de 200ms
+        window._wasaAd.timer=setTimeout(function(){
+          if(typeof sdk!=='undefined' && sdk.showBanner){
             try{
+              console.log('[WASA] Calling sdk.showBanner()');
               sdk.showBanner();
-              setTimeout(function(){
-                if(!window._wasaAd.shown){
-                  gmVideo.style.display='block'; gmVideo.classList.add('active');
-                  gmVideo.innerHTML='<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#fff"><div style="text-align:center"><div style="width:36px;height:36px;border:3px solid #38bdf8;border-top-color:transparent;border-radius:50%;margin:0 auto 10px;animation:spin 1s linear infinite"></div>Anuncio</div></div>';
-                  window._wasaAd.timer=setTimeout(function(){window._wasaAd.resolve();},4000);
+              // si en 3s no mostro nada (sin fill), dar reward igual sin dejar pantalla negra
+              window._wasaAd.fallbackTimer=setTimeout(function(){
+                if(!window._wasaAd.shown && window._wasaAd.resolve){
+                  console.log('[WASA] No fill, fallback reward');
+                  // no mostramos video negro, directamente resolvemos
+                  window._wasaAd.resolve();
                 }
-              },2500);
-            }catch(e){ window._wasaAd.resolve(); }
+              },3000);
+            }catch(e){
+              console.log('[WASA] showBanner error',e);
+              if(window._wasaAd.resolve) window._wasaAd.resolve();
+            }
           }else{
-            window._wasaAd.resolve();
+            console.log('[WASA] sdk not ready, fallback');
+            if(window._wasaAd.resolve) window._wasaAd.resolve();
           }
-          window._wasaAd.timer=setTimeout(function(){if(window._wasaAd.resolve) window._wasaAd.resolve();},30000);
-        },300);
+          // safety timeout 35s por si el SDK se cuelga
+          window._wasaAd.timer=setTimeout(function(){
+            if(window._wasaAd.resolve){
+              console.log('[WASA] Safety timeout');
+              window._wasaAd.resolve();
+            }
+          },35000);
+        },200);
       });
     }
   };
 </script>
+
 </head>
 <body>
 <div id="adOverlay"><div style="width:36px;height:36px;border:3px solid #38bdf8;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite"></div><div style="margin-top:12px;color:white;font-weight:700;font-size:13px">Cargando anuncio...</div><div style="margin-top:4px;color:rgba(255,255,255,0.4);font-size:10px" id="adType"></div></div>
