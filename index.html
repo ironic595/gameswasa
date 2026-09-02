@@ -7,262 +7,68 @@
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   body{
-    background:radial-gradient(ellipse at 50% 0%, rgba(79, 70, 229, 0.15) 0%, transparent 70%), radial-gradient(ellipse at 100% 80%, rgba(245, 158, 11, 0.10) 0%, #337ce300 60%), linear-gradient(180deg, #2046a3 0%, #332891 40%, #315bd5 100%
-100%
-);
-   color: #e2e8f0;
-    font-family: Inter, system-ui, sans-serif;
-    font-size: 13px;
-    line-height: 1.5;
-    overflow-x: hidden;
-    
+    background:radial-gradient(ellipse at 50% 0%, rgba(79, 70, 229, 0.15) 0%, transparent 70%), radial-gradient(ellipse at 100% 80%, rgba(245, 158, 11, 0.10) 0%, transparent 60%), linear-gradient(180deg, #2046a3 0%, #332891 40%, #315bd5 100%);
+    color:#e2e8f0;
+    font-family:Inter,system-ui,sans-serif;
+    font-size:13px;line-height:1.5;overflow-x:hidden;min-height:100vh;
   }
   a{color:inherit;text-decoration:none}
   button{cursor:pointer;border:0;background:0;color:inherit;font:inherit}
-  header{
-    position:sticky;
-    top:0;
-    z-index:10;
-    background: rgba(5, 8, 20, 0.75);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(56, 189, 248, 0.15);
-    display:flex;
-    align-items:center;
-    gap:16px;
-    padding:12px 20px;
-    height:52px;
-  }
-  .logo{
-    font-weight:700;
-    letter-spacing:-0.02em;
-    font-size:14px;
-    background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  .logo span{
-    color:#94a3b8;
-    -webkit-text-fill-color: initial;
-    font-weight:400;
-    margin-left:6px;
-  }
+  header{position:sticky;top:0;z-index:10;background:rgba(5,8,20,0.75);backdrop-filter:blur(12px);border-bottom:1px solid rgba(56,189,248,0.15);display:flex;align-items:center;gap:16px;padding:12px 20px;height:52px}
+  .logo{font-weight:700;letter-spacing:-0.02em;font-size:14px;background:linear-gradient(135deg,#38bdf8 0%,#818cf8 50%,#c084fc 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .logo span{color:#94a3b8;-webkit-text-fill-color:initial;font-weight:400;margin-left:6px}
   .search{flex:1;max-width:420px;margin:0 auto}
-  .search input{
-    width:100%;
-    background:#0f172a;
-    border:1px solid rgba(56, 189, 248, 0.2);
-    border-radius:8px;
-    padding:7px 12px;
-    color:#f8fafc;
-    font-size:13px;
-    outline:none;
-    transition: all .2s;
-  }
-  .search input:focus{
-    border-color:#38bdf8;
-    box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
-  }
+  .search input{width:100%;background:#0f172a;border:1px solid rgba(56,189,248,0.2);border-radius:8px;padding:7px 12px;color:#f8fafc;font-size:13px;outline:none;transition:all .2s}
+  .search input:focus{border-color:#38bdf8;box-shadow:0 0 12px rgba(56,189,248,0.25)}
   .right{display:flex;align-items:center;gap:12px}
-  .chain{
-    border:1px solid rgba(56, 189, 248, 0.2);
-    background:#0f172a;
-    border-radius:20px;
-    padding:4px 10px;
-    font-size:11px;
-    display:flex;
-    align-items:center;
-    gap:6px;
-  }
-  .dot{width:6px;height:6px;border-radius:50%}
-  .dot.bnb{background:#f0b90b}.dot.opbnb{background:#ff6a00}
-  .wallet{
-    border:1px solid rgba(56, 189, 248, 0.3);
-    border-radius:20px;
-    padding:5px 12px;
-    font-size:11px;
-    background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(168, 85, 247, 0.1));
-    transition: all .2s;
-  }
-  .wallet:hover{
-    border-color: #38bdf8;
-    box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
-  }
-  .wallet.connected{
-    background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
-    color:#0f172a;
-    border-color: transparent;
-    font-weight: 600;
-  }
+  .wallet{border:1px solid rgba(56,189,248,0.3);border-radius:20px;padding:5px 12px;font-size:11px;background:linear-gradient(135deg, rgba(56,189,248,0.1), rgba(168,85,247,0.1));transition:all .2s}
+  .wallet.connected{background:linear-gradient(135deg,#38bdf8 0%,#818cf8 100%);color:#0f172a;border-color:transparent;font-weight:600}
   .wrap{max-width:1400px;margin:0 auto;display:flex}
-  aside{
-    width:180px;
-    flex-shrink:0;
-    padding:20px;
-    border-right:1px solid rgba(56, 189, 248, 0.12);
-    position:sticky;
-    top:52px;
-    height:calc(100vh - 52px);
-    overflow:auto;
-  }
+  aside{width:180px;flex-shrink:0;padding:20px;border-right:1px solid rgba(56,189,248,0.12);position:sticky;top:52px;height:calc(100vh - 52px);overflow:auto}
   main{flex:1;padding:20px;min-width:0}
   .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-  .subtitle{color:#64748b;font-size:12px}
-  .sort{color:#64748b;font-size:11px;display:flex;gap:8px}
-  .sort button{color:#64748b}.sort button.active{color:#38bdf8;font-weight:600}
-  .filter-title{font-size:10px;letter-spacing:0.08em;color:#64748b;text-transform:uppercase;margin:20px 0 8px}
+  .subtitle{color:#cbd5e1;font-size:12px}
+  .filter-title{font-size:10px;letter-spacing:0.08em;color:#94a3b8;text-transform:uppercase;margin:20px 0 8px;font-weight:600}
   .filter-title:first-child{margin-top:0}
   .filter{display:flex;flex-direction:column;gap:4px}
-  .filter button{
-    text-align:left;
-    padding:4px 6px;
-    border-radius:6px;
-    color:#94a3b8;
-    font-size:12px;
-    transition: all .15s;
-  }
-  .filter button.active{
-    background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(129, 140, 248, 0.15));
-    color:#38bdf8;
-    border: 1px solid rgba(56, 189, 248, 0.25);
-  }
+  .filter button{text-align:left;padding:4px 6px;border-radius:6px;color:#94a3b8;font-size:12px;transition:all .15s}
+  .filter button.active{background:linear-gradient(135deg, rgba(56,189,248,0.15), rgba(129,140,248,0.15));color:#38bdf8;border:1px solid rgba(56,189,248,0.25)}
   .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
   @media(max-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}}
-  @media(max-width:700px){.wrap{flex-direction:column}aside{width:100%;height:auto;position:static;border-right:0;border-bottom:1px solid rgba(56, 189, 248, 0.12);display:flex;gap:20px;overflow:auto;white-space:nowrap}.filter{flex-direction:row}.grid{grid-template-columns:repeat(2,1fr)}header{flex-wrap:wrap;height:auto}.search{order:3;max-width:none;width:100%;margin-top:8px}}
-  .card{
-    border: 1px solid rgba(56, 189, 248, 0.15);
-    border-radius: 12px;
-    overflow: hidden;
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(8px);
-    position: relative;
-    transition: all .2s ease;
-  }
-  .card:hover{
-    border-color: #38bdf8;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px -6px rgba(56, 189, 248, 0.3);
-  }
-  .card.live{border-color: rgba(56, 189, 248, 0.25)}
-  .thumb{
-    aspect-ratio: 16/10;
-    background: #0b1329;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    position: relative;
-    overflow: hidden;
-  }
-  .thumb img{width:100%;height:100%;object-fit:cover}
+  @media(max-width:700px){.wrap{flex-direction:column}aside{width:100%;height:auto;position:static;border-right:0;border-bottom:1px solid rgba(56,189,248,0.12);display:flex;gap:20px;overflow:auto;white-space:nowrap}.filter{flex-direction:row}.grid{grid-template-columns:repeat(2,1fr)}header{flex-wrap:wrap;height:auto}.search{order:3;max-width:none;width:100%;margin-top:8px}}
+  .card{border:1px solid rgba(56,189,248,0.15);border-radius:12px;overflow:hidden;background:rgba(15,23,42,0.6);backdrop-filter:blur(8px);position:relative;transition:all .2s ease}
+  .card:hover{border-color:#38bdf8;transform:translateY(-2px);box-shadow:0 8px 24px -6px rgba(56,189,248,0.3)}
+  .card.live{border-color:rgba(56,189,248,0.25)}
+  .thumb{aspect-ratio:16/10;background:#0b1329;display:flex;align-items:center;justify-content:center;font-size:28px;position:relative;overflow:hidden}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
   .thumb.soon{background:#070a14;color:#334155}
-  .badge{
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    font-size: 9px;
-    letter-spacing: 0.05em;
-    padding: 2px 6px;
-    border-radius: 20px;
-    background: #050814;
-    border: 1px solid rgba(56, 189, 248, 0.2);
-    color: #94a3b8;
-    z-index: 2;
-  }
-  .badge.live{
-    background: linear-gradient(135deg, #38bdf8, #818cf8);
-    color: #0f172a;
-    font-weight: 700;
-    border: none;
-  }
+  .badge{position:absolute;top:8px;left:8px;font-size:9px;letter-spacing:0.05em;padding:2px 6px;border-radius:20px;background:#050814;border:1px solid rgba(56,189,248,0.2);color:#94a3b8;z-index:2}
+  .badge.live{background:linear-gradient(135deg,#38bdf8,#818cf8);color:#0f172a;font-weight:700;border:none}
   .info{padding:10px 12px}
-  .title{font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;text-transform:uppercase;color:#f1f5f9}
-  .chain-dot{width:5px;height:5px;border-radius:50%;display:inline-block}
-  .meta{font-size:11px;color:#64748b;margin-top:2px;display:flex;gap:8px}
-  .play{
-    position: absolute;
-    inset: 0;
-    background: rgba(5, 8, 20, 0.85);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: .15s;
-    z-index: 3;
-  }
+  .title{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;text-transform:uppercase;color:#f1f5f9}
+  .meta{font-size:11px;color:#94a3b8;margin-top:2px;display:flex;gap:8px}
+  .play{position:absolute;inset:0;background:rgba(5,8,20,0.85);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;opacity:0;transition:.15s;z-index:3}
   .card:hover .play{opacity:1}
-  .play span{
-    border: none;
-    border-radius: 20px;
-    padding: 6px 14px;
-    font-size: 12px;
-    background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
-    color: #0f172a;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
-  }
-  #modal{
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 50;
-    background: rgba(3, 6, 16, 0.95);
-    backdrop-filter: blur(10px);
-    flex-direction: column;
-  }
+  .play span{border:none;border-radius:20px;padding:6px 14px;font-size:12px;background:linear-gradient(135deg,#38bdf8 0%,#818cf8 50%,#c084fc 100%);color:#0f172a;font-weight:700;cursor:pointer;box-shadow:0 0 16px rgba(56,189,248,0.4)}
+  #modal{display:none;position:fixed;inset:0;z-index:50;background:rgba(3,6,16,0.95);backdrop-filter:blur(10px);flex-direction:column}
   #modal.open{display:flex}
-  #modalTop{
-    height: 52px;
-    border-bottom: 1px solid rgba(56, 189, 248, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
-    gap: 12px;
-    flex-shrink: 0;
-    background: #0a0f24;
-  }
+  #modalTop{height:52px;border-bottom:1px solid rgba(56,189,248,0.2);display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:12px;flex-shrink:0;background:#0a0f24}
   #modalTitle{font-weight:600;font-size:13px;letter-spacing:0.02em;color:#f8fafc}
   #modalMeta{display:flex;align-items:center;gap:10px}
-  .pill{
-    border: 1px solid rgba(56, 189, 248, 0.25);
-    border-radius: 20px;
-    padding: 4px 10px;
-    font-size: 11px;
-    background: #0f172a;
-  }
-  .pill.hd{border-color: rgba(56, 189, 248, 0.4); color: #38bdf8}
-  .pill.coins{
-    background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
-    color: #0f172a;
-    border: none;
-    font-weight: 700;
-  }
-  #modalClose{
-    border: 1px solid rgba(56, 189, 248, 0.25);
-    border-radius: 20px;
-    padding: 6px 14px;
-    font-size: 11px;
-    background: #0f172a;
-    color: #e2e8f0;
-    transition: all .15s;
-  }
+  .pill{border:1px solid rgba(56,189,248,0.25);border-radius:20px;padding:4px 10px;font-size:11px;background:#0f172a}
+  .pill.hd{border-color:rgba(56,189,248,0.4);color:#38bdf8}
+  .pill.coins{background:linear-gradient(135deg,#38bdf8 0%,#818cf8 100%);color:#0f172a;border:none;font-weight:700}
+  #modalClose{border:1px solid rgba(56,189,248,0.25);border-radius:20px;padding:6px 14px;font-size:11px;background:#0f172a;color:#e2e8f0;transition:all .15s}
   #modalClose:hover{background:#1e293b;border-color:#38bdf8}
   #modalContainer{flex:1;display:flex;align-items:center;justify-content:center;background:#030712;position:relative;overflow:hidden}
-  @media(min-width:900px){
-    #modal{padding:24px}
-    #modalTop{border-radius:12px 12px 0 0;background:#0a0f24}
-    #modalContainer{border:1px solid rgba(56, 189, 248, 0.2);border-top:0;border-radius:0 0 12px 12px}
-  }
+  @media(min-width:900px){#modal{padding:24px}#modalTop{border-radius:12px 12px 0 0;background:#0a0f24}#modalContainer{border:1px solid rgba(56,189,248,0.2);border-top:0;border-radius:0 0 12px 12px}}
 </style>
 </head>
 <body>
 <header>
   <div class="logo">WASA <span>games.wasa.chat — arcade for onchain games</span></div>
-  <div class="search"><input id="q" placeholder="Search games, tags, chains..." oninput="filterGames()"></div>
+  <div class="search"><input id="q" placeholder="Search games..." oninput="filterGames()"></div>
   <div class="right">
-    <button class="chain" onclick="toggleChain()"><span class="dot bnb" id="chainDot"></span><span id="chainName">BNB Chain</span></button>
     <button class="wallet" id="walletBtn" onclick="toggleWallet()">Connect Wallet</button>
   </div>
 </header>
@@ -276,17 +82,11 @@
       <button data-cat="arcade" onclick="setCat('arcade')">Arcade</button>
       <button data-cat="strategy" onclick="setCat('strategy')">Strategy</button>
     </div>
-    <div class="filter-title">Chain</div>
-    <div class="filter" id="chainFilter">
-      <button class="active" data-chain="all" onclick="setChainFilter('all')">All chains</button>
-      <button data-chain="bnb" onclick="setChainFilter('bnb')">BNB Chain</button>
-      <button data-chain="opbnb" onclick="setChainFilter('opbnb')">opBNB</button>
-    </div>
-    <div class="filter-title">Auto</div>
-    <div style="color:#475569;font-size:11px;line-height:1.4">Grilla auto desde<br>games.json<br>Thumb: /thumbs/slug.png</div>
+    <div class="filter-title">Info</div>
+    <div style="color:#94a3b8;font-size:11px;line-height:1.5">Thumbs auto desde<br>slug.png / slug.webp<br>en /thumbs/ o /games/slug/</div>
   </aside>
   <main>
-    <div class="topbar"><div class="subtitle" id="count">Loading...</div><div class="sort"><button class="active">Newest</button></div></div>
+    <div class="topbar"><div class="subtitle" id="count">Loading...</div></div>
     <div class="grid" id="grid"></div>
   </main>
 </div>
@@ -299,14 +99,12 @@
 </div>
 <script>
 let GAMES = [];
-let currentCat='all', currentChain='all', currentChainSel='bnb', wallet=false;
+let currentCat='all';
 function getCoins(){ return parseInt(localStorage.getItem('wasa_coins')||'0'); }
 function setCoins(n){ localStorage.setItem('wasa_coins', n); document.getElementById('modalCoins').textContent = n + ' $WASA'; }
 function addCoins(n){ setCoins(getCoins()+n); }
-function toggleChain(){ currentChainSel = currentChainSel==='bnb'?'opbnb':'bnb'; document.getElementById('chainName').textContent = currentChainSel==='bnb'?'BNB Chain':'opBNB'; document.getElementById('chainDot').className='dot '+(currentChainSel==='bnb'?'bnb':'opbnb'); }
-function toggleWallet(){ wallet=!wallet; const btn=document.getElementById('walletBtn'); if(wallet){btn.textContent='0x1234…WASA';btn.classList.add('connected')}else{btn.textContent='Connect Wallet';btn.classList.remove('connected')} }
+function toggleWallet(){ const btn=document.getElementById('walletBtn'); const isConnected=btn.classList.contains('connected'); if(isConnected){btn.textContent='Connect Wallet';btn.classList.remove('connected')}else{btn.textContent='0x1234…WASA';btn.classList.add('connected')} }
 function setCat(cat){ currentCat=cat; document.querySelectorAll('#catFilter button').forEach(b=>b.classList.toggle('active', b.dataset.cat===cat)); renderGrid(); }
-function setChainFilter(chain){ currentChain=chain; document.querySelectorAll('#chainFilter button').forEach(b=>b.classList.toggle('active', b.dataset.chain===chain)); renderGrid(); }
 function filterGames(){ renderGrid(); }
 
 async function loadGames(){
@@ -314,12 +112,12 @@ async function loadGames(){
     const res = await fetch('./games.json?t='+Date.now());
     if(!res.ok) throw new Error('404');
     GAMES = await res.json();
-    console.log('JSON OK:', GAMES);
+    console.log('JSON OK', GAMES);
   }catch(e){
-    console.warn('Fallo games.json, usando fallback:', e);
+    console.warn('No se pudo cargar games.json', e);
     GAMES = [
-      {slug:'space-invaders', title:'SPACE INVADERS', cat:'arcade action', chain:'bnb', icon:'👾', live:true, popular:100},
-      {slug:'wasa-crypto', title:'WASA CRYPTO', cat:'arcade action', chain:'opbnb', icon:'🪙', live:true, popular:90}
+      {slug:'space-invaders', title:'SPACE INVADERS', cat:'arcade action', live:true},
+      {slug:'wasa-crypto', title:'WASA CRYPTO', cat:'arcade', live:true}
     ];
   }
   renderGrid();
@@ -329,42 +127,49 @@ function renderGrid(){
   const grid = document.getElementById('grid');
   const q = (document.getElementById('q').value||'').toLowerCase();
   const filtered = GAMES.filter(g=>{
-    const matchQ = !q || g.slug.includes(q) || g.title.toLowerCase().includes(q) || g.cat.includes(q);
-    const matchCat = currentCat==='all' || g.cat.includes(currentCat);
-    const matchChain = currentChain==='all' || g.chain===currentChain;
-    return matchQ && matchCat && matchChain;
+    const matchQ = !q || g.slug.includes(q) || g.title.toLowerCase().includes(q) || (g.cat||'').includes(q);
+    const matchCat = currentCat==='all' || (g.cat||'').includes(currentCat);
+    return matchQ && matchCat;
   });
   document.getElementById('count').textContent = filtered.length + ' games — ' + GAMES.filter(g=>g.live).length + ' live';
   grid.innerHTML = filtered.map(g=>{
-    const dotColor = g.chain==='bnb' ? '#f0b90b' : '#ff6a00';
     const thumbId = `thumb-${g.slug}`;
     return `
-      <div class="card ${g.live?'live':''}" data-title="${g.title.toLowerCase()}" data-cat="${g.cat}" data-chain="${g.chain}">
+      <div class="card ${g.live?'live':''}">
         <div class="thumb ${g.live?'':'soon'}" id="${thumbId}">
-          ${g.icon||'🎮'}
+          <span style="color:#334155;font-size:11px">loading...</span>
           <span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>
         </div>
-        <div class="info"><div class="title"><span class="chain-dot" style="background:${dotColor}"></span>${g.title}</div><div class="meta"><span>${g.cat.split(' ')[0]}</span><span>·</span><span>${g.chain}</span></div></div>
+        <div class="info"><div class="title">${g.title}</div><div class="meta"><span>${(g.cat||'').split(' ')[0]}</span></div></div>
         <div class="play"><span onclick="openGame('${g.slug}')">Play Now</span></div>
       </div>
     `;
   }).join('');
+
+  // Carga automatica de imagen por slug: /thumbs/slug.png -> .webp -> /games/slug/thumb.png -> .webp
   filtered.forEach(g=>{
     const el = document.getElementById(`thumb-${g.slug}`);
     if(!el) return;
-    const img = new Image();
-    img.onload = ()=>{ el.innerHTML = `<img src="${img.src}"><span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>`; };
-    img.onerror = ()=>{
-      const img2 = new Image();
-      img2.onload = ()=>{ el.innerHTML = `<img src="${img2.src}"><span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>`; };
-      img2.onerror = ()=>{
-        const img3 = new Image();
-        img3.onload = ()=>{ el.innerHTML = `<img src="${img3.src}"><span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>`; };
-        img3.src = `./games/${g.slug}/thumb.webp`;
-      };
-      img2.src = `./games/${g.slug}/thumb.png`;
-    };
-    img.src = `./thumbs/${g.slug}.png`;
+    const candidates = [
+      `./thumbs/${g.slug}.png`,
+      `./thumbs/${g.slug}.webp`,
+      `./games/${g.slug}/thumb.png`,
+      `./games/${g.slug}/thumb.webp`,
+      `./games/${g.slug}/${g.slug}.png`,
+      `./games/${g.slug}/${g.slug}.webp`
+    ];
+    let idx = 0;
+    function tryNext(){
+      if(idx >= candidates.length){
+        el.innerHTML = `<span style="font-size:24px">🎮</span><span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>`;
+        return;
+      }
+      const img = new Image();
+      img.onload = ()=>{ el.innerHTML = `<img src="${img.src}" alt="${g.title}"><span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>`; };
+      img.onerror = ()=>{ idx++; tryNext(); };
+      img.src = candidates[idx];
+    }
+    tryNext();
   });
 }
 
@@ -376,12 +181,13 @@ async function openGame(slug){
   const isLowEnd = (navigator.deviceMemory||4) <= 2 || (navigator.hardwareConcurrency||4) <= 4;
   const isMobile = window.innerWidth < 900;
   const quality = (isMobile || isLowEnd) ? 'lite' : 'hd';
-  titleEl.textContent = slug.replace(/-/g,' ').toUpperCase();
+  const game = GAMES.find(g=>g.slug===slug);
+  titleEl.textContent = (game?.title || slug.replace(/-/g,' ')).toUpperCase();
   qualityEl.textContent = quality.toUpperCase();
   setCoins(getCoins());
   modal.classList.add('open'); document.body.style.overflow='hidden';
   history.pushState({}, '', `/play?game=${slug}`);
-  container.innerHTML = `<div style="color:#64748b;font-size:12px">Loading ${slug} (${quality})...</div>`;
+  container.innerHTML = `<div style="color:#94a3b8;font-size:12px">Loading ${slug} (${quality})...</div>`;
   try{
     const mod = await import(`./games/${slug}/game.js`);
     container.innerHTML = '';
