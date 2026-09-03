@@ -1,9 +1,6 @@
 export function init(container, args){
-  const quality = args.quality||'hd';
   const getCoins = args.getCoins||(()=>parseInt(localStorage.getItem('wasa_coins')||'0'));
   const setCoins = args.setCoins||((n)=>localStorage.setItem('wasa_coins',n));
-  const addCoins = args.addCoins||((n)=>setCoins(getCoins()+n));
-
   container.innerHTML = `
     <style>
       .bt{width:100%;height:100%;position:relative;background:#020617;overflow:hidden;font-family:Inter,system-ui,sans-serif}
@@ -20,13 +17,10 @@ export function init(container, args){
   let W=wrap.clientWidth,H=wrap.clientHeight;
   function resize(){W=wrap.clientWidth;H=wrap.clientHeight;const dpr=devicePixelRatio||1;canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);}
   resize(); const ro=new ResizeObserver(resize); ro.observe(wrap);
-
-  // 100 niveles subdivididos en 5 como Space Invaders: main 0-19, sub 0-4 => total 0-99
   let ups=JSON.parse(localStorage.getItem('wasa_upgrades_bananatron')||'{"v":{"main":0,"sub":0}}');
   if(!ups.v) ups={v:{main:0,sub:0}};
   let maxRound=parseInt(localStorage.getItem('wasa_bananatron_max')||'1');
   let coins=getCoins();
-
   const COLS=64, ROWS=44;
   let cellW, cellH, offsetX, offsetY;
   function calcMetrics(){
@@ -38,152 +32,135 @@ export function init(container, args){
     offsetY=Math.floor((H*0.82 - ROWS*cs)/2)+border;
   }
   calcMetrics();
-
   let state='menu';
   let round=1, greenWins=0, redWins=0;
   let grid, p1, p2, tick=0, tempCoins=0;
   let _rewardPending=null;
-
   const DIRS=[{x:0,y:-1},{x:1,y:0},{x:0,y:1},{x:-1,y:0}];
-
-  function getTotalLevel(){ return ups.v.main*5 + ups.v.sub; } // 0-99
+  function getTotalLevel(){ return ups.v.main*5 + ups.v.sub; }
   function getMaxLevel(){ return 100; }
-
   function saveUps(){localStorage.setItem('wasa_upgrades_bananatron',JSON.stringify(ups));}
   function saveMax(){if(round>maxRound){maxRound=round;localStorage.setItem('wasa_bananatron_max',maxRound);}}
-
-  function getUpgradeCost(main, sub){
-    const total = main*5+sub;
-    return Math.floor(60 + total*18 + Math.pow(total,1.35)*2);
-  }
-
-  function getRivalInterval(lvl){
-    // Rival sube poquito cada nivel: base 135ms - lvl*1.6 - sqrt(lvl)*2.2
-    return Math.max(38, 135 - lvl*1.6 - Math.pow(lvl,0.55)*2.2);
-  }
-  function getPlayerInterval(){
-    // Tu linea: 115ms base - totalLevel*0.68 -> a nivel 100 llegas a ~47ms (muy rapida)
-    const total=getTotalLevel();
-    return Math.max(28, 115 - total*0.68 - ups.v.main*0.8);
-  }
-
-  function newGrid(){
-    const g=[]; for(let y=0;y<ROWS;y++){ g[y]=[]; for(let x=0;x<COLS;x++) g[y][x]=0; } return g;
-  }
-
+  function getUpgradeCost(main, sub){ const total = main*5+sub; return Math.floor(60 + total*18 + Math.pow(total,1.35)*2); }
+  function getRivalInterval(lvl){ return Math.max(22, 135 - lvl*3.2 - Math.pow(lvl,0.65)*4); }
+  function getPlayerInterval(){ const total=getTotalLevel(); return Math.max(18, 115 - total*0.68 - ups.v.main*0.8); }
+  function newGrid(){ const g=[]; for(let y=0;y<ROWS;y++){ g[y]=[]; for(let x=0;x<COLS;x++) g[y][x]=0; } return g; }
   function resetRound(r){
     round=r; grid=newGrid();
-    p1={x:Math.floor(COLS*0.18), y:Math.floor(ROWS*0.5), dir:1, trail:[], alive:true, shield:0};
+    p1={x:Math.floor(COLS*0.18), y:Math.floor(ROWS*0.5), dir:1, trail:[], alive:true};
     p2={x:Math.floor(COLS*0.82), y:Math.floor(ROWS*0.5), dir:3, trail:[], alive:true};
     grid[p1.y][p1.x]=1; grid[p2.y][p2.x]=2;
     p1.trail.push({x:p1.x,y:p1.y}); p2.trail.push({x:p2.x,y:p2.y});
     tick=0; tempCoins=0;
   }
-
   function canMove(x,y){ if(x<0||x>=COLS||y<0||y>=ROWS) return false; return grid[y][x]===0; }
-
-  function floodCount(sx,sy, forbidX=-1, forbidY=-1, maxCount=250){
-    // BFS cuenta celdas libres alcanzables desde sx,sy
-    if(!canMove(sx,sy)) return 0;
-    const visited = new Set();
-    const q = [[sx,sy]];
+  function floodFull(sx,sy){
+    if(!canMove(sx,sy)) return {count:0};
+    const visited=new Set();
+    const q=[[sx,sy]];
     visited.add(sx+','+sy);
-    let count=0;
     let head=0;
-    while(head<q.length && count<maxCount){
-      const [x,y]=q[head++]; count++;
+    while(head<q.length){
+      const [x,y]=q[head++];
       for(let d=0;d<4;d++){
         const nx=x+DIRS[d].x, ny=y+DIRS[d].y;
-        if(nx===forbidX && ny===forbidY) continue;
-        if(nx<0||nx>=COLS||ny<0||ny>=ROWS) continue;
         const key=nx+','+ny;
+        if(nx<0||nx>=COLS||ny<0||ny>=ROWS) continue;
         if(visited.has(key)) continue;
         if(grid[ny][nx]!==0) continue;
-        // la posicion del jugador rival cuenta como bloqueada para flood
-        if(nx===p1.x && ny===p1.y) continue;
         visited.add(key);
         q.push([nx,ny]);
       }
     }
-    return count;
+    return {count:visited.size, cells:visited};
   }
-
+  function voronoiAfterMove(aiNx, aiNy, p1x, p1y){
+    const aiVisited=new Set();
+    const p1Visited=new Set();
+    const aiQ=[[aiNx,aiNy]];
+    const p1Q=[[p1x,p1y]];
+    aiVisited.add(aiNx+','+aiNy);
+    p1Visited.add(p1x+','+p1y);
+    let aiHead=0, p1Head=0;
+    while(aiHead<aiQ.length || p1Head<p1Q.length){
+      const aiLevelSize=aiQ.length-aiHead;
+      for(let i=0;i<aiLevelSize;i++){
+        const [x,y]=aiQ[aiHead++];
+        for(let d=0;d<4;d++){
+          const nx=x+DIRS[d].x, ny=y+DIRS[d].y;
+          const key=nx+','+ny;
+          if(nx<0||nx>=COLS||ny<0||ny>=ROWS) continue;
+          if(aiVisited.has(key)||p1Visited.has(key)) continue;
+          if(grid[ny][nx]!==0) continue;
+          if(nx===p1x && ny===p1y) continue;
+          aiVisited.add(key);
+          aiQ.push([nx,ny]);
+        }
+      }
+      const p1LevelSize=p1Q.length-p1Head;
+      for(let i=0;i<p1LevelSize;i++){
+        const [x,y]=p1Q[p1Head++];
+        for(let d=0;d<4;d++){
+          const nx=x+DIRS[d].x, ny=y+DIRS[d].y;
+          const key=nx+','+ny;
+          if(nx<0||nx>=COLS||ny<0||ny>=ROWS) continue;
+          if(aiVisited.has(key)||p1Visited.has(key)) continue;
+          if(grid[ny][nx]!==0) continue;
+          if(nx===aiNx && ny===aiNy) continue;
+          p1Visited.add(key);
+          p1Q.push([nx,ny]);
+        }
+      }
+      if(aiQ.length>1000 || p1Q.length>1000) break;
+    }
+    return {ai: aiVisited.size, p1: p1Visited.size};
+  }
   function aiChoose(){
     const curDir=p2.dir;
-    const difficulty = Math.min(1, 0.35 + round*0.04 + getTotalLevel()*0.005); // 0.35 a 1
-    const lookAhead = 3 + Math.floor(round/3); // a nivel alto mira mas
     const candidates=[];
-    const order=[0,-1,1]; // frente, izq, der (nunca atras salvo forzado)
+    const order=[0,-1,1];
     for(let o of order){
       let nd=(curDir+o+4)%4;
       const nx=p2.x+DIRS[nd].x, ny=p2.y+DIRS[nd].y;
       if(!canMove(nx,ny)) continue;
-
-      // 1. espacio propio (flood)
-      const mySpace = floodCount(nx, ny, -1,-1, 300);
-
-      // 2. espacio del rival humano si yo voy ahi (cuanto le dejo)
-      const p1Space = floodCount(p1.x, p1.y, nx, ny, 300);
-
-      // 3. chequeo de muerte en 2 pasos
-      let deadIn2=false;
+      const myFlood = floodFull(nx,ny);
+      const p1Flood = floodFull(p1.x,p1.y);
+      const vor = voronoiAfterMove(nx,ny,p1.x,p1.y);
       let exits=0;
       for(let d=0;d<4;d++){
-        if(d=== (nd+2)%4) continue; // no volver
+        if(d===(nd+2)%4) continue;
         const ex=nx+DIRS[d].x, ey=ny+DIRS[d].y;
         if(canMove(ex,ey)) exits++;
       }
-      if(exits===0) deadIn2=true;
-
-      // 4. score
-      let score = mySpace*1.2; // prioriza no encerrarse
-      score -= p1Space*0.45; // intenta dejarle poco espacio al rival (cortar)
-
-      // bonus por acercarse y encerrar
+      let score=0;
+      if(myFlood.count===0) score -= 10000;
+      else if(myFlood.count<5) score -= 5000;
+      else if(myFlood.count<12) score -= 400;
+      else score += myFlood.count*2.5;
+      score += (vor.ai - vor.p1*1.8)*4;
+      if(p1Flood.count<8) score += 600;
+      if(p1Flood.count<15) score += 300;
+      if(p1Flood.count<25) score += 100;
+      if(vor.p1<8) score += 1000;
+      if(vor.p1<15) score += 500;
+      if(vor.p1<25) score += 200;
       const curDist = Math.abs(p2.x-p1.x)+Math.abs(p2.y-p1.y);
       const newDist = Math.abs(nx-p1.x)+Math.abs(ny-p1.y);
-      if(newDist < curDist) score += 8; // persigue
-      if(curDist < 12 && newDist < curDist) score += 12; // agresivo cuando esta cerca
-
-      // penaliza corredores sin salida
-      if(deadIn2) score -= 200;
-      if(mySpace < 8) score -= 100;
-      if(mySpace < 20) score -= 30;
-      if(p1Space < 10) score += 40; // lo estas encerrando
-
-      // evita ir al borde si hay mejor centro
-      const centerDist = Math.abs(nx-COLS/2)+Math.abs(ny-ROWS/2);
-      score += (COLS+ROWS - centerDist)*0.05;
-
-      // bonus por seguir derecho (menos predecible para humano? pero eficiente)
-      if(o===0) score += 3;
-
-      candidates.push({dir:nd, score, mySpace, p1Space, dead:deadIn2});
+      if(curDist<20 && newDist<curDist) score+= 60;
+      if(exits===0) score -= 2000;
+      if(exits===1 && myFlood.count<30) score -= 300;
+      if(o===0) score+=4;
+      candidates.push({dir:nd, score, my:myFlood.count, p1:p1Flood.count, vor, exits});
     }
-
     if(candidates.length===0){
       const back=(curDir+2)%4;
-      return canMove(p2.x+DIRS[back].x, p2.y+DIRS[back].y)?back:curDir;
+      const bx=p2.x+DIRS[back].x, by=p2.y+DIRS[back].y;
+      if(canMove(bx,by)) return back;
+      return curDir;
     }
-
     candidates.sort((a,b)=>b.score-a.score);
-
-    // dificultad: a nivel bajo se equivoca, a nivel alto nunca
-    const mistakeChance = Math.max(0, 0.35 - difficulty*0.35); // de 35% a 0%
-    if(candidates.length>1 && Math.random()<mistakeChance){
-      // elige el segundo mejor o aleatorio
-      return Math.random()<0.6 ? candidates[1].dir : candidates[Math.floor(Math.random()*candidates.length)].dir;
-    }
-
-    // si el mejor lleva a muerte segura y hay otro que no, evita
-    if(candidates[0].dead && candidates.some(c=>!c.dead)){
-      const safe=candidates.find(c=>!c.dead);
-      if(safe) return safe.dir;
-    }
-
     return candidates[0].dir;
   }
-
   function step(){
     if(p1.alive){
       const nx=p1.x+DIRS[p1.dir].x, ny=p1.y+DIRS[p1.dir].y;
@@ -199,172 +176,92 @@ export function init(container, args){
     if(p1.alive && p2.alive && p1.x===p2.x && p1.y===p2.y){ p1.alive=false; p2.alive=false; }
     tick++;
   }
-
   function openAd(type){ if(window.vrAd!==0) return; _rewardPending=type; window.vrAdType=type; window.vrAd=1; state='paused_ad'; }
   function claimReward(){
     const t=_rewardPending; _rewardPending=null; window.vrAd=0; window.vrAdType=null; window._gm_shown=false;
     if(t==='double'){ tempCoins*=2; coins+=tempCoins; setCoins(coins); state='roundover'; renderUI(); }
-    else if(t==='continue'){ p1.alive=true; for(let i=0;i<6;i++){ if(p1.trail.length>1){ const c=p1.trail.pop(); grid[c.y][c.x]=0; }} const last=p1.trail[p1.trail.length-1]; p1.x=last.x; p1.y=last.y; state='playing'; renderUI(); }
   }
-
   function renderUpgrades(){
-    const total=getTotalLevel();
-    const maxT=getMaxLevel();
-    const pct=Math.round(total/maxT*100);
-    const nextMain=ups.v.main, nextSub=ups.v.sub;
-    const cost=getUpgradeCost(nextMain,nextSub);
-    const playerMs=getPlayerInterval();
-    const rivalMs=getRivalInterval(round);
+    const total=getTotalLevel(); const pct=Math.round(total/100*100);
+    const m=ups.v.main, s=ups.v.sub; const cost=getUpgradeCost(m,s);
+    let nM=m, nS=s+1; if(nS>=5){ nM++; nS=0; }
+    const nextTotal=nM*5+nS;
+    const curMax=getPlayerInterval(), nextMax=Math.max(18,115-nextTotal*0.68-nM*0.8);
     const canBuy=coins>=cost && total<100;
-
-    // Calcular proximo nivel si compra
-    let nMain=nextMain, nSub=nextSub+1;
-    if(nSub>=5){ nMain++; nSub=0; }
-    const nextTotal=nMain*5+nSub;
-    const nextPlayerMs=Math.max(28, 115 - nextTotal*0.68 - nMain*0.8);
-
     ui.innerHTML=`
       <div style="position:absolute;inset:0;background:linear-gradient(180deg,#020617,#0f172a);padding:12px;overflow:auto">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div style="color:white;font-weight:900;font-size:14px">MEJORAS • VELOCIDAD DE LÍNEA</div>
-          <div style="color:#22c55e;font-size:12px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);border-radius:999px;padding:4px 10px">$WASA ${coins}</div>
+        <div style="display:flex;justify-content:space-between"><div style="color:white;font-weight:900">MEJORAS • IA IMPOSIBLE</div><div style="color:#22c55e;font-size:12px">$WASA ${coins}</div></div>
+        <div style="margin-top:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(239,68,68,0.35);border-radius:16px;padding:14px">
+          <div style="display:flex;justify-content:space-between"><div style="color:white;font-weight:800">⚡ LÍNEA VERDE</div><div style="color:#22c55e;font-weight:800">${total}/100 • ${pct}%</div></div>
+          <div style="margin-top:8px;height:10px;background:rgba(0,0,0,0.5);border-radius:999px;display:flex;gap:2px;padding:2px">
+            ${Array.from({length:20}).map((_,mi)=>{ const f=mi<m?1:mi===m?s/5:0; return `<div style="flex:1;background:rgba(0,0,0,0.4);border-radius:999px;overflow:hidden"><div style="height:100%;width:${f*100}%;background:linear-gradient(90deg,#22c55e,#16a34a)"></div></div>`; }).join('')}
+          </div>
+          <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px">
+            <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:8px"><div style="color:#94a3b8">Tu tick</div><div style="color:white;font-weight:800">${curMax.toFixed(0)}ms</div></div>
+            <div style="background:rgba(239,68,68,0.12);border-radius:10px;padding:8px"><div style="color:#fca5a5">Rival R${round} IA VORONOI</div><div style="color:white;font-weight:800">${getRivalInterval(round).toFixed(0)}ms • 0% error</div></div>
+          </div>
+          <button id="buy" style="margin-top:12px;width:100%;background:${canBuy?'linear-gradient(135deg,#22c55e,#16a34a)':'#1e293b'};color:${canBuy?'black':'#475569'};padding:12px;border-radius:999px;font-weight:900">${total>=100?'MAX 100/100':`MEJORAR ${m}-${s} → ${nM}-${nS} • ${cost} $WASA`}</button>
+          <div style="margin-top:6px;font-size:9px;color:#f87171;text-align:center">IA con Voronoi full + flood. Nunca se equivoca. Te encierra con &lt;15 celdas. Rival +3.2ms/lvl ahora (antes +1.6)</div>
         </div>
-
-        <div style="margin-top:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(34,197,94,0.25);border-radius:16px;padding:14px">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="color:white;font-weight:800;font-size:13px">⚡ LÍNEA VERDE • VELOCIDAD</div>
-            <div style="color:#22c55e;font-size:11px;font-weight:800">${total}/100 • ${pct}%</div>
-          </div>
-          <div style="margin-top:8px;height:10px;background:rgba(0,0,0,0.5);border-radius:999px;overflow:hidden;display:flex;gap:2px;padding:2px">
-            ${Array.from({length:20}).map((_,mi)=>{
-              const filledMain = mi < ups.v.main ? 1 : mi===ups.v.main ? ups.v.sub/5 : 0;
-              return `<div style="flex:1;background:rgba(0,0,0,0.4);border-radius:999px;overflow:hidden"><div style="height:100%;width:${filledMain*100}%;background:linear-gradient(90deg,#22c55e,#16a34a);transition:width 0.2s"></div></div>`;
-            }).join('')}
-          </div>
-          <div style="margin-top:6px;display:flex;justify-content:space-between;font-size:9px;color:#64748b"><span>0</span><span>MAIN ${ups.v.main} • SUB ${ups.v.sub}/5</span><span>100</span></div>
-
-          <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px">
-            <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:8px"><div style="color:#94a3b8">Tu velocidad actual</div><div style="color:white;font-weight:800">${(1000/playerMs).toFixed(1)} bloques/s • ${playerMs.toFixed(0)}ms tick</div></div>
-            <div style="background:rgba(239,68,68,0.08);border-radius:10px;padding:8px"><div style="color:#fca5a5">Rival Round ${round}</div><div style="color:white;font-weight:800">${(1000/rivalMs).toFixed(1)} bloques/s • ${rivalMs.toFixed(0)}ms</div></div>
-          </div>
-
-          <div style="margin-top:10px;background:rgba(34,197,94,0.08);border:1px dashed rgba(34,197,94,0.2);border-radius:10px;padding:8px;font-size:10px;color:#86efac">
-            Cada nivel el rival sube <b>+1.6ms más rápido</b> (poquito). Tu mejora te da <b>-0.68ms</b> por sub-nivel y <b>-0.8ms</b> extra por main. A nivel 100 sos casi el doble de rápido que al inicio.
-          </div>
-
-          <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
-            <button id="buy" style="flex:1;background:${canBuy?'linear-gradient(135deg,#22c55e,#16a34a)':'#1e293b'};color:${canBuy?'black':'#475569'};padding:12px;border-radius:999px;font-weight:900;font-size:13px;opacity:${canBuy?1:0.6}">${total>=100?'MAX 100/100':`MEJORAR ${ups.v.main}-${ups.v.sub} → ${nMain}-${nSub} • ${cost} $WASA`}</button>
-          </div>
-          ${total<100?`<div style="margin-top:6px;font-size:10px;color:#94a3b8;text-align:center">Próximo: ${nextPlayerMs.toFixed(0)}ms (${(1000/nextPlayerMs).toFixed(1)} bl/s) • Ahorro -${(playerMs-nextPlayerMs).toFixed(1)}ms</div>`:''}
-        </div>
-
-        <div style="margin-top:12px;display:flex;gap:8px">
-          <button id="back" style="flex:1;background:white;color:black;padding:10px;border-radius:999px;font-weight:800">VOLVER</button>
-          <button id="play" style="flex:1;background:#22c55e;color:black;padding:10px;border-radius:999px;font-weight:800">JUGAR ROUND ${round}</button>
-        </div>
-
-        <div style="margin-top:10px;font-size:9px;color:#334155;text-align:center">Sistema igual que Space Invaders: 20 mains x 5 subs = 100 niveles. Guardado en wasa_upgrades_bananatron</div>
+        <div style="margin-top:12px;display:flex;gap:8px"><button id="back" style="flex:1;background:white;color:black;padding:10px;border-radius:999px;font-weight:800">VOLVER</button><button id="play" style="flex:1;background:#ef4444;color:white;padding:10px;border-radius:999px;font-weight:800">JUGAR VS IMPOSIBLE</button></div>
       </div>
     `;
-    ui.querySelector('#buy')?.addEventListener('click',()=>{
-      if(total>=100) return;
-      if(coins < cost) return;
-      coins-=cost; setCoins(coins);
-      ups.v.sub++;
-      if(ups.v.sub>=5){ ups.v.sub=0; ups.v.main++; }
-      if(ups.v.main>=20){ ups.v.main=20; ups.v.sub=0; } // cap 100
-      saveUps();
-      renderUpgrades();
-    });
+    ui.querySelector('#buy')?.addEventListener('click',()=>{ if(total>=100||coins<cost) return; coins-=cost; setCoins(coins); ups.v.sub++; if(ups.v.sub>=5){ ups.v.sub=0; ups.v.main++; } saveUps(); renderUpgrades(); });
     ui.querySelector('#back').onclick=()=>{ state='menu'; renderUI(); };
     ui.querySelector('#play').onclick=()=>{ resetRound(round); state='playing'; renderUI(); };
   }
-
   function renderUI(){
     if(state==='menu'){
       const total=getTotalLevel();
       ui.innerHTML=`
-        <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%, rgba(34,197,94,0.15), transparent 60%), linear-gradient(180deg,#020617,#0a0e1e);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;text-align:center">
-          <div style="font-size:10px;letter-spacing:0.3em;color:#22c55e">1989 • REMAKE • 100 NIVELES</div>
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%, rgba(239,68,68,0.18), transparent 60%), linear-gradient(180deg,#020617,#0a0e1e);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;text-align:center">
+          <div style="font-size:10px;letter-spacing:0.3em;color:#ef4444">IA IMPOSIBLE • NO SE EQUIVOCA • VORONOI</div>
           <div style="margin-top:6px;font-size:38px;font-weight:900;color:white;line-height:0.9">BANANA<span style="color:#22c55e">TRON</span></div>
-          <div style="margin-top:6px;color:#64748b;font-size:10px">ROUND ${round} • GRE ${greenWins} RED ${redWins} • MAX ${maxRound} • VEL ${total}/100</div>
-          <div style="margin-top:10px;width:280px;height:120px;background:black;border:2px solid #1e40af;position:relative">
-            <canvas id="mini" width="280" height="120" style="width:100%;height:100%"></canvas>
-          </div>
-          <div style="margin-top:10px;background:rgba(0,0,0,0.4);border:1px solid rgba(34,197,94,0.2);border-radius:12px;padding:8px 12px;display:flex;gap:12px;font-size:10px;color:#cbd5e1">
-            <span>Tu: ${(1000/getPlayerInterval()).toFixed(1)} bl/s</span><span>•</span><span>Rival: ${(1000/getRivalInterval(round)).toFixed(1)} bl/s</span><span>•</span><span style="color:#22c55e">${total}/100</span>
-          </div>
+          <div style="margin-top:6px;color:#64748b;font-size:10px">R${round} • GRE ${greenWins} RED ${redWins} • MAX ${maxRound} • VEL ${total}/100 • DIFICIL</div>
           <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;width:100%;max-width:280px">
-            <button id="play" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:black;font-weight:900;padding:12px;border-radius:999px">JUGAR ROUND ${round}</button>
-            <div style="display:flex;gap:8px">
-              <button id="upg" style="flex:1;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.25);color:#22c55e;padding:10px;border-radius:999px;font-weight:800;font-size:12px">⚡ MEJORAS ${total}/100</button>
-              <button id="reset" style="flex:1;background:rgba(255,255,255,0.05);color:#64748b;padding:10px;border-radius:999px;font-size:12px">Reset</button>
-            </div>
+            <button id="play" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:white;font-weight:900;padding:12px;border-radius:999px;box-shadow:0 0 20px rgba(239,68,68,0.4)">JUGAR VS IA IMPOSIBLE R${round}</button>
+            <div style="display:flex;gap:8px"><button id="upg" style="flex:1;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.25);color:#22c55e;padding:10px;border-radius:999px;font-weight:800">⚡ ${total}/100</button><button id="reset" style="flex:1;background:rgba(255,255,255,0.06);color:#94a3b8;padding:10px;border-radius:999px">Reset</button></div>
           </div>
-          <div style="margin-top:8px;font-size:9px;color:rgba(255,255,255,0.25)">Rival +1.6ms por round (poquito) • Mejora tu linea en mejoras</div>
+          <div style="margin-top:10px;font-size:9px;color:#fca5a5">Ahora el rojo no falla nunca y te corta a proposito. Si te gana facil, subi tu velocidad en mejoras.</div>
         </div>
       `;
-      setTimeout(()=>{
-        const mc=document.getElementById('mini'); if(!mc) return; const mctx=mc.getContext('2d');
-        mctx.fillStyle='black'; mctx.fillRect(0,0,280,120);
-        mctx.strokeStyle='#22c55e'; mctx.setLineDash([6,4]); mctx.lineWidth=2; mctx.beginPath(); mctx.moveTo(40,90); mctx.lineTo(40,30); mctx.lineTo(180,30); mctx.lineTo(180,90); mctx.stroke();
-        mctx.strokeStyle='#ef4444'; mctx.beginPath(); mctx.moveTo(200,20); mctx.lineTo(200,100); mctx.lineTo(60,100); mctx.stroke(); mctx.setLineDash([]);
-      },30);
       ui.querySelector('#play').onclick=()=>{ resetRound(round); state='playing'; renderUI(); };
       ui.querySelector('#upg').onclick=()=>{ state='upgrades'; renderUpgrades(); };
       ui.querySelector('#reset').onclick=()=>{ round=1; greenWins=0; redWins=0; renderUI(); };
-    }else if(state==='upgrades'){
-      renderUpgrades();
-    }else if(state==='playing'){
+    }else if(state==='upgrades'){ renderUpgrades(); }
+    else if(state==='playing'){
       ui.innerHTML=`
         <div style="position:absolute;top:6px;left:8px;right:8px;display:flex;justify-content:space-between;font-size:10px;color:white;font-family:monospace">
-          <div>ROUND ${round} GRE ${greenWins} RED ${redWins}</div>
-          <div style="color:#22c55e">TU ${getTotalLevel()}/100 • ${getPlayerInterval().toFixed(0)}ms</div>
-          <div style="color:#fca5a5">RIVAL ${getRivalInterval(round).toFixed(0)}ms (+1.6/lvl)</div>
+          <div style="color:#f87171">R${round} IA IMPOSIBLE • VORONOI</div>
+          <div style="color:#22c55e">${getTotalLevel()}/100</div>
         </div>
       `;
     }else if(state==='roundover'){
       const winGreen=p1.alive && !p2.alive;
       if(winGreen) greenWins++; else redWins++;
-      if(winGreen) tempCoins=20+round*3; else tempCoins=6;
+      if(winGreen) tempCoins=30+round*5; else tempCoins=10;
       saveMax();
       ui.innerHTML=`
-        <div style="position:absolute;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:10px">
-          <div style="background:#0f172a;border:1px solid ${winGreen?'#22c55e':'#ef4444'};border-radius:14px;padding:12px;width:100%;max-width:300px;text-align:center">
-            <div style="font-size:10px;letter-spacing:0.2em;color:${winGreen?'#22c55e':'#ef4444'}">${winGreen?'GREEN GANA':'RED GANA'}</div>
-            <div style="color:white;font-weight:900;margin-top:4px">ROUND ${round} ${winGreen?'GANASTE':'PERDISTE'}</div>
-            <div style="margin-top:6px;font-size:10px;color:#94a3b8">Tu vel ${getTotalLevel()}/100 • Rival próximo ${getRivalInterval(round+1).toFixed(0)}ms</div>
-            <div style="margin-top:8px;background:rgba(34,197,94,0.1);border-radius:8px;padding:6px;display:flex;justify-content:space-between;font-size:11px;color:white"><span>Recompensa</span><b style="color:#22c55e">${tempCoins} $WASA</b></div>
-            <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
-              <button id="dbl" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:black;font-weight:900;padding:10px;border-radius:999px;font-size:12px">📺 x2 (${tempCoins*2}) ANUNCIO</button>
-              <button id="next" style="background:white;color:black;font-weight:800;padding:10px;border-radius:999px;font-size:12px">SIGUIENTE ROUND ${round+1}</button>
-            </div>
+        <div style="position:absolute;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:10px">
+          <div style="background:#0f172a;border:2px solid ${winGreen?'#22c55e':'#ef4444'};border-radius:14px;padding:14px;width:100%;max-width:320px;text-align:center">
+            <div style="font-size:11px;letter-spacing:0.2em;color:${winGreen?'#22c55e':'#ef4444'}">${winGreen?'LE GANASTE A LA IA IMPOSIBLE!':'LA IA TE ENCERRO'}</div>
+            <div style="color:white;font-weight:900;margin-top:6px">R${round} ${winGreen?'GANASTE':'PERDISTE'}</div>
+            <div style="margin-top:8px;font-size:10px;color:#94a3b8">${winGreen?'Increible, esta IA no pierde casi nunca':'Te dejo sin espacio con Voronoi'}</div>
+            <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px"><button id="dbl" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:black;font-weight:900;padding:10px;border-radius:999px">📺 x2 (${tempCoins*2})</button><button id="next" style="background:white;color:black;font-weight:800;padding:10px;border-radius:999px">SIGUIENTE R${round+1}</button></div>
           </div>
         </div>
       `;
       ui.querySelector('#dbl').onclick=()=>openAd('double');
       ui.querySelector('#next').onclick=()=>{ coins+=tempCoins; setCoins(coins); resetRound(round+1); state='playing'; renderUI(); };
-    }else if(state==='paused_ad'){
-      ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;color:white;font-size:11px">Cargando...</div>`;
-    }else if(state==='reward_modal'){
-      ui.innerHTML=`
-        <div style="position:absolute;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:10px">
-          <div style="background:#0f172a;border:1px solid #22c55e;border-radius:12px;padding:12px;width:100%;max-width:260px;text-align:center">
-            <div style="color:#22c55e;font-weight:900">¡RECOMPENSA!</div>
-            <button id="claim" style="margin-top:8px;width:100%;background:#22c55e;color:black;font-weight:900;padding:10px;border-radius:999px">RECLAMAR x2</button>
-          </div>
-        </div>
-      `;
-      ui.querySelector('#claim').onclick=claimReward;
-    }
+    }else if(state==='paused_ad'){ ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;color:white">Cargando...</div>`; }
+    else if(state==='reward_modal'){ ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:10px"><div style="background:#0f172a;border:1px solid #22c55e;border-radius:12px;padding:12px;width:100%;max-width:260px;text-align:center"><div style="color:#22c55e;font-weight:900">¡RECOMPENSA!</div><button id="claim" style="margin-top:8px;width:100%;background:#22c55e;color:black;font-weight:900;padding:10px;border-radius:999px">RECLAMAR</button></div></div>`; ui.querySelector('#claim').onclick=claimReward; }
   }
-
   addEventListener('keydown',e=>{
     if(state!=='playing') return;
-    if((e.key==='ArrowUp'||e.key==='w'||e.key==='W') && p1.dir!==2) p1.dir=0;
-    if((e.key==='ArrowRight'||e.key==='d'||e.key==='D') && p1.dir!==3) p1.dir=1;
-    if((e.key==='ArrowDown'||e.key==='s'||e.key==='S') && p1.dir!==0) p1.dir=2;
-    if((e.key==='ArrowLeft'||e.key==='a'||e.key==='A') && p1.dir!==1) p1.dir=3;
+    if((e.key==='ArrowUp'||e.key==='w') && p1.dir!==2) p1.dir=0;
+    if((e.key==='ArrowRight'||e.key==='d') && p1.dir!==3) p1.dir=1;
+    if((e.key==='ArrowDown'||e.key==='s') && p1.dir!==0) p1.dir=2;
+    if((e.key==='ArrowLeft'||e.key==='a') && p1.dir!==1) p1.dir=3;
   });
   let touchStart=null;
   canvas.addEventListener('pointerdown',e=>{ const r=canvas.getBoundingClientRect(); touchStart={x:e.clientX-r.left,y:e.clientY-r.top}; });
@@ -375,7 +272,6 @@ export function init(container, args){
     else{ if(dy>20 && p1.dir!==0) p1.dir=2; else if(dy<-20 && p1.dir!==2) p1.dir=0; }
     touchStart=null;
   });
-
   let watcher=setInterval(()=>{ if(window.vrAd===4 && _rewardPending && state!=='reward_modal'){ state='reward_modal'; renderUI(); } },150);
   let raf, acc=0, last=performance.now();
   function loop(now){
@@ -404,8 +300,7 @@ export function init(container, args){
     if(p2.trail.length){ const h=p2.trail[p2.trail.length-1]; ctx.fillStyle=p2.alive?'#fca5a5':'#f87171'; ctx.fillRect(offsetX+h.x*cellW+1, offsetY+h.y*cellH+1, cellW-2, cellH-2); }
     raf=requestAnimationFrame(loop);
   }
-
   renderUI(); resetRound(maxRound); state='menu'; renderUI();
   raf=requestAnimationFrame(loop);
-  container._cleanup=()=>{ cancelAnimationFrame(raf); clearInterval(watcher); ro.disconnect(); window.vrAd=0; window.vrAdType=null; };
+  container._cleanup=()=>{ cancelAnimationFrame(raf); clearInterval(watcher); ro.disconnect(); window.vrAd=0; };
 }
