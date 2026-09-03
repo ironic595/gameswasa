@@ -122,7 +122,7 @@ export function init(container, args){
     ui.querySelector('#to-menu')?.addEventListener('click',()=>{state='menu';pauseBefore=null;renderUI();});
     ui.querySelector('#btn-ckpt')?.addEventListener('click',()=>{ if(maxLevel<=1){startGame(1);return;} if(getCoins()>=100){ if(confirm(`Continuar desde nivel ${maxLevel} cuesta 100 monedas o ver anuncio. ¿Pagar 100?`)){setCoins(getCoins()-100);startGame(maxLevel); return;} } openAd('checkpoint'); });
     ui.querySelector('#btn-n1')?.addEventListener('click',()=>startGame(1));
-    ui.querySelector('#powBtn')?.addEventListener('click',()=>{if(state!=='playing')return;if(game.power.state==='moving'){game.power.state='locked';game.power.locked=Math.round(game.power.v||65);}else{game.power.state='moving';}renderUI();});
+    ui.querySelector('#powBtn')?.addEventListener('click',()=>{if(state!=='playing')return;if(game.power.state==='moving'){game.power.state='locked';game.power.locked=Math.round(game.power.v||65);}else{game.power.state='moving'; game.power.dir = game.power.locked>=50 ? -1 : 1; }renderUI();});
     ui.querySelector('#shootBtn')?.addEventListener('click',()=>{if(state!=='playing')return;if(game.power.state==='moving'){game.power.state='locked';game.power.locked=Math.round(game.power.v||65);renderUI();return;}if(game.bullets.length>0)return;const vel=260+game.power.locked*5.2+(game.level-1)*8;const cx=W/2,cy=H-88,tx=game.cross.x,ty=game.cross.y,dy=cy-ty,time=Math.max(dy/vel,0.18),vx=(tx-cx)/time,vy=-vel;game.bullets.push({x:cx,y:cy,vx,vy,trail:[]});});
     ui.querySelector('#cont-nox2')?.addEventListener('click',continueWithoutDouble);
     ui.querySelector('#cont-x2')?.addEventListener('click',()=>openAd('double'));
@@ -197,7 +197,7 @@ export function init(container, args){
         if(s.hitFlash>0)s.hitFlash-=dt*4;
       }
       game.cross.x+=game.cross.dir*game.cross.speed*dt; if(game.cross.x>W-30){game.cross.x=W-30;game.cross.dir=-1;} if(game.cross.x<30){game.cross.x=30;game.cross.dir=1;}
-      if(game.power.state==='moving'){game.power.v+=game.power.dir*game.power.speed*dt; if(game.power.v>=100){game.power.v=100;game.power.dir=-1;} if(game.power.v<=0){game.power.v=0;game.power.dir=1;}}else game.power.v=game.power.locked;
+      if(game.power.state==='moving'){game.power.v+=game.power.dir*game.power.speed*dt; if(game.power.v>=100){game.power.v=100;game.power.dir=-1;} if(game.power.v<=0){game.power.v=0;game.power.dir=1;} game.power.v=Math.max(0,Math.min(100,game.power.v));}else{ game.power.v=game.power.locked; }
       for(let i=game.bullets.length-1;i>=0;i--){
         const b=game.bullets[i];b.trail.push({x:b.x,y:b.y});if(b.trail.length>8)b.trail.shift();b.x+=b.vx*dt;b.y+=b.vy*dt;
         let hit=false;
@@ -225,7 +225,7 @@ export function init(container, args){
           }
         }
         if(hit) continue;
-        if(b.y<-30||b.x<-30||b.x>W+30){game.bullets.splice(i,1);game.misses+=1;game.power.state='moving';if(game.misses>=5){state='gameover';renderUI();}}
+        if(b.y<-30||b.x<-30||b.x>W+30){game.bullets.splice(i,1);game.misses+=1;game.power.state='moving'; game.power.dir = game.power.locked>=50 ? -1 : 1; if(game.misses>=5){state='gameover';renderUI();}}
       }
     }
     for(let i=game.parts.length-1;i>=0;i--){const p=game.parts[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=0.98;p.vy+=80*dt;p.life-=dt*0.9;if(p.life<=0)game.parts.splice(i,1);}
@@ -242,6 +242,6 @@ export function init(container, args){
     raf=requestAnimationFrame(loop);
   }
   renderUI(); initShips(1); raf=requestAnimationFrame(loop);
-  canvas.addEventListener('pointerdown',e=>{if(e.target.closest('button')) return; if(state==='playing'){if(game.power.state==='moving'){game.power.state='locked';game.power.locked=Math.round(game.power.v||65);renderUI();}else if(game.bullets.length===0){const vel=260+game.power.locked*5.2+(game.level-1)*8;const cx=W/2,cy=H-88,tx=game.cross.x,ty=game.cross.y,dy=cy-ty,time=Math.max(dy/vel,0.18),vx=(tx-cx)/time,vy=-vel;game.bullets.push({x:cx,y:cy,vx,vy,trail:[]});}}});
+  canvas.addEventListener('pointerdown',e=>{if(e.target.closest('button')) return; if(state!=='playing') return; if(game.power.state==='moving'){game.power.state='locked';game.power.locked=Math.round(game.power.v||65);renderUI();}else if(game.bullets.length===0){const vel=260+game.power.locked*5.2+(game.level-1)*8;const cx=W/2,cy=H-88,tx=game.cross.x,ty=game.cross.y,dy=cy-ty,time=Math.max(dy/vel,0.18),vx=(tx-cx)/time,vy=-vel;game.bullets.push({x:cx,y:cy,vx,vy,trail:[]}); setTimeout(()=>{ if(state==='playing' && game.power.state==='locked'){ game.power.state='moving'; game.power.v=game.power.locked; game.power.dir = game.power.locked>=50 ? -1 : 1; renderUI(); } },400);}});
   container._cleanup=()=>{cancelAnimationFrame(raf);ro.disconnect(); window.vrAd=0; window.vrAdType=null;};
 }
