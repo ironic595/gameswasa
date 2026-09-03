@@ -9,7 +9,6 @@
   body{background:radial-gradient(ellipse at 50% 0%, rgba(79, 70, 229, 0.15) 0%, transparent 70%), radial-gradient(ellipse at 100% 80%, rgba(245, 158, 11, 0.10) 0%, transparent 60%), linear-gradient(180deg, #2046a3 0%, #332891 40%, #315bd5 100%);color:#e2e8f0;font-family:Inter,system-ui,sans-serif;font-size:13px;line-height:1.5;overflow-x:hidden;min-height:100vh}
   button{cursor:pointer;border:0;background:0;color:inherit;font:inherit}
   header{position:sticky;top:0;z-index:10;background:rgba(5,8,20,0.75);backdrop-filter:blur(12px);border-bottom:1px solid rgba(56,189,248,0.15);display:flex;align-items:center;gap:16px;padding:12px 20px;height:52px}
-  
   .search{flex:1;max-width:420px;margin:0 auto}
   .search input{width:100%;background:#0f172a;border:1px solid rgba(56,189,248,0.2);border-radius:8px;padding:7px 12px;color:#f8fafc;font-size:13px;outline:none}
   .search input:focus{border-color:#38bdf8;box-shadow:0 0 12px rgba(56,189,248,0.25)}
@@ -54,88 +53,36 @@
   #modalClose{border:1px solid rgba(56,189,248,0.25);border-radius:20px;padding:6px 14px;font-size:11px;background:#0f172a;color:#e2e8f0}
   #modalContainer{flex:1;display:flex;align-items:center;justify-content:center;background:#030712;position:relative;overflow:hidden}
   @media(min-width:900px){#modal{padding:24px}#modalTop{border-radius:12px 12px 0 0}#modalContainer{border:1px solid rgba(56,189,248,0.2);border-top:0;border-radius:0 0 12px 12px}}
-  /* Contenedor donde el SDK inyecta el video real - NO debe bloquear el click de Skip */
-  #gmVideo{position:fixed;inset:0;z-index:9999;background:transparent;display:none;pointer-events:none}
-  #gmVideo.active{display:block;pointer-events:none}
-  #gmVideo.active *{pointer-events:auto}
-  /* El SDK de GameMonetize mete su propio div con el video, aseguramos que esté clickeable */
-  #gamemonetize-video{pointer-events:auto !important}
-  #gamemonetize-video *{pointer-events:auto !important}
-.logo{
-  display: block;
-  width: 145px;
-  height: 32px;
-  flex-shrink: 0;
-  background-image: url('/img/wasagames.png');
-  background-repeat: no-repeat;
-  background-size: contain; /* contain, no cover, sino te recorta la palabra */
-  background-position: left center;
-  /* sacamos el degradado de texto que tenías antes */
-  -webkit-background-clip: initial;
-  -webkit-text-fill-color: initial;
-}
- .logo-img img{ display:block; height:28px; width:auto; }
+  #gmVideo{position:fixed;inset:0;z-index:9999;background:#000;display:none}
+  #gmVideo.active{display:block}
+  #gmVideo *{pointer-events:auto}
+  #gmVideo button{pointer-events:auto;cursor:pointer}
+  .logo{ display:block; width:145px; height:32px; flex-shrink:0; background-image:url('/img/wasagames.png'); background-repeat:no-repeat; background-size:contain; background-position:left center; -webkit-background-clip:initial; -webkit-text-fill-color:initial; }
+  .logo-img img{ display:block; height:28px; width:auto; }
 </style>
 <script>
-  // === SISTEMA vrAd - LA CONSOLA SOLO REACCIONA A vrAd ===
-  // vrAd: 0=nada, 1=juego pide ad, 2=consola lo vio, 3=ad reproduciendose, 4=ad termino OK
-  window.vrAd = 0;
-  window.vrAdType = null; // 'lives' | 'double' | 'checkpoint'
-  window._gm_shown = false;
-
+  window.vrAd=0; window.vrAdType=null; window._gm_shown=false;
   window.SDK_OPTIONS={
     gameId:"4kci7og3klgj0ivy2wz3gdvd9dth5e7n",
     onEvent:function(a){
-      // console.log('[GM]',a.name);
-      if(a.name==='SDK_GAME_PAUSE'){
-        window._gm_shown = true;
-        if(window.vrAd===2){ window.vrAd=3; console.log('[vrAd] 2->3 ad reproduciendose'); }
-      }
-      if(a.name==='SDK_GAME_START' || a.name==='SDK_ERROR' || a.name==='SDK_GAME_END'){
-        if(window.vrAd===3){
-          window.vrAd=4; 
-          console.log('[vrAd] 3->4 ad termino, recompensa lista');
-        }
-      }
+      if(a.name==='SDK_GAME_PAUSE'){ window._gm_shown=true; if(window.vrAd===2){ window.vrAd=3; } }
+      if(a.name==='SDK_GAME_START' || a.name==='SDK_ERROR' || a.name==='SDK_GAME_END'){ if(window.vrAd===3||window.vrAd===2){ window.vrAd=4; } }
       if(a.name==='SDK_READY'){ window._gm_ready=true; }
     }
   };
   (function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(d.getElementById(id))return;js=d.createElement(s);js.id=id;js.src="https://api.gamemonetize.com/sdk.js";fjs.parentNode.insertBefore(js,fjs);})(document,"script","gamemonetize-sdk");
-  (function(){var s=document.createElement('script');s.src="https://api.gamemonetize.com/video.js?gameid=4kci7og3klgj0ivy2wz3gdvd9dth5e7n";s.async=true;document.head.appendChild(s);})();
-
-  // Watcher de vrAd en la consola
   setInterval(function(){
     if(window.vrAd===1){
-      console.log('[vrAd] 1->2 consola detecto pedido de ad', window.vrAdType);
-      window.vrAd=2;
-      window._gm_shown=false;
-      document.getElementById('gmVideo').classList.add('active');
-      document.getElementById('gmVideo').style.display='block';
-      // activar anuncio real
+      window.vrAd=2; window._gm_shown=false;
+      var gv=document.getElementById('gmVideo'); if(gv){ gv.classList.add('active'); gv.style.display='block'; }
       if(typeof sdk!=='undefined' && sdk.showBanner){
-        try{ sdk.showBanner(); }catch(e){ console.log(e); }
-        // si no hay fill en 3.5s, dar recompensa igual sin dejar negro
-        setTimeout(function(){
-          if(window.vrAd===2 && !window._gm_shown){
-            console.log('[vrAd] 2->4 sin fill, fallback');
-            window.vrAd=4;
-          }
-        },3500);
-      }else{
-        console.log('[vrAd] SDK no listo, 2->4 fallback directo');
-        window.vrAd=4;
-      }
-      // safety 30s
-      setTimeout(function(){ if(window.vrAd===2||window.vrAd===3){ console.log('[vrAd] safety ->4'); window.vrAd=4; } },30000);
+        try{ sdk.showBanner(); }catch(e){}
+        setTimeout(function(){ if(window.vrAd===2 && !window._gm_shown){ window.vrAd=4; } },3500);
+      }else{ window.vrAd=4; }
+      setTimeout(function(){ if(window.vrAd===2||window.vrAd===3){ window.vrAd=4; } },30000);
     }
     if(window.vrAd===4){
-      // cuando el juego consuma el 4, la consola limpia el contenedor de video
-      // el juego es el que pone vrAd=0 despues de dar recompensa, nosotros solo limpiamos el div si sigue visible
-      // lo dejamos 500ms para que el juego lea el 4
-      setTimeout(function(){
-        var gv=document.getElementById('gmVideo');
-        if(gv){ gv.classList.remove('active'); gv.style.display='none'; }
-      },800);
+      setTimeout(function(){ var gv=document.getElementById('gmVideo'); if(gv){ gv.classList.remove('active'); gv.style.display='none'; } },800);
     }
   },200);
 </script>
@@ -143,9 +90,12 @@
 <body>
 <div id="gmVideo"></div>
 <header>
-  <a href="/" class="logo-img"><img src="/img/wasagames.png" alt="Wasa Games" height="28"></a>
+  <a href="/" class="logo" aria-label="Wasa Games"></a>
   <div class="search"><input id="q" placeholder="Search games..." oninput="filterGames()"></div>
-  <div class="right"><button class="wallet" id="walletBtn" onclick="toggleWallet()">Connect Wallet</button></div>
+  <div class="right">
+    <div class="pill coins" id="headerCoins" style="background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);color:#000;font-weight:800;border:none;box-shadow:0 0 12px rgba(251,191,36,0.3);">0 $WASA</div>
+    <button class="wallet" id="walletBtn" onclick="toggleWallet()">Connect Wallet</button>
+  </div>
 </header>
 <div class="wrap">
   <aside>
@@ -175,15 +125,27 @@
 <script>
 let GAMES=[];
 let currentCat='all';
-function getCoins(){return parseInt(localStorage.getItem('wasa_coins')||'0');}
-function setCoins(n){localStorage.setItem('wasa_coins',n);document.getElementById('modalCoins').textContent=n+' $WASA';}
+function getCoins(){return parseFloat(localStorage.getItem('wasa_coins')||'0');}
+  function fmtWASA(n){ 
+    const v=parseFloat(n)||0;
+    if(v===0) return '0';
+    if(v<0.001) return v.toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
+    if(v<1) return (Math.round(v*1000000)/1000000).toString();
+    return (Math.round(v*1000)/1000).toString();
+  }
+function setCoins(n){
+  localStorage.setItem('wasa_coins',n);
+  const formatted=fmtWASA(n)+' $WASA';
+  const el=document.getElementById('modalCoins'); if(el) el.textContent=formatted;
+  const he=document.getElementById('headerCoins'); if(he) he.textContent=formatted;
+}
 function addCoins(n){setCoins(getCoins()+n);}
 function toggleWallet(){const b=document.getElementById('walletBtn');const c=b.classList.contains('connected');if(c){b.textContent='Connect Wallet';b.classList.remove('connected');}else{b.textContent='0x1234…WASA';b.classList.add('connected');}}
 function setCat(cat){currentCat=cat;document.querySelectorAll('#catFilter button').forEach(b=>b.classList.toggle('active',b.dataset.cat===cat));renderGrid();}
 function filterGames(){renderGrid();}
 async function loadGames(){
   try{const r=await fetch('/games.json?t='+Date.now());if(!r.ok) throw 0;GAMES=await r.json();}
-  catch(e){try{const r2=await fetch('./games.json?t='+Date.now());GAMES=await r2.json();}catch(e2){GAMES=[{slug:'space-invaders',title:'SPACE INVADERS',cat:'arcade action',live:true}];}}
+  catch(e){try{const r2=await fetch('./games.json?t='+Date.now());GAMES=await r2.json();}catch(e2){GAMES=[{slug:'space-invaders',title:'SPACE INVADERS',cat:'arcade action',live:true},{slug:'banatron-revelation',title:'BANATRON REVELATION',cat:'arcade',live:true}];}}
   renderGrid();
 }
 function renderGrid(){
@@ -198,7 +160,7 @@ function renderGrid(){
   grid.innerHTML=filtered.map(g=>`<div class="card ${g.live?'live':''}"><div class="thumb ${g.live?'':'soon'}" id="thumb-${g.slug}"><span style="color:#334155;font-size:11px">loading...</span><span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span></div><div class="info"><div class="title">${g.title}</div><div class="meta"><span>${(g.cat||'').split(' ')[0]}</span></div></div><div class="play"><span onclick="openGame('${g.slug}')">Play Now</span></div></div>`).join('');
   filtered.forEach(g=>{
     const el=document.getElementById('thumb-'+g.slug); if(!el) return;
-    const cand=[`/thumbs/${g.slug}.png`,`/thumbs/${g.slug}.webp`,`/games/${g.slug}/thumb.png`,`/games/${g.slug}/thumb.webp`];
+    const cand=[`/thumbs/${g.slug}.png`,`/thumbs/${g.slug}.webp`,`/games/${g.slug}/thumb.png`,`/games/${g.slug}/thumb.webp`,`/img/${g.slug}.png`];
     let i=0;function next(){if(i>=cand.length){el.innerHTML=`<span style="font-size:24px">🎮</span><span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>`;return;}const img=new Image();img.onload=()=>{el.innerHTML=`<img src="${img.src}" alt="${g.title}"><span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>`;};img.onerror=()=>{i++;next();};img.src=cand[i];}next();
   });
 }
@@ -224,12 +186,9 @@ async function openGame(slug){
     if(mod.init){ mod.init(container,{quality,getCoins,addCoins,setCoins,slug}); }
   }catch(e){console.error(e);container.innerHTML=`<div style="text-align:center;color:#94a3b8;font-size:12px">Juego <b style="color:#fff">${slug}</b> no encontrado<br>/games/${slug}/game.js<br><span style="font-size:10px;color:#ef4444">${e.message}</span></div>`;}
 }
-function closeGame(){document.getElementById('modal').classList.remove('open');document.getElementById('modalContainer').innerHTML='';document.body.style.overflow='';history.pushState({},'',`/`); window.vrAd=0; window.vrAdType=null; var gv=document.getElementById('gmVideo'); if(gv){gv.classList.remove('active'); gv.style.display='none';} var gv2=document.getElementById('gamemonetize-video'); if(gv2){gv2.classList.remove('active'); gv2.style.display='none';}}
+function closeGame(){document.getElementById('modal').classList.remove('open');document.getElementById('modalContainer').innerHTML='';document.body.style.overflow='';history.pushState({},'',`/`); window.vrAd=0; window.vrAdType=null; var gv=document.getElementById('gmVideo'); if(gv){gv.classList.remove('active'); gv.style.display='none';}}
 addEventListener('keydown',e=>{if(e.key==='Escape') closeGame();});
-addEventListener('DOMContentLoaded',()=>{
-  loadGames();
-  const p=new URLSearchParams(location.search);const g=p.get('game');if(g) openGame(g);
-});
+addEventListener('DOMContentLoaded',()=>{ setCoins(getCoins()); loadGames(); const p=new URLSearchParams(location.search);const g=p.get('game');if(g) openGame(g); });
 </script>
 </body>
 </html>
