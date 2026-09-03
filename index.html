@@ -28,9 +28,7 @@
   .filter button{text-align:left;padding:4px 6px;border-radius:6px;color:#94a3b8;font-size:12px}
   .filter button.active{background:linear-gradient(135deg, rgba(56,189,248,0.15), rgba(129,140,248,0.15));color:#38bdf8;border:1px solid rgba(56,189,248,0.25)}
   .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-   #gmLogo{
-    display:none;
-   }
+   #gmLogo{display:none;}
   @media(max-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}}
   @media(max-width:700px){.wrap{flex-direction:column}aside{width:100%;height:auto;position:static;border-right:0;border-bottom:1px solid rgba(56,189,248,0.12);display:flex;gap:20px;overflow:auto;white-space:nowrap}.filter{flex-direction:row}.grid{grid-template-columns:repeat(2,1fr)}header{flex-wrap:wrap;height:auto}.search{order:3;max-width:none;width:100%;margin-top:8px}}
   .card{border:1px solid rgba(56,189,248,0.15);border-radius:12px;overflow:hidden;background:rgba(15,23,42,0.6);backdrop-filter:blur(8px);position:relative;transition:all .2s ease}
@@ -59,8 +57,8 @@
   #modalContainer{flex:1;display:flex;align-items:center;justify-content:center;background:#030712;position:relative;overflow:hidden}
   @media(min-width:900px){#modal{padding:24px}#modalTop{border-radius:12px 12px 0 0}#modalContainer{border:1px solid rgba(56,189,248,0.2);border-top:0;border-radius:0 0 12px 12px}}
   /* Contenedor donde el SDK inyecta el video real */
-  #gmVideo{position:fixed;inset:0;z-index:9999;background:transparent;display:none}
-  #gmVideo.active{display:block}
+  #gmVideo{position:fixed;inset:0;z-index:9999;background:transparent;display:none;pointer-events:none}
+  #gmVideo.active{display:block;pointer-events:auto}
 </style>
 <script>
   // === SISTEMA vrAd - LA CONSOLA SOLO REACCIONA A vrAd ===
@@ -117,13 +115,8 @@
       setTimeout(function(){ if(window.vrAd===2||window.vrAd===3){ console.log('[vrAd] safety ->4'); window.vrAd=4; } },30000);
     }
     if(window.vrAd===4){
-      // cuando el juego consuma el 4, la consola limpia el contenedor de video
-      // el juego es el que pone vrAd=0 despues de dar recompensa, nosotros solo limpiamos el div si sigue visible
-      // lo dejamos 500ms para que el juego lea el 4
-      setTimeout(function(){
-        var gv=document.getElementById('gmVideo');
-        if(gv){ gv.classList.remove('active'); gv.style.display='none'; }
-      },800);
+      var gv=document.getElementById('gmVideo');
+      if(gv){ gv.classList.remove('active'); gv.style.display='none'; gv.innerHTML=''; gv.style.pointerEvents='none'; }
     }
   },200);
 </script>
