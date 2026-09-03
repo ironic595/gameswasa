@@ -42,7 +42,7 @@ export function init(container, args){
   function getMaxLevel(){ return 100; }
   function saveUps(){localStorage.setItem('wasa_upgrades_bananatron',JSON.stringify(ups));}
   function saveMax(){if(round>maxRound){maxRound=round;localStorage.setItem('wasa_bananatron_max',maxRound);}}
-  function getUpgradeCost(main, sub){ const total = main*5+sub; return Math.floor(60 + total*18 + Math.pow(total,1.35)*2); }
+  function getUpgradeCost(main, sub){ const total = main*5+sub; return 0.02 + total*0.008 + Math.pow(total,1.15)*0.0008; }
   function getBaseWASA(lvl){
     const tier=Math.floor((lvl-1)/10);
     return 0.005 + tier*0.0025;
@@ -216,7 +216,7 @@ export function init(container, args){
             <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:8px"><div style="color:#94a3b8">Tu tick</div><div style="color:white;font-weight:800">${curMax.toFixed(0)}ms</div></div>
             <div style="background:rgba(239,68,68,0.12);border-radius:10px;padding:8px"><div style="color:#fca5a5">R${round} Base</div><div style="color:white;font-weight:800">${baseDisplay.toFixed(6)} $WASA</div></div>
           </div>
-          <button id="buy" style="margin-top:12px;width:100%;background:${canBuy?'linear-gradient(135deg,#22c55e,#16a34a)':'#1e293b'};color:${canBuy?'black':'#475569'};padding:12px;border-radius:999px;font-weight:900">${total>=100?'MAX 100/100':`MEJORAR ${m}-${s} → ${nM}-${nS} • ${cost} $WASA`}</button>
+          <button id="buy" style="margin-top:12px;width:100%;background:${canBuy?'linear-gradient(135deg,#22c55e,#16a34a)':'#1e293b'};color:${canBuy?'black':'#475569'};padding:12px;border-radius:999px;font-weight:900">${total>=100?'MAX 100/100':`MEJORAR ${m}-${s} → ${nM}-${nS} • ${fmtWASA(cost)} $WASA`}</button>
           <div style="margin-top:6px;font-size:9px;color:#86efac;text-align:center">Economia: R1=0.005 / cada 10 niveles +0.0025 • Tiempo &lt;10s x3 / &lt;20s x2</div>
         </div>
         <div style="margin-top:12px;display:flex;gap:8px"><button id="back" style="flex:1;background:white;color:black;padding:10px;border-radius:999px;font-weight:800">VOLVER</button><button id="play" style="flex:1;background:#ef4444;color:white;padding:10px;border-radius:999px;font-weight:800">JUGAR VS IMPOSIBLE</button></div>
@@ -266,8 +266,8 @@ export function init(container, args){
         greenWins++;
       } else {
         redWins++;
-        tempCoins=0.0005;
-        lastElapsed=0; lastMult=1; lastBase=getBaseWASA(round);
+        tempCoins=0;
+        lastElapsed=0; lastMult=1; lastBase=0;
       }
       saveMax();
       ui.innerHTML=`
@@ -279,7 +279,7 @@ export function init(container, args){
               <div style="display:flex;justify-content:space-between"><span>Base R${round}</span><span>${lastBase.toFixed(6)} $WASA</span></div>
               <div style="display:flex;justify-content:space-between"><span>Tiempo ${lastElapsed.toFixed(1)}s</span><span>x${lastMult}</span></div>
               <div style="display:flex;justify-content:space-between;font-weight:800;color:#22c55e;margin-top:4px"><span>Total</span><span>${fmtWASA(tempCoins)} $WASA</span></div>
-            </div>`: `<div style="margin-top:8px;font-size:10px;color:#94a3b8">Consuelo 0.0005 $WASA</div>`}
+            </div>`: `<div style="margin-top:8px;font-size:10px;color:#ef4444">0 $WASA • Sin recompensa por perder</div>`}
             <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
               ${winGreen?`<button id="dbl" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:black;font-weight:900;padding:10px;border-radius:999px">📺 x2 (${fmtWASA(tempCoins*2)} $WASA)</button>`:''}
               <button id="next" style="background:white;color:black;font-weight:800;padding:10px;border-radius:999px">${winGreen?'SIGUIENTE':'REINTENTAR'} R${winGreen?round+1:round}</button>
@@ -289,7 +289,7 @@ export function init(container, args){
       `;
       ui.querySelector('#dbl')?.addEventListener('click',()=>openAd('double'));
       ui.querySelector('#next').onclick=()=>{ 
-        if(winGreen){ coins+=tempCoins; setCoins(coins); resetRound(round+1); } else { coins+=tempCoins; setCoins(coins); resetRound(round); }
+        if(winGreen){ coins+=tempCoins; setCoins(coins); resetRound(round+1); } else { resetRound(round); }
         state='playing'; renderUI(); 
       };
     }else if(state==='paused_ad'){ ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;color:white">Cargando...</div>`; }
