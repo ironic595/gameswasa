@@ -6,7 +6,7 @@
 <title>games.wasa.chat - arcade for onchain games</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  body{background:radial-gradient(ellipse at 50% 0%, rgba(79,70,229,0.15) 0%, transparent 70%), radial-gradient(ellipse at 100% 80%, rgba(245,158,11,0.10) 0%, transparent 60%), linear-gradient(180deg, #2046a3 0%, #332891 40%, #315bd5 100%);color:#e2e8f0;font-family:Inter,system-ui,sans-serif;font-size:13px;line-height:1.5;overflow-x:hidden;min-height:100vh}
+  body{background:radial-gradient(ellipse at 50% 0%, rgba(79, 70, 229, 0.15) 0%, transparent 70%), radial-gradient(ellipse at 100% 80%, rgba(245, 158, 11, 0.10) 0%, transparent 60%), linear-gradient(180deg, #2046a3 0%, #332891 40%, #315bd5 100%);color:#e2e8f0;font-family:Inter,system-ui,sans-serif;font-size:13px;line-height:1.5;overflow-x:hidden;min-height:100vh}
   button{cursor:pointer;border:0;background:0;color:inherit;font:inherit}
   header{position:sticky;top:0;z-index:10;background:rgba(5,8,20,0.75);backdrop-filter:blur(12px);border-bottom:1px solid rgba(56,189,248,0.15);display:flex;align-items:center;gap:16px;padding:12px 20px;height:52px}
   .logo{font-weight:700;letter-spacing:-0.02em;font-size:14px;background:linear-gradient(135deg,#38bdf8 0%,#818cf8 50%,#c084fc 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
@@ -16,21 +16,31 @@
   .search input:focus{border-color:#38bdf8;box-shadow:0 0 12px rgba(56,189,248,0.25)}
   .right{display:flex;align-items:center;gap:12px}
   .wallet{border:1px solid rgba(56,189,248,0.3);border-radius:20px;padding:5px 12px;font-size:11px;background:linear-gradient(135deg, rgba(56,189,248,0.1), rgba(168,85,247,0.1))}
+  .wallet.connected{background:linear-gradient(135deg,#38bdf8 0%,#818cf8 100%);color:#0f172a;border-color:transparent;font-weight:600}
   .wrap{max-width:1400px;margin:0 auto;display:flex}
   aside{width:180px;flex-shrink:0;padding:20px;border-right:1px solid rgba(56,189,248,0.12);position:sticky;top:52px;height:calc(100vh - 52px);overflow:auto}
   main{flex:1;padding:20px;min-width:0}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .subtitle{color:#cbd5e1;font-size:12px}
+  .filter-title{font-size:10px;letter-spacing:0.08em;color:#94a3b8;text-transform:uppercase;margin:20px 0 8px;font-weight:600}
+  .filter-title:first-child{margin-top:0}
+  .filter{display:flex;flex-direction:column;gap:4px}
+  .filter button{text-align:left;padding:4px 6px;border-radius:6px;color:#94a3b8;font-size:12px}
+  .filter button.active{background:linear-gradient(135deg, rgba(56,189,248,0.15), rgba(129,140,248,0.15));color:#38bdf8;border:1px solid rgba(56,189,248,0.25)}
   .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
   @media(max-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}}
-  @media(max-width:700px){.wrap{flex-direction:column}aside{width:100%;height:auto;position:static;border-right:0;border-bottom:1px solid rgba(56,189,248,0.12);display:flex;gap:20px;overflow:auto;white-space:nowrap}.grid{grid-template-columns:repeat(2,1fr)}header{flex-wrap:wrap;height:auto}.search{order:3;max-width:none;width:100%;margin-top:8px}}
+  @media(max-width:700px){.wrap{flex-direction:column}aside{width:100%;height:auto;position:static;border-right:0;border-bottom:1px solid rgba(56,189,248,0.12);display:flex;gap:20px;overflow:auto;white-space:nowrap}.filter{flex-direction:row}.grid{grid-template-columns:repeat(2,1fr)}header{flex-wrap:wrap;height:auto}.search{order:3;max-width:none;width:100%;margin-top:8px}}
   .card{border:1px solid rgba(56,189,248,0.15);border-radius:12px;overflow:hidden;background:rgba(15,23,42,0.6);backdrop-filter:blur(8px);position:relative;transition:all .2s ease}
   .card:hover{border-color:#38bdf8;transform:translateY(-2px);box-shadow:0 8px 24px -6px rgba(56,189,248,0.3)}
   .card.live{border-color:rgba(56,189,248,0.25)}
   .thumb{aspect-ratio:16/10;background:#0b1329;display:flex;align-items:center;justify-content:center;font-size:28px;position:relative;overflow:hidden}
   .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .thumb.soon{background:#070a14;color:#334155}
   .badge{position:absolute;top:8px;left:8px;font-size:9px;letter-spacing:0.05em;padding:2px 6px;border-radius:20px;background:#050814;border:1px solid rgba(56,189,248,0.2);color:#94a3b8;z-index:2}
   .badge.live{background:linear-gradient(135deg,#38bdf8,#818cf8);color:#0f172a;font-weight:700;border:none}
   .info{padding:10px 12px}
   .title{font-size:13px;font-weight:600;text-transform:uppercase;color:#f1f5f9}
+  .meta{font-size:11px;color:#94a3b8;margin-top:2px}
   .play{position:absolute;inset:0;background:rgba(5,8,20,0.85);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;opacity:0;transition:.15s;z-index:3}
   .card:hover .play{opacity:1}
   .play span{border-radius:20px;padding:6px 14px;font-size:12px;background:linear-gradient(135deg,#38bdf8 0%,#818cf8 50%,#c084fc 100%);color:#0f172a;font-weight:700;box-shadow:0 0 16px rgba(56,189,248,0.4)}
@@ -38,141 +48,171 @@
   #modal.open{display:flex}
   #modalTop{height:52px;border-bottom:1px solid rgba(56,189,248,0.2);display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:12px;flex-shrink:0;background:#0a0f24}
   #modalTitle{font-weight:600;font-size:13px;color:#f8fafc}
+  #modalMeta{display:flex;align-items:center;gap:10px}
   .pill{border:1px solid rgba(56,189,248,0.25);border-radius:20px;padding:4px 10px;font-size:11px;background:#0f172a}
+  .pill.hd{border-color:rgba(56,189,248,0.4);color:#38bdf8}
   .pill.coins{background:linear-gradient(135deg,#38bdf8 0%,#818cf8 100%);color:#0f172a;border:none;font-weight:700}
   #modalClose{border:1px solid rgba(56,189,248,0.25);border-radius:20px;padding:6px 14px;font-size:11px;background:#0f172a;color:#e2e8f0}
   #modalContainer{flex:1;display:flex;align-items:center;justify-content:center;background:#030712;position:relative;overflow:hidden}
   @media(min-width:900px){#modal{padding:24px}#modalTop{border-radius:12px 12px 0 0}#modalContainer{border:1px solid rgba(56,189,248,0.2);border-top:0;border-radius:0 0 12px 12px}}
-  /* OVERLAYS DE ANUNCIOS - SDK GAMEMONETIZE USA #gamemonetize-video */
-  #adOverlay{display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.88);align-items:center;justify-content:center;flex-direction:column}
-  #adOverlay.open{display:flex}
-  #gamemonetize-video{position:fixed !important;top:0 !important;left:0 !important;width:100vw !important;height:100vh !important;z-index:9999 !important;background:transparent !important;display:none !important}
-  #gamemonetize-video.active{display:block !important}
+  /* Contenedor donde el SDK inyecta el video real */
   #gmVideo{position:fixed;inset:0;z-index:9999;background:transparent;display:none}
   #gmVideo.active{display:block}
-  @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 <script>
-  // SISTEMA vrAd ROBUSTO - SIEMPRE DA RECOMPENSA
+  // === SISTEMA vrAd - LA CONSOLA SOLO REACCIONA A vrAd ===
+  // vrAd: 0=nada, 1=juego pide ad, 2=consola lo vio, 3=ad reproduciendose, 4=ad termino OK
   window.vrAd = 0;
-  window.vrAdType = null;
+  window.vrAdType = null; // 'lives' | 'double' | 'checkpoint'
   window._gm_shown = false;
-  window._gm_ready = false;
 
   window.SDK_OPTIONS={
     gameId:"4kci7og3klgj0ivy2wz3gdvd9dth5e7n",
     onEvent:function(a){
-      console.log('[GM EVENT]',a.name);
-      if(a.name==='SDK_READY'){ window._gm_ready=true; console.log('[GM] SDK READY'); }
+      // console.log('[GM]',a.name);
       if(a.name==='SDK_GAME_PAUSE'){
-        window._gm_shown=true;
-        if(window.vrAd===2){
-          window.vrAd=3;
-          console.log('[vrAd] 2->3 AD MOSTRANDOSE');
-          // ocultar spinner, dejar solo video
-          var ov=document.getElementById('adOverlay');
-          if(ov) ov.classList.remove('open');
+        window._gm_shown = true;
+        if(window.vrAd===2){ window.vrAd=3; console.log('[vrAd] 2->3 ad reproduciendose'); }
+      }
+      if(a.name==='SDK_GAME_START' || a.name==='SDK_ERROR' || a.name==='SDK_GAME_END'){
+        if(window.vrAd===3){
+          window.vrAd=4; 
+          console.log('[vrAd] 3->4 ad termino, recompensa lista');
         }
       }
-      if(a.name==='SDK_GAME_START' || a.name==='SDK_GAME_END' || a.name==='SDK_ERROR'){
-        console.log('[GM] AD FIN',a.name,'shown=',window._gm_shown);
-        if(window.vrAd===3 || window.vrAd===2){
-          // si hubo ad o no, siempre dar recompensa
-          window.vrAd=4;
-          console.log('[vrAd] ->4 FIN');
-        }
-      }
+      if(a.name==='SDK_READY'){ window._gm_ready=true; }
     }
   };
   (function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(d.getElementById(id))return;js=d.createElement(s);js.id=id;js.src="https://api.gamemonetize.com/sdk.js";fjs.parentNode.insertBefore(js,fjs);})(document,"script","gamemonetize-sdk");
+  (function(){var s=document.createElement('script');s.src="https://api.gamemonetize.com/video.js?gameid=4kci7og3klgj0ivy2wz3gdvd9dth5e7n";s.async=true;document.head.appendChild(s);})();
 
-  // CONTROLADOR CENTRAL vrAd - ESTE ES EL QUE HACE QUE SIEMPRE FUNCIONE
+  // Watcher de vrAd en la consola
   setInterval(function(){
-    // JUEGO PIDE AD
     if(window.vrAd===1){
-      console.log('[vrAd] 1->2 PIDIENDO AD',window.vrAdType);
+      console.log('[vrAd] 1->2 consola detecto pedido de ad', window.vrAdType);
       window.vrAd=2;
       window._gm_shown=false;
-      var gv=document.getElementById('gamemonetize-video') || document.getElementById('gmVideo');
-      var ov=document.getElementById('adOverlay');
-      if(gv){ gv.innerHTML=''; gv.style.display='block'; gv.classList.add('active'); }
-      // tambien activar alias gmVideo por compatibilidad
-      var gv2=document.getElementById('gmVideo'); if(gv2 && gv!==gv2){ gv2.style.display='block'; gv2.classList.add('active'); }
-      if(ov){ ov.classList.add('open'); document.getElementById('adType').textContent=window.vrAdType||''; }
-
-      // Intentar mostrar anuncio
+      document.getElementById('gmVideo').classList.add('active');
+      document.getElementById('gmVideo').style.display='block';
+      // activar anuncio real
       if(typeof sdk!=='undefined' && sdk.showBanner){
-        try{
-          console.log('[GM] sdk.showBanner()');
-          sdk.showBanner();
-        }catch(e){ console.error(e); window.vrAd=4; }
-        // Si en 7 segundos no se mostro nada, dar recompensa igual (no fill) - antes 4s era muy corto y cortaba videos lentos
+        try{ sdk.showBanner(); }catch(e){ console.log(e); }
+        // si no hay fill en 3.5s, dar recompensa igual sin dejar negro
         setTimeout(function(){
           if(window.vrAd===2 && !window._gm_shown){
-            console.log('[vrAd] 2->4 NO FILL (7s) - DANDO RECOMPENSA IGUAL');
+            console.log('[vrAd] 2->4 sin fill, fallback');
             window.vrAd=4;
           }
-        },7000);
+        },3500);
       }else{
-        console.log('[GM] SDK no listo, dando recompensa directa');
-        setTimeout(function(){ window.vrAd=4; },800);
+        console.log('[vrAd] SDK no listo, 2->4 fallback directo');
+        window.vrAd=4;
       }
-      // Safety 30s nunca quedarse colgado
-      setTimeout(function(){ if(window.vrAd===2||window.vrAd===3){ console.log('[vrAd] SAFETY 30s ->4'); window.vrAd=4; } },30000);
+      // safety 30s
+      setTimeout(function(){ if(window.vrAd===2||window.vrAd===3){ console.log('[vrAd] safety ->4'); window.vrAd=4; } },30000);
     }
-    // AD TERMINO - LIMPIAR TODO
     if(window.vrAd===4){
-      var gv=document.getElementById('gamemonetize-video');
-      var gv2=document.getElementById('gmVideo');
-      var ov=document.getElementById('adOverlay');
-      if(gv){ gv.classList.remove('active'); gv.style.display='none'; gv.innerHTML=''; }
-      if(gv2){ gv2.classList.remove('active'); gv2.style.display='none'; gv2.innerHTML=''; }
-      if(ov){ ov.classList.remove('open'); }
+      // cuando el juego consuma el 4, la consola limpia el contenedor de video
+      // el juego es el que pone vrAd=0 despues de dar recompensa, nosotros solo limpiamos el div si sigue visible
+      // lo dejamos 500ms para que el juego lea el 4
+      setTimeout(function(){
+        var gv=document.getElementById('gmVideo');
+        if(gv){ gv.classList.remove('active'); gv.style.display='none'; }
+      },800);
     }
-  },150);
+  },200);
 </script>
 </head>
 <body>
-<div id="adOverlay"><div style="width:44px;height:44px;border:4px solid #38bdf8;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite"></div><div style="margin-top:14px;color:white;font-weight:800;font-size:14px;letter-spacing:0.05em">CARGANDO ANUNCIO</div><div style="margin-top:4px;color:rgba(255,255,255,0.5);font-size:10px" id="adType">recompensa</div></div>
-<div id="gamemonetize-video"></div>
 <div id="gmVideo"></div>
-<header><div class="logo">WASA <span>games.wasa.chat</span></div><div class="search"><input id="q" placeholder="Search games..." oninput="filterGames()"></div><div class="right"><button class="wallet" id="walletBtn">Connect Wallet</button></div></header>
-<div class="wrap"><aside><div style="font-size:10px;color:#94a3b8">Category</div><div style="margin-top:8px"><button style="color:#38bdf8">All</button></div></aside><main><div class="grid" id="grid"></div></main></div>
-<div id="modal"><div id="modalTop"><div id="modalTitle">WASA</div><div style="display:flex;gap:8px"><div class="pill coins" id="modalCoins">0 $WASA</div><button id="modalClose" onclick="closeGame()">✕ Close</button></div></div><div id="modalContainer"></div></div>
+<header>
+  <div class="logo">WASA <span>games.wasa.chat — arcade for onchain games</span></div>
+  <div class="search"><input id="q" placeholder="Search games..." oninput="filterGames()"></div>
+  <div class="right"><button class="wallet" id="walletBtn" onclick="toggleWallet()">Connect Wallet</button></div>
+</header>
+<div class="wrap">
+  <aside>
+    <div class="filter-title">Category</div>
+    <div class="filter" id="catFilter">
+      <button class="active" data-cat="all" onclick="setCat('all')">All</button>
+      <button data-cat="action" onclick="setCat('action')">Action</button>
+      <button data-cat="puzzle" onclick="setCat('puzzle')">Puzzle</button>
+      <button data-cat="arcade" onclick="setCat('arcade')">Arcade</button>
+      <button data-cat="strategy" onclick="setCat('strategy')">Strategy</button>
+    </div>
+    <div class="filter-title">Info</div>
+    <div style="color:#94a3b8;font-size:11px;line-height:1.5">Thumbs auto<br>slug.png / .webp</div>
+  </aside>
+  <main>
+    <div class="topbar"><div class="subtitle" id="count">Loading...</div></div>
+    <div class="grid" id="grid"></div>
+  </main>
+</div>
+<div id="modal">
+  <div id="modalTop">
+    <div style="display:flex;align-items:center;gap:12px"><div id="modalTitle">WASA</div><div class="pill hd" id="modalQuality">HD</div></div>
+    <div id="modalMeta"><div class="pill coins" id="modalCoins">0 $WASA</div><button id="modalClose" onclick="closeGame()">✕ Close</button></div>
+  </div>
+  <div id="modalContainer"></div>
+</div>
 <script>
 let GAMES=[];
-async function loadGames(){try{const r=await fetch('./games.json?t='+Date.now());GAMES=await r.json();}catch(e){GAMES=[{slug:'space-invaders',title:'SPACE INVADERS',cat:'arcade action',live:true}];}renderGrid();}
+let currentCat='all';
+function getCoins(){return parseInt(localStorage.getItem('wasa_coins')||'0');}
+function setCoins(n){localStorage.setItem('wasa_coins',n);document.getElementById('modalCoins').textContent=n+' $WASA';}
+function addCoins(n){setCoins(getCoins()+n);}
+function toggleWallet(){const b=document.getElementById('walletBtn');const c=b.classList.contains('connected');if(c){b.textContent='Connect Wallet';b.classList.remove('connected');}else{b.textContent='0x1234…WASA';b.classList.add('connected');}}
+function setCat(cat){currentCat=cat;document.querySelectorAll('#catFilter button').forEach(b=>b.classList.toggle('active',b.dataset.cat===cat));renderGrid();}
+function filterGames(){renderGrid();}
+async function loadGames(){
+  try{const r=await fetch('/games.json?t='+Date.now());if(!r.ok) throw 0;GAMES=await r.json();}
+  catch(e){try{const r2=await fetch('./games.json?t='+Date.now());GAMES=await r2.json();}catch(e2){GAMES=[{slug:'space-invaders',title:'SPACE INVADERS',cat:'arcade action',live:true}];}}
+  renderGrid();
+}
 function renderGrid(){
   const grid=document.getElementById('grid');
-  grid.innerHTML=GAMES.map(g=>`<div class="card live"><div class="thumb" id="thumb-${g.slug}"><span style="color:#334155">loading...</span><span class="badge live">LIVE</span></div><div class="info"><div class="title">${g.title}</div></div><div class="play"><span onclick="openGame('${g.slug}')">Play Now</span></div></div>`).join('');
-  GAMES.forEach(g=>{
+  const q=(document.getElementById('q').value||'').toLowerCase();
+  const filtered=GAMES.filter(g=>{
+    const mq=!q||g.slug.includes(q)||g.title.toLowerCase().includes(q)||(g.cat||'').includes(q);
+    const mc=currentCat==='all'||(g.cat||'').includes(currentCat);
+    return mq&&mc;
+  });
+  document.getElementById('count').textContent=filtered.length+' games — '+GAMES.filter(g=>g.live).length+' live';
+  grid.innerHTML=filtered.map(g=>`<div class="card ${g.live?'live':''}"><div class="thumb ${g.live?'':'soon'}" id="thumb-${g.slug}"><span style="color:#334155;font-size:11px">loading...</span><span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span></div><div class="info"><div class="title">${g.title}</div><div class="meta"><span>${(g.cat||'').split(' ')[0]}</span></div></div><div class="play"><span onclick="openGame('${g.slug}')">Play Now</span></div></div>`).join('');
+  filtered.forEach(g=>{
     const el=document.getElementById('thumb-'+g.slug); if(!el) return;
-    const cand=[`./thumbs/${g.slug}.png`,`./thumbs/${g.slug}.webp`,`./games/${g.slug}/thumb.png`];
-    let i=0;function next(){if(i>=cand.length){el.innerHTML=`<span style="font-size:24px">🎮</span><span class="badge live">LIVE</span>`;return;}const img=new Image();img.onload=()=>{el.innerHTML=`<img src="${img.src}"><span class="badge live">LIVE</span>`;};img.onerror=()=>{i++;next();};img.src=cand[i];}next();
+    const cand=[`/thumbs/${g.slug}.png`,`/thumbs/${g.slug}.webp`,`/games/${g.slug}/thumb.png`,`/games/${g.slug}/thumb.webp`];
+    let i=0;function next(){if(i>=cand.length){el.innerHTML=`<span style="font-size:24px">🎮</span><span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>`;return;}const img=new Image();img.onload=()=>{el.innerHTML=`<img src="${img.src}" alt="${g.title}"><span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>`;};img.onerror=()=>{i++;next();};img.src=cand[i];}next();
   });
 }
 async function openGame(slug){
   const modal=document.getElementById('modal');
   const container=document.getElementById('modalContainer');
+  const titleEl=document.getElementById('modalTitle');
+  const qualityEl=document.getElementById('modalQuality');
+  const isLow=(navigator.deviceMemory||4)<=2||(navigator.hardwareConcurrency||4)<=4;
+  const isMob=innerWidth<900;
+  const quality=isLow||isMob?'lite':'hd';
+  const game=GAMES.find(g=>g.slug===slug);
+  titleEl.textContent=(game?.title||slug.replace(/-/g,' ')).toUpperCase();
+  qualityEl.textContent=quality.toUpperCase();
+  setCoins(getCoins());
   modal.classList.add('open'); document.body.style.overflow='hidden';
+  history.pushState({},'',`/play?game=${slug}`);
+  container.innerHTML=`<div style="color:#94a3b8;font-size:12px">Loading ${slug} (${quality})...</div>`;
   window.vrAd=0; window.vrAdType=null;
-  container.innerHTML='Loading...';
   try{
     const mod=await import(`/games/${slug}/game.js?t=${Date.now()}`);
     container.innerHTML='';
-    if(mod.init){ mod.init(container,{quality:'hd',getCoins:()=>parseInt(localStorage.getItem('wasa_coins')||'0'),setCoins:(n)=>localStorage.setItem('wasa_coins',n),addCoins:(n)=>{localStorage.setItem('wasa_coins',parseInt(localStorage.getItem('wasa_coins')||'0')+n)},slug}); }
-  }catch(e){container.innerHTML='Error '+e.message;}
+    if(mod.init){ mod.init(container,{quality,getCoins,addCoins,setCoins,slug}); }
+  }catch(e){console.error(e);container.innerHTML=`<div style="text-align:center;color:#94a3b8;font-size:12px">Juego <b style="color:#fff">${slug}</b> no encontrado<br>/games/${slug}/game.js<br><span style="font-size:10px;color:#ef4444">${e.message}</span></div>`;}
 }
-function closeGame(){
-  document.getElementById('modal').classList.remove('open');
-  document.getElementById('modalContainer').innerHTML='';
-  document.body.style.overflow='';
-  window.vrAd=0; window.vrAdType=null;
-  var gv=document.getElementById('gamemonetize-video'); if(gv){gv.classList.remove('active');gv.style.display='none';gv.innerHTML='';}
-  var gv2=document.getElementById('gmVideo'); if(gv2){gv2.classList.remove('active');gv2.style.display='none';gv2.innerHTML='';}
-  var ov=document.getElementById('adOverlay'); if(ov){ov.classList.remove('open');}
-}
-addEventListener('DOMContentLoaded',loadGames);
+function closeGame(){document.getElementById('modal').classList.remove('open');document.getElementById('modalContainer').innerHTML='';document.body.style.overflow='';history.pushState({},'',`/`); window.vrAd=0; window.vrAdType=null; var gv=document.getElementById('gmVideo'); if(gv){gv.classList.remove('active'); gv.style.display='none';}}
+addEventListener('keydown',e=>{if(e.key==='Escape') closeGame();});
+addEventListener('DOMContentLoaded',()=>{
+  loadGames();
+  const p=new URLSearchParams(location.search);const g=p.get('game');if(g) openGame(g);
+});
 </script>
 </body>
 </html>
