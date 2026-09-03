@@ -95,6 +95,8 @@
       document.getElementById('gmVideo').classList.add('active');
       document.getElementById('gmVideo').style.display='block';
       // activar anuncio real
+      // reset shown flag
+      window._gm_shown=false;
       if(typeof sdk!=='undefined' && sdk.showBanner){
         try{ sdk.showBanner(); }catch(e){ console.log(e); }
         // si no hay fill en 3.5s, dar recompensa igual sin dejar negro
@@ -207,7 +209,7 @@ async function openGame(slug){
     if(mod.init){ mod.init(container,{quality,getCoins,addCoins,setCoins,slug}); }
   }catch(e){console.error(e);container.innerHTML=`<div style="text-align:center;color:#94a3b8;font-size:12px">Juego <b style="color:#fff">${slug}</b> no encontrado<br>/games/${slug}/game.js<br><span style="font-size:10px;color:#ef4444">${e.message}</span></div>`;}
 }
-function closeGame(){document.getElementById('modal').classList.remove('open');document.getElementById('modalContainer').innerHTML='';document.body.style.overflow='';history.pushState({},'',`/`); window.vrAd=0; window.vrAdType=null; var gv=document.getElementById('gmVideo'); if(gv){gv.classList.remove('active'); gv.style.display='none';}}
+function closeGame(){document.getElementById('modal').classList.remove('open');document.getElementById('modalContainer').innerHTML='';document.body.style.overflow='';history.pushState({},'',`/`); window.vrAd=0; window.vrAdType=null; var gv=document.getElementById('gmVideo'); if(gv){gv.classList.remove('active'); gv.style.display='none'; gv.innerHTML='';} var sdkOverlay=document.querySelector('[id^="gamemonetize"]'); if(sdkOverlay){try{sdkOverlay.remove();}catch(e){}} }
 addEventListener('keydown',e=>{if(e.key==='Escape') closeGame();});
 addEventListener('DOMContentLoaded',()=>{
   loadGames();
