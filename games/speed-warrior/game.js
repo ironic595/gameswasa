@@ -1,16 +1,18 @@
 export function init(container, args){
+  const quality = args.quality||'hd';
   const getCoins = args.getCoins||(()=>parseFloat(localStorage.getItem('wasa_coins')||'0'));
   const setCoins = args.setCoins||((n)=>localStorage.setItem('wasa_coins',n));
+
   container.innerHTML = `
     <style>
-      .sw{width:100%;height:100%;position:relative;background:#0a0e1e;overflow:hidden;font-family:Inter,system-ui,sans-serif;user-select:none}
-      .sw canvas{width:100%;height:100%;display:block}
-      .sw-ui{position:absolute;inset:0;pointer-events:none}
-      .sw-ui button{pointer-events:auto}
+      .rf{width:100%;height:100%;position:relative;background:#0f172a;overflow:hidden;font-family:Inter,system-ui,sans-serif;user-select:none}
+      .rf canvas{width:100%;height:100%;display:block;image-rendering:pixelated}
+      .rf-ui{position:absolute;inset:0;pointer-events:none}
+      .rf-ui button{pointer-events:auto}
     </style>
-    <div class="sw"><canvas id="c"></canvas><div id="ui" class="sw-ui"></div></div>
+    <div class="rf"><canvas id="c"></canvas><div id="ui" class="rf-ui"></div></div>
   `;
-  const wrap=container.querySelector('.sw');
+  const wrap=container.querySelector('.rf');
   const canvas=wrap.querySelector('#c');
   const ctx=canvas.getContext('2d');
   const ui=wrap.querySelector('#ui');
@@ -28,198 +30,389 @@ export function init(container, args){
   function getCost(m,s){ const t=m*5+s; return 0.025 + t*0.01 + Math.pow(t,1.15)*0.001; }
   function getBaseWASA(lvl){ const tier=Math.floor((lvl-1)/10); return 0.005 + tier*0.0025; }
   function getTimeMult(elapsed){ if(elapsed<10) return 3; if(elapsed<20) return 2; return 1; }
-  function fmtWASA(n){ return (Math.round(n*1000000)/1000000).toFixed(6).replace(/0+$/,'').replace(/\.$/,''); }
-  function getPlayerMax(){ return 165 + getTotal()*1.1 + ups.v.main*1.2; }
-  function getRivalBase(lvl){ return 140 + lvl*4.5 + Math.pow(lvl,0.55)*5; }
+  function fmtWASA(n){ const v=parseFloat(n)||0; if(v===0) return '0'; return (Math.round(v*1000000)/1000000).toString(); }
+  function getPlayerMax(){ return 220 + getTotal()*1.8 + ups.v.main*2.2; }
 
-  let state='menu', level=1, distance=0, goal=2200, tempCoins=0, score=0;
-  let player={x:0,y:0,w:28,h:52,speed:0,shield:0,invul:0};
-  let rivals=[], obstacles=[], coinsArr=[], particles=[];
-  let keys={l:false,r:false,up:false}, gameTime=0, last=performance.now();
-  let _rewardPending=null;
-  let levelStart=0;
+  // Road Fighter core
+  let state='menu', level=1, distance=0, goal=3500, tempCoins=0, score=0, fuel=100;
+  let player={x:0,y:0,w:22,h:38,speed:0,crash:0,invul:0,angle:0};
+  let enemies=[], roadOffset=0, particles=[], roadCurve=0, curveTarget=0;
+  let keys={l:false,r:false,up:false,down:false}, last=performance.now(), levelStart=0;
+  let _rewardPending=null, adClaimedThisLevel=false;
 
   function resetLevel(lvl){
-    level=lvl; distance=0; levelStart=performance.now(); goal=2000+lvl*240+Math.pow(lvl,1.15)*25;
-    player.x=W*0.5; player.y=H*0.78; player.speed=0; player.shield=ups.v.main>=3?1:0; player.invul=0;
-    rivals=[]; obstacles=[]; coinsArr=[]; particles=[]; gameTime=0; tempCoins=0; score=0; levelStart=performance.now();
-    for(let i=0;i<10;i++){ spawnBatch(-i*220); }
+    level=lvl; distance=0; goal=3000+lvl*600+Math.pow(lvl,1.2)*120;
+    player.x=W*0.5; player.y=H*0.82; player.speed=0; player.crash=0; player.invul=0; player.angle=0;
+    enemies=[]; particles=[]; roadOffset=0; roadCurve=0; curveTarget=0;
+    fuel=100; score=0; tempCoins=0; levelStart=performance.now(); adClaimedThisLevel=false;
+    for(let i=0;i<8;i++) spawnEnemy(-i*180 - Math.random()*400, true);
   }
 
-  function spawnBatch(baseY){
-    const y = baseY - Math.random()*180;
-    if(Math.random()<0.75){
-      rivals.push({x:W*0.18+Math.random()*W*0.64, y:y, w:26+Math.random()*8, h:44+Math.random()*10, speed:getRivalBase(level)*0.85+Math.random()*20, color:Math.random()<0.5?'#ef4444':'#3b82f6'});
-    }
-    if(Math.random()<0.7){
-      obstacles.push({x:W*0.15+Math.random()*W*0.7, y:y-90, w:18+Math.random()*28, h:14+Math.random()*10, type:Math.random()<0.4?'cone':'rock'});
-    }
-    if(Math.random()<0.6){
-      coinsArr.push({x:W*0.2+Math.random()*W*0.6, y:y-50, r:9, taken:false});
+  function spawnEnemy(y=-120, initial=false){
+    const roadW = W*0.42;
+    const left = W*0.5 - roadW/2;
+    // 2 lanes in road fighter style, but allow 3 positions
+    const laneW = roadW/3;
+    const lane = Math.floor(Math.random()*3);
+    const x = left + laneW*0.5 + lane*laneW + (Math.random()-0.5)*laneW*0.3;
+    const types = [
+      {w:20,h:36,color:'#ef4444',speed:0.65,score:100}, // red car
+      {w:20,h:36,color:'#facc15',speed:0.72,score:100}, // yellow
+      {w:20,h:36,color:'#22c55e',speed:0.68,score:100}, // green
+      {w:20,h:36,color:'#38bdf8',speed:0.75,score:200}, // blue fast - like bonus car
+      {w:26,h:48,color:'#e5e7eb',speed:0.55,score:150}, // truck white
+    ];
+    const t = types[Math.floor(Math.random()*types.length)];
+    // speed relative to player
+    const baseSpeed = 120 + level*8 + Math.random()*40;
+    enemies.push({x,y,w:t.w,h:t.h,color:t.color,base:baseSpeed,rel:t.speed,score:t.score,crashed:0});
+    if(!initial && Math.random()<0.15){
+      // bonus fuel truck maybe
+      if(Math.random()<0.3) enemies.push({x:left+Math.random()*roadW,y:y-80,w:18,h:18,color:'#fbbf24',base:baseSpeed*0.6,rel:0.5,score:500,isFuel:true,crashed:0});
     }
   }
 
-  function openAd(t){ if(window.vrAd!==0) return; _rewardPending=t; window.vrAdType=t; window.vrAd=1; state='paused_ad'; }
+  function openAd(type){ if(window.vrAd!==0) return; if(adClaimedThisLevel && type==='double') return; _rewardPending=type; window.vrAdType=type; window.vrAd=1; }
   function claimReward(){
     const t=_rewardPending; _rewardPending=null; window.vrAd=0; window.vrAdType=null; window._gm_shown=false;
-    if(t==='double'){ tempCoins*=2; if(tempCoins>0){ coins+=tempCoins; setCoins(coins); }; setCoins(coins); level++; saveMax(); resetLevel(level); state='playing'; renderUI(); }
-    else if(t==='revive'){ player.shield=1; player.invul=1.5; state='playing'; renderUI(); }
+    if(t==='double' && !adClaimedThisLevel){
+      adClaimedThisLevel=true;
+      const dbl=tempCoins*2;
+      coins+=dbl; setCoins(coins);
+      level++; saveMax(); resetLevel(level); state='playing'; renderUI();
+    } else if(t==='revive'){
+      fuel=Math.min(100,fuel+40); player.invul=2; player.crash=0; state='playing'; renderUI();
+    }
   }
 
   function renderUpgrades(){
-    const total=getTotal(), pct=Math.round(total/100*100), m=ups.v.main, s=ups.v.sub;
-    const cost=getCost(m,s);
-    let nM=m, nS=s+1; if(nS>=5){ nM++; nS=0; }
-    const nextTotal=nM*5+nS;
-    const curMax=getPlayerMax(), nextMax=165+nextTotal*1.1+nM*1.2;
+    const total=getTotal(), m=ups.v.main, s=ups.v.sub, cost=getCost(m,s);
     const canBuy=coins>=cost && total<100;
+    const curMax=getPlayerMax();
     ui.innerHTML=`
-      <div style="position:absolute;inset:0;background:linear-gradient(180deg,#0a0e1e,#1e1b4b);padding:12px;overflow:auto">
-        <div style="display:flex;justify-content:space-between;align-items:center"><div style="color:white;font-weight:900">MEJORAS SPEED WARRIOR</div><div style="color:#fbbf24;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.2);border-radius:999px;padding:4px 10px;font-size:12px">$WASA ${coins}</div></div>
-        <div style="margin-top:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(251,191,36,0.25);border-radius:16px;padding:14px">
-          <div style="display:flex;justify-content:space-between"><div style="color:white;font-weight:800">🏎️ MOTOR • VELOCIDAD</div><div style="color:#fbbf24;font-weight:800">${total}/100 • ${pct}%</div></div>
+      <div style="position:absolute;inset:0;background:#0a0e1e;padding:12px;overflow:auto">
+        <div style="display:flex;justify-content:space-between"><div style="color:white;font-weight:900">MEJORAS ROAD FIGHTER</div><div style="color:#fbbf24">${fmtWASA(coins)} $WASA</div></div>
+        <div style="margin-top:12px;background:rgba(255,255,255,0.05);border-radius:16px;padding:14px">
+          <div style="color:white;font-weight:800">🏎️ MOTOR • VELOCIDAD MAX ${curMax.toFixed(0)} km/h</div>
           <div style="margin-top:8px;height:10px;background:rgba(0,0,0,0.5);border-radius:999px;display:flex;gap:2px;padding:2px">
-            ${Array.from({length:20}).map((_,mi)=>{
-              const f=mi<m?1:mi===m?s/5:0;
-              return `<div style="flex:1;background:rgba(0,0,0,0.4);border-radius:999px;overflow:hidden"><div style="height:100%;width:${f*100}%;background:linear-gradient(90deg,#fbbf24,#f59e0b)"></div></div>`;
-            }).join('')}
+            ${Array.from({length:20}).map((_,mi)=>{const f=mi<m?1:mi===m?s/5:0; return `<div style="flex:1;background:rgba(0,0,0,0.4);border-radius:999px;overflow:hidden"><div style="height:100%;width:${f*100}%;background:#fbbf24"></div></div>`;}).join('')}
           </div>
-          <div style="margin-top:6px;display:flex;justify-content:space-between;font-size:9px;color:#64748b"><span>0</span><span>MAIN ${m} • SUB ${s}/5</span><span>100</span></div>
-          <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px">
-            <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:8px"><div style="color:#94a3b8">Tu max actual</div><div style="color:white;font-weight:800">${curMax.toFixed(1)} km/h</div></div>
-            <div style="background:rgba(239,68,68,0.08);border-radius:10px;padding:8px"><div style="color:#fca5a5">Rival Round ${level}</div><div style="color:white;font-weight:800">${getRivalBase(level).toFixed(1)} km/h (+4.5/lvl)</div></div>
-          </div>
-          <button id="buy" style="margin-top:12px;width:100%;background:${canBuy?'linear-gradient(135deg,#fbbf24,#f59e0b)':'#1e293b'};color:${canBuy?'black':'#475569'};padding:12px;border-radius:999px;font-weight:900">${total>=100?'MAX 100/100':`MEJORAR ${m}-${s} → ${nM}-${nS} • ${fmtWASA(cost)} $WASA • +${(nextMax-curMax).toFixed(1)} km/h`}</button>
-          <div style="margin-top:6px;font-size:9px;color:#64748b;text-align:center">Rival sube +4.5 km/h por nivel (poquito) • 20 main x 5 sub = 100 niveles</div>
+          <button id="buy" style="margin-top:12px;width:100%;background:${canBuy?'#fbbf24':'#1e293b'};color:${canBuy?'black':'#555'};padding:12px;border-radius:999px;font-weight:900">${total>=100?'MAX':`MEJORAR ${m}-${s} → ${fmtWASA(cost)} $WASA`}</button>
         </div>
-        <div style="margin-top:12px;display:flex;gap:8px"><button id="back" style="flex:1;background:white;color:black;padding:10px;border-radius:999px;font-weight:800">VOLVER</button><button id="play" style="flex:1;background:#fbbf24;color:black;padding:10px;border-radius:999px;font-weight:800">JUGAR LVL ${level}</button></div>
+        <button id="back" style="margin-top:12px;width:100%;background:white;color:black;padding:10px;border-radius:999px;font-weight:800">VOLVER</button>
       </div>
     `;
-    ui.querySelector('#buy')?.addEventListener('click',()=>{
-      if(total>=100||coins<cost) return;
-      coins-=cost; setCoins(coins);
-      ups.v.sub++; if(ups.v.sub>=5){ ups.v.sub=0; ups.v.main++; }
-      saveUps(); renderUpgrades();
-    });
+    ui.querySelector('#buy')?.addEventListener('click',()=>{ if(!canBuy) return; coins-=cost; setCoins(coins); ups.v.sub++; if(ups.v.sub>=5){ups.v.sub=0; ups.v.main++;} saveUps(); renderUpgrades(); });
     ui.querySelector('#back').onclick=()=>{ state='menu'; renderUI(); };
-    ui.querySelector('#play').onclick=()=>{ resetLevel(level); state='playing'; renderUI(); };
   }
 
   function renderUI(){
+    const progress = Math.min(100, distance/goal*100);
+    let h='';
+    // HUD like Road Fighter - top right info
+    h+=`<div style="position:absolute;top:0;left:0;right:0;padding:8px 12px;display:flex;justify-content:space-between;pointer-events:auto">
+      <div style="background:rgba(0,0,0,0.7);padding:6px 10px;border-radius:6px;border:2px solid #fff;font-family:monospace">
+        <div style="color:#22c55e;font-size:10px">1P</div><div style="color:white;font-weight:900;font-size:14px">${String(score).padStart(6,'0')}</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:start">
+        <div style="background:#000;border:2px solid #fff;padding:4px 8px;border-radius:4px;text-align:center">
+          <div style="color:white;font-size:8px;font-family:monospace">${fmtWASA(coins)} $WASA</div>
+          <div style="color:#fbbf24;font-size:10px;font-weight:900;margin-top:2px">NIVEL ${level}</div>
+        </div>
+        ${state==='playing'?`<button id="pause" style="width:28px;height:28px;background:rgba(0,0,0,0.6);border:1px solid #fff;color:white;border-radius:4px">⏸</button>`:''}
+      </div>
+    </div>`;
+
+    if(state==='playing'){
+      h+=`<div style="position:absolute;right:6px;top:80px;bottom:60px;width:56px;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:4px">
+        <div style="color:white;font-family:monospace;font-size:10px;font-weight:900">${Math.round(player.speed)} km/h</div>
+        <div style="flex:1;width:16px;background:#111;border:2px solid #fff;display:flex;flex-direction:column-reverse;overflow:hidden">
+          <div style="height:${progress}%;background:#22c55e;width:100%"></div>
+        </div>
+        <div style="margin-top:8px;width:40px;background:#000;border:2px solid #fff;padding:2px">
+          <div style="color:#ef4444;font-family:monospace;font-size:9px;font-weight:900;text-align:center;border:1px solid #ef4444;margin-bottom:2px">FUEL</div>
+          <div style="height:80px;background:#111;position:relative;overflow:hidden">
+            <div style="position:absolute;bottom:0;left:0;right:0;height:${fuel}%;background:${fuel<20?'#ef4444':fuel<40?'#facc15':'#22c55e'}"></div>
+          </div>
+          <div style="color:white;font-family:monospace;font-size:10px;text-align:center">${Math.round(fuel).toString().padStart(3,'0')}</div>
+        </div>
+      </div>`;
+      h+=`<div style="position:absolute;left:0;right:0;bottom:0;padding:8px;display:flex;justify-content:space-between;pointer-events:none">
+        <div style="color:rgba(255,255,255,0.6);font-size:9px;font-family:monospace">DIST ${Math.round(distance)}/${goal}</div>
+        <div style="color:rgba(255,255,255,0.6);font-size:9px;font-family:monospace">${(goal-distance).toFixed(0)}m to GOAL</div>
+      </div>`;
+    }
+
     if(state==='menu'){
-      const total=getTotal();
-      ui.innerHTML=`
-        <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%, rgba(251,191,36,0.18), transparent 60%), linear-gradient(180deg,#0f172a,#1e1b4b);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;text-align:center">
-          <div style="font-size:10px;letter-spacing:0.25em;color:#fbbf24">ROAD FIGHTER STYLE • 100 NIVELES</div>
-          <div style="margin-top:6px;font-size:36px;font-weight:900;color:white;line-height:0.9">SPEED<br><span style="color:#fbbf24">WARRIOR</span></div>
-          <div style="margin-top:8px;color:#64748b;font-size:10px">LVL ${level} • MAX ${maxLevel} • VEL ${total}/100 • TU ${getPlayerMax().toFixed(0)} km/h • RIVAL ${getRivalBase(level).toFixed(0)}</div>
-          <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;width:100%;max-width:280px">
-            <button id="play" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:black;font-weight:900;padding:12px;border-radius:999px">JUGAR NIVEL ${level}</button>
-            <div style="display:flex;gap:8px"><button id="upg" style="flex:1;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.25);color:#fbbf24;padding:10px;border-radius:999px;font-weight:800">⚡ MEJORAS ${total}/100</button><button id="reset" style="flex:1;background:rgba(255,255,255,0.06);color:#94a3b8;padding:10px;border-radius:999px;font-size:12px">Reset</button></div>
+      h+=`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);pointer-events:auto;padding:12px">
+        <div style="width:100%;max-width:420px;background:#0f172a;border:3px solid #22c55e;border-radius:12px;padding:16px;font-family:monospace">
+          <div style="text-align:center;color:#22c55e;font-weight:900;font-size:20px;letter-spacing:0.1em">ROAD FIGHTER</div>
+          <div style="text-align:center;color:white;font-size:10px;margin-top:4px">WASA EDITION • ${maxLevel} NIVELES DESBLOQ</div>
+          <div style="margin-top:12px;background:black;border:2px solid #fff;padding:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:10px;color:white">
+            <div>1P SCORE<br><span style="color:#22c55e">${String(score).padStart(6,'0')}</span></div>
+            <div style="text-align:right">MAX ${maxLevel}<br><span style="color:#fbbf24">${fmtWASA(coins)} $WASA</span></div>
           </div>
-          <div style="margin-top:10px;font-size:9px;color:rgba(255,255,255,0.3)">A/D o ← → mover • W turbo • Rival +4.5 km/h por nivel</div>
-        </div>
-      `;
-      ui.querySelector('#play').onclick=()=>{ resetLevel(level); state='playing'; renderUI(); };
-      ui.querySelector('#upg').onclick=()=>{ state='upgrades'; renderUpgrades(); };
-      ui.querySelector('#reset').onclick=()=>{ level=1; renderUI(); };
-    }else if(state==='upgrades'){ renderUpgrades(); }
-    else if(state==='playing'){
-      const pct=Math.min(100,distance/goal*100);
-      ui.innerHTML=`
-        <div style="position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;font-size:10px;color:white">
-          <div style="background:rgba(0,0,0,0.6);border-radius:999px;padding:4px 10px">LVL ${level} • ${pct.toFixed(0)}% • ${getTotal()}/100</div>
-          <div style="background:rgba(0,0,0,0.6);border-radius:999px;padding:4px 10px;color:#fbbf24">$WASA ${tempCoins}</div>
-        </div>
-        <div style="position:absolute;bottom:10px;left:10px;right:10px;height:5px;background:rgba(0,0,0,0.5);border-radius:999px;overflow:hidden"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#fbbf24,#f59e0b)"></div></div>
-      `;
-    }else if(state==='levelup'){
-      ui.innerHTML=`
-        <div style="position:absolute;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:12px">
-          <div style="background:#0f172a;border:1px solid #fbbf24;border-radius:16px;padding:14px;max-width:300px;width:100%;text-align:center">
-            <div style="font-size:10px;letter-spacing:0.2em;color:#fbbf24">NIVEL ${level} COMPLETADO</div>
-            <div style="color:white;font-weight:900;margin-top:6px">¡META ALCANZADA!</div>
-            <div style="margin-top:8px;background:rgba(251,191,36,0.1);border-radius:10px;padding:8px;display:flex;justify-content:space-between;color:white;font-size:12px"><span>Recompensa</span><b style="color:#fbbf24">${tempCoins} $WASA</b></div>
-            <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px"><button id="dbl" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:black;font-weight:900;padding:10px;border-radius:999px">📺 x2 (${tempCoins*2})</button><button id="next" style="background:white;color:black;font-weight:800;padding:10px;border-radius:999px">SIGUIENTE ${level+1}</button></div>
+          <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+            <button id="start" style="background:#22c55e;color:black;font-weight:900;padding:12px;border-radius:6px;border:2px solid white;font-family:monospace">START - NIVEL ${maxLevel}</button>
+            <button id="start1" style="background:#111;color:white;padding:8px;border-radius:6px;border:1px solid #555;font-size:11px">JUGAR DESDE NIVEL 1</button>
+            <div style="display:flex;gap:8px">
+              <button id="shop" style="flex:1;background:#1e293b;color:white;padding:8px;border-radius:6px;font-size:11px">MEJORAS ${getTotal()}/100</button>
+              <button id="how" style="flex:1;background:#1e293b;color:white;padding:8px;border-radius:6px;font-size:11px">COMO JUGAR</button>
+            </div>
           </div>
+          <div style="margin-top:12px;font-size:8px;color:#64748b;text-align:center">Usa ← → para mover, ↑ acelerar. Es el Road Fighter clásico, con cuadrados por ahora.</div>
         </div>
-      `;
-      ui.querySelector('#dbl').onclick=()=>openAd('double');
-      ui.querySelector('#next').onclick=()=>{ if(tempCoins>0){ coins+=tempCoins; setCoins(coins); }; setCoins(coins); level++; saveMax(); resetLevel(level); state='playing'; renderUI(); };
-    }else if(state==='gameover'){
-      tempCoins=0;
-      ui.innerHTML=`
-        <div style="position:absolute;inset:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;padding:12px">
-          <div style="background:#0f172a;border:1px solid #ef4444;border-radius:16px;padding:14px;max-width:300px;width:100%;text-align:center">
-            <div style="color:#ef4444;font-weight:900">¡CHOQUE!</div><div style="margin-top:6px;font-size:10px;color:#ef4444">0 $WASA • Sin recompensa por perder</div>
-            <div style="margin-top:8px;display:flex;flex-direction:column;gap:8px"><button id="rev" style="background:#38bdf8;color:white;font-weight:900;padding:10px;border-radius:999px">📺 REVIVIR</button><button id="retry" style="background:rgba(255,255,255,0.08);color:white;padding:10px;border-radius:999px">Reintentar</button><button id="menu" style="color:#64748b;padding:8px;font-size:11px">Menú</button></div>
+      </div>`;
+    }
+
+    if(state==='levelup'){
+      const elapsed=(performance.now()-levelStart)/1000;
+      const base=getBaseWASA(level-1);
+      const mult=getTimeMult(elapsed);
+      h+=`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);pointer-events:auto;padding:12px">
+        <div style="background:#0f172a;border:3px solid #22c55e;border-radius:12px;padding:16px;max-width:340px;width:100%;text-align:center;font-family:monospace">
+          <div style="color:#22c55e;font-weight:900">¡META ALCANZADA!</div>
+          <div style="color:white;font-size:18px;margin-top:6px">NIVEL ${level-1} → ${level}</div>
+          <div style="margin-top:10px;background:black;border:1px solid #333;padding:8px;font-size:10px;color:#cbd5e1;text-align:left">
+            <div style="display:flex;justify-content:space-between"><span>Base R${level-1}</span><span>${base.toFixed(6)} $WASA</span></div>
+            <div style="display:flex;justify-content:space-between"><span>Tiempo ${elapsed.toFixed(1)}s</span><span>x${mult}</span></div>
+            <div style="display:flex;justify-content:space-between;font-weight:900;color:#22c55e;margin-top:4px"><span>Total</span><span>${fmtWASA(tempCoins)} $WASA</span></div>
+          </div>
+          <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+            <button id="next" style="background:white;color:black;font-weight:900;padding:10px;border-radius:6px">SIGUIENTE R${level}</button>
+            ${!adClaimedThisLevel?`<button id="dbl" style="background:#22c55e;color:black;font-weight:900;padding:10px;border-radius:6px">📺 x2 (${fmtWASA(tempCoins*2)} $WASA)</button>`:''}
           </div>
         </div>
-      `;
-      ui.querySelector('#rev').onclick=()=>openAd('revive');
-      ui.querySelector('#retry').onclick=()=>{ resetLevel(level); state='playing'; renderUI(); };
-      ui.querySelector('#menu').onclick=()=>{ state='menu'; renderUI(); };
-    }else if(state==='paused_ad'){ ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;color:white">Cargando...</div>`; }
-    else if(state==='reward_modal'){ ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:12px"><div style="background:#0f172a;border:1px solid #fbbf24;border-radius:12px;padding:12px;width:100%;max-width:260px;text-align:center"><div style="color:#fbbf24;font-weight:900">¡RECOMPENSA!</div><button id="claim" style="margin-top:8px;width:100%;background:#fbbf24;color:black;font-weight:900;padding:10px;border-radius:999px">RECLAMAR</button></div></div>`; ui.querySelector('#claim').onclick=claimReward; }
+      </div>`;
+    }
+
+    if(state==='gameover'){
+      h+=`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);pointer-events:auto;padding:12px">
+        <div style="background:#0f172a;border:3px solid #ef4444;border-radius:12px;padding:16px;max-width:320px;width:100%;text-align:center;font-family:monospace">
+          <div style="color:#ef4444;font-weight:900">¡SIN COMBUSTIBLE!</div>
+          <div style="color:white;margin-top:8px">SCORE ${score}</div>
+          <div style="color:#ef4444;margin-top:4px;font-size:11px">0 $WASA • Sin recompensa por perder</div>
+          <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+            <button id="rev" style="background:#38bdf8;color:white;font-weight:900;padding:10px;border-radius:6px">📺 REVIVIR +40 FUEL</button>
+            <button id="retry" style="background:rgba(255,255,255,0.1);color:white;padding:10px;border-radius:6px">REINTENTAR R${level}</button>
+            <button id="menu" style="color:#64748b;font-size:10px">MENU</button>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    if(state==='crash'){
+      h+=`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
+        <div style="background:#ef4444;color:white;font-weight:900;padding:6px 12px;border-radius:6px;font-family:monospace;animation:blink 0.2s infinite">¡CHOQUE!</div>
+      </div><style>@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}</style>`;
+    }
+
+    if(state==='reward_modal' && _rewardPending){
+      h+=`<div style="position:absolute;inset:0;z-index:10;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;pointer-events:auto;padding:12px">
+        <div style="background:#0f172a;border:2px solid #22c55e;border-radius:12px;padding:16px;max-width:300px;width:100%;text-align:center">
+          <div style="color:#22c55e;font-weight:900">${_rewardPending==='double'?'¡RECOMPENSA x2!':'¡REVIVISTE!'}</div>
+          <div style="color:white;margin-top:6px">${_rewardPending==='double'?fmtWASA(tempCoins*2)+' $WASA':'40 FUEL'}</div>
+          <button id="claim" style="margin-top:10px;width:100%;background:#22c55e;color:black;font-weight:900;padding:10px;border-radius:6px">RECLAMAR</button>
+        </div>
+      </div>`;
+    }
+
+    if(state==='how'){
+      h+=`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;pointer-events:auto;padding:12px">
+        <div style="background:#0f172a;border:2px solid white;border-radius:12px;padding:16px;max-width:380px;font-family:monospace;font-size:11px;color:white">
+          <div style="font-weight:900;color:#22c55e">ROAD FIGHTER - COMO JUGAR</div>
+          <div style="margin-top:8px;line-height:1.6">
+            • Esquiva autos rojos, amarillos, camiones blancos<br>
+            • Autos azules = bonus 200 pts<br>
+            • Amarillo brillante = fuel bonus<br>
+            • No choques o perdes FUEL<br>
+            • Llega a la meta antes que se acabe el fuel<br>
+            • Cada 10 niveles +0.0025 $WASA base<br>
+            • &lt;10s x3 / &lt;20s x2 de recompensa
+          </div>
+          <button id="howclose" style="margin-top:12px;width:100%;background:white;color:black;padding:8px;border-radius:6px;font-weight:900">ENTENDIDO</button>
+        </div>
+      </div>`;
+    }
+
+    ui.innerHTML=h;
+    ui.querySelector('#pause')?.addEventListener('click',()=>{ state='menu'; renderUI(); });
+    ui.querySelector('#start')?.addEventListener('click',()=>{ resetLevel(maxLevel); state='playing'; renderUI(); });
+    ui.querySelector('#start1')?.addEventListener('click',()=>{ resetLevel(1); state='playing'; renderUI(); });
+    ui.querySelector('#shop')?.addEventListener('click',()=>{ state='shop'; renderUpgrades(); });
+    ui.querySelector('#how')?.addEventListener('click',()=>{ state='how'; renderUI(); });
+    ui.querySelector('#howclose')?.addEventListener('click',()=>{ state='menu'; renderUI(); });
+    ui.querySelector('#next')?.addEventListener('click',()=>{ coins+=tempCoins; setCoins(coins); level++; saveMax(); resetLevel(level); state='playing'; renderUI(); });
+    ui.querySelector('#dbl')?.addEventListener('click',()=>openAd('double'));
+    ui.querySelector('#rev')?.addEventListener('click',()=>openAd('revive'));
+    ui.querySelector('#retry')?.addEventListener('click',()=>{ resetLevel(level); state='playing'; renderUI(); });
+    ui.querySelector('#menu')?.addEventListener('click',()=>{ state='menu'; renderUI(); });
+    ui.querySelector('#claim')?.addEventListener('click',claimReward);
   }
 
-  addEventListener('keydown',e=>{ if(e.key==='ArrowLeft'||e.key==='a') keys.l=true; if(e.key==='ArrowRight'||e.key==='d') keys.r=true; if(e.key==='ArrowUp'||e.key==='w'||e.key===' ') keys.up=true; });
-  addEventListener('keyup',e=>{ if(e.key==='ArrowLeft'||e.key==='a') keys.l=false; if(e.key==='ArrowRight'||e.key==='d') keys.r=false; if(e.key==='ArrowUp'||e.key==='w'||e.key===' ') keys.up=false; });
-  canvas.addEventListener('pointerdown',e=>{ const x=e.clientX-canvas.getBoundingClientRect().left; if(x<W*0.33) keys.l=true; else if(x>W*0.66) keys.r=true; else keys.up=true; });
-  canvas.addEventListener('pointerup',()=>{ keys.l=false; keys.r=false; keys.up=false; });
+  // Input
+  addEventListener('keydown',e=>{
+    if(e.key==='ArrowLeft'||e.key==='a') keys.l=true;
+    if(e.key==='ArrowRight'||e.key==='d') keys.r=true;
+    if(e.key==='ArrowUp'||e.key==='w'||e.key===' ') keys.up=true;
+    if(e.key==='ArrowDown'||e.key==='s') keys.down=true;
+  });
+  addEventListener('keyup',e=>{
+    if(e.key==='ArrowLeft'||e.key==='a') keys.l=false;
+    if(e.key==='ArrowRight'||e.key==='d') keys.r=false;
+    if(e.key==='ArrowUp'||e.key==='w'||e.key===' ') keys.up=false;
+    if(e.key==='ArrowDown'||e.key==='s') keys.down=false;
+  });
+  canvas.addEventListener('pointerdown',e=>{
+    const x=e.clientX-canvas.getBoundingClientRect().left;
+    if(x<W*0.33) keys.l=true; else if(x>W*0.66) keys.r=true; else keys.up=true;
+  });
+  canvas.addEventListener('pointerup',()=>{ keys.l=false; keys.r=false; keys.up=false; keys.down=false; });
 
-  let watcher=setInterval(()=>{ if(window.vrAd===4 && _rewardPending && state!=='reward_modal'){ state='reward_modal'; renderUI(); } },150);
+  let watcher=setInterval(()=>{ if(window.vrAd===4 && _rewardPending){ state='reward_modal'; renderUI(); } },150);
+
   let raf;
   function loop(now){
     if(window.vrAd===1||window.vrAd===2||window.vrAd===3){ raf=requestAnimationFrame(loop); return; }
     const dt=Math.min((now-last)/1000,0.033); last=now;
     if(state==='playing'){
-      gameTime+=dt;
-      const steer=(keys.l?-1:0)+(keys.r?1:0);
-      player.x+=steer*(160+getTotal()*1.5 + (keys.up?90:0))*dt;
-      player.x=Math.max(W*0.14, Math.min(W*0.86, player.x));
-      player.speed=Math.min(getPlayerMax(), player.speed + (keys.up?110:55)*dt);
+      // Road curve like Road Fighter (subtle)
+      if(Math.random()<0.008) curveTarget=(Math.random()-0.5)*0.8;
+      roadCurve += (curveTarget-roadCurve)*dt*1.2;
+      roadCurve*=0.998;
+
+      const steer = (keys.l?-1:0)+(keys.r?1:0);
+      player.angle = steer*0.15;
+      const maxSpd = getPlayerMax();
+      if(keys.up) player.speed = Math.min(maxSpd, player.speed + 180*dt);
+      else if(keys.down) player.speed = Math.max(0, player.speed - 220*dt);
+      else player.speed = Math.max(0, player.speed - 60*dt);
+
+      // Road movement
+      const scroll = player.speed*dt*0.6;
+      roadOffset = (roadOffset + scroll)%40;
+      distance += scroll*0.7;
+      fuel -= scroll*0.015 + (player.speed>180?0.02:0);
+      if(fuel<=0){ fuel=0; tempCoins=0; state='gameover'; renderUI(); }
+
+      // Player lateral movement - limited to road
+      const roadW = W*0.42;
+      const left = W*0.5 - roadW/2 + 10;
+      const right = W*0.5 + roadW/2 - 10 - player.w;
+      player.x += (steer* (140 + player.speed*0.25) + roadCurve*player.speed*0.5)*dt;
+      player.x = Math.max(left, Math.min(right, player.x));
+
+      // Enemies movement - they go down relative to player speed
+      for(let e of enemies){
+        const relSpeed = player.speed - e.base*e.rel;
+        e.y += relSpeed*dt*0.6 + scroll*0.3;
+        // slight AI to avoid player if close
+        if(Math.abs(e.y-player.y)<120 && Math.abs(e.x-player.x)<60){
+          e.x += (e.x<player.x? -1:1)*40*dt;
+        }
+      }
+      enemies = enemies.filter(e=>e.y < H+100 && e.y>-200);
+
+      // Spawn
+      if(enemies.length<12 && Math.random()<0.04 + level*0.002) spawnEnemy(-80-Math.random()*120);
+
+      // Collision - Road Fighter style
+      if(player.invul<=0 && player.crash<=0){
+        for(let i=enemies.length-1;i>=0;i--){
+          const e=enemies[i];
+          if(e.isFuel){
+            if(Math.abs(e.x-player.x)<18 && Math.abs(e.y-player.y)<20){
+              fuel=Math.min(100,fuel+20); score+=e.score; enemies.splice(i,1);
+              for(let k=0;k<10;k++) particles.push({x:e.x,y:e.y,vx:(Math.random()-0.5)*120,vy:(Math.random()-0.5)*120,life:1,color:'#fbbf24'});
+            }
+            continue;
+          }
+          if(Math.abs(e.x-player.x)< (player.w+e.w)*0.48 && Math.abs(e.y-player.y)< (player.h+e.h)*0.48){
+            // crash
+            e.crashed=1;
+            player.crash=1.2;
+            player.speed*=0.4;
+            fuel=Math.max(0,fuel-12);
+            score=Math.max(0,score-50);
+            for(let k=0;k<16;k++) particles.push({x:player.x+player.w/2,y:player.y+player.h/2,vx:(Math.random()-0.5)*200,vy:(Math.random()-0.5)*200,life:1,color:k%2?e.color:'#fff'});
+            if(fuel<=0){ tempCoins=0; state='gameover'; renderUI(); break; }
+            state='crash';
+            setTimeout(()=>{ if(state==='crash'){ player.invul=1.5; player.crash=0; state='playing'; renderUI(); } },600);
+            break;
+          }
+        }
+      }
       if(player.invul>0) player.invul-=dt;
-      const scroll=player.speed*dt*0.9;
-      distance+=scroll;
-      for(let o of rivals){ o.y+=scroll; }
-      for(let o of obstacles){ o.y+=scroll; }
-      for(let o of coinsArr){ o.y+=scroll; }
-      rivals=rivals.filter(o=>o.y<H+120);
-      obstacles=obstacles.filter(o=>o.y<H+120);
-      coinsArr=coinsArr.filter(c=>!c.taken && c.y<H+120);
-      if(rivals.length<8) spawnBatch(-H*1.2);
-      // collisions
-      for(let o of rivals){
-        if(Math.abs(o.y-player.y)<28 && Math.abs(o.x-player.x)<22){
-          if(player.shield>0){ player.shield=0; player.invul=1.2; o.y=H+200; for(let k=0;k<12;k++) particles.push({x:o.x,y:o.y,vx:(Math.random()-0.5)*200,vy:(Math.random()-0.5)*200,life:1,color:'#fbbf24'}); }
-          else if(player.invul<=0){ state='gameover'; renderUI(); break; }
-        }
+      if(player.crash>0) player.crash-=dt;
+
+      // Win
+      if(distance>=goal){
+        const elapsed=(performance.now()-levelStart)/1000;
+        const base=getBaseWASA(level);
+        const mult=getTimeMult(elapsed);
+        tempCoins=base*mult;
+        score+=Math.round(1000 - elapsed*5 + fuel*10);
+        state='levelup'; renderUI();
       }
-      for(let o of obstacles){
-        if(Math.abs(o.y-player.y)<22 && Math.abs(o.x-player.x)<18){
-          if(player.shield>0){ player.shield=0; player.invul=1.2; o.y=H+200; }
-          else if(player.invul<=0){ state='gameover'; renderUI(); break; }
-        }
-      }
-      for(let c of coinsArr){
-        if(!c.taken && Math.hypot(c.x-player.x,c.y-player.y)<22){ c.taken=true; score+=10; particles.push({x:c.x,y:c.y,vx:0,vy:-60,life:1,color:'#fbbf24',text:'+1'}); }
-      }
-      if(distance>=goal){ const elapsed=(performance.now()-levelStart)/1000; const base=getBaseWASA(level); const mult=getTimeMult(elapsed); tempCoins=base*mult; state='levelup'; renderUI(); }
     }
-    for(let i=particles.length-1;i>=0;i--){ let p=particles[i]; p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=80*dt; p.life-=dt*1.2; if(p.life<=0) particles.splice(i,1); }
-    // draw
-    const grad=ctx.createLinearGradient(0,0,0,H); grad.addColorStop(0,"#1e1b4b"); grad.addColorStop(1,"#0f172a"); ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
-    ctx.fillStyle="rgba(0,0,0,0.4)"; ctx.fillRect(0,0,W*0.1,H); ctx.fillRect(W*0.9,0,W*0.1,H);
-    ctx.strokeStyle="rgba(251,191,36,0.2)"; ctx.setLineDash([16,20]); ctx.lineDashOffset=-(gameTime*player.speed*0.3)%36; ctx.beginPath(); ctx.moveTo(W*0.5,0); ctx.lineTo(W*0.5,H); ctx.stroke(); ctx.setLineDash([]);
-    for(let o of obstacles){ ctx.fillStyle=o.type==='cone'?'#fbbf24':'#475569'; ctx.fillRect(o.x-o.w/2,o.y-o.h/2,o.w,o.h); }
-    for(let c of coinsArr){ if(c.taken) continue; ctx.fillStyle="#fbbf24"; ctx.shadowColor="#fbbf24"; ctx.shadowBlur=8; ctx.beginPath(); ctx.arc(c.x,c.y,c.r,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0; }
-    for(let o of rivals){ ctx.fillStyle=o.color; ctx.fillRect(o.x-o.w/2,o.y-o.h/2,o.w,o.h); ctx.fillStyle="rgba(0,0,0,0.4)"; ctx.fillRect(o.x-o.w/2+2,o.y-o.h/2+2,o.w-4,6); }
-    const blink=player.invul>0?Math.sin(gameTime*20)>0:true;
-    if(blink){ ctx.save(); ctx.translate(player.x,player.y); if(player.shield>0){ ctx.strokeStyle="#38bdf8"; ctx.lineWidth=3; ctx.shadowColor="#38bdf8"; ctx.shadowBlur=10; ctx.beginPath(); ctx.ellipse(0,0,20,30,0,0,Math.PI*2); ctx.stroke(); ctx.shadowBlur=0; } ctx.fillStyle="#fbbf24"; ctx.shadowColor="#fbbf24"; ctx.shadowBlur=12; ctx.fillRect(-14,-26,28,52); ctx.fillStyle="#0f172a"; ctx.fillRect(-10,-18,20,8); ctx.restore(); }
-    for(let p of particles){ ctx.globalAlpha=p.life; if(p.text){ ctx.fillStyle=p.color; ctx.font="bold 12px Inter"; ctx.fillText(p.text,p.x,p.y); } else{ ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x,p.y,3,0,Math.PI*2); ctx.fill(); } } ctx.globalAlpha=1;
+
+    // Draw - Road Fighter style with flat colors (easy to replace)
+    // Grass / sand sides
+    ctx.fillStyle='#1a8c2a'; ctx.fillRect(0,0,W,H); // green sides
+    // Road
+    const roadW = W*0.42;
+    const roadLeft = W*0.5 - roadW/2 + roadCurve*40;
+    // Asphalt
+    ctx.fillStyle='#3a3a3a'; ctx.fillRect(roadLeft,0,roadW,H);
+    // Side lines white
+    ctx.fillStyle='white'; ctx.fillRect(roadLeft,0,4,H); ctx.fillRect(roadLeft+roadW-4,0,4,H);
+    // Center dashed line - moves
+    ctx.fillStyle='white';
+    for(let y=-40+roadOffset; y<H; y+=40){
+      ctx.fillRect(roadLeft+roadW/2-2, y, 4, 20);
+    }
+    // Curbs yellow?
+    ctx.fillStyle='#facc15'; ctx.fillRect(roadLeft-6,0,6,H); ctx.fillRect(roadLeft+roadW,0,6,H);
+
+    // Enemies - simple squares as you requested
+    for(let e of enemies){
+      if(e.isFuel){
+        ctx.fillStyle=e.color; ctx.fillRect(e.x-e.w/2, e.y-e.h/2, e.w, e.h);
+        ctx.fillStyle='black'; ctx.font='bold 10px monospace'; ctx.textAlign='center'; ctx.fillText('F', e.x, e.y+3);
+        continue;
+      }
+      // car body - square
+      ctx.save(); ctx.translate(e.x, e.y);
+      if(e.crashed) ctx.rotate(Math.sin(Date.now()*0.02)*0.5);
+      ctx.fillStyle=e.color; ctx.fillRect(-e.w/2, -e.h/2, e.w, e.h);
+      // windshield
+      ctx.fillStyle='rgba(0,0,0,0.4)'; ctx.fillRect(-e.w*0.3, -e.h*0.3, e.w*0.6, e.h*0.25);
+      // lights
+      ctx.fillStyle='white'; ctx.fillRect(-e.w*0.35, e.h*0.35, 4,3); ctx.fillRect(e.w*0.15, e.h*0.35, 4,3);
+      ctx.restore();
+    }
+
+    // Player - square red like Road Fighter
+    ctx.save(); ctx.translate(player.x+player.w/2, player.y+player.h/2); ctx.rotate(player.angle);
+    const blink = player.invul>0 ? Math.sin(Date.now()*0.02)>0 : true;
+    if(blink){
+      ctx.fillStyle=player.crash>0?'#fca5a5':'#ef4444'; // red car
+      ctx.fillRect(-player.w/2, -player.h/2, player.w, player.h);
+      ctx.fillStyle='#111'; ctx.fillRect(-player.w*0.3, -player.h*0.25, player.w*0.6, player.h*0.2);
+      ctx.fillStyle='white'; ctx.fillRect(-player.w*0.3, player.h*0.3, 4,3); ctx.fillRect(player.w*0.15, player.h*0.3, 4,3);
+    }
+    ctx.restore();
+
+    // Particles
+    for(let i=particles.length-1;i>=0;i--){
+      const p=particles[i]; p.x+=p.vx*dt; p.y+=p.vy*dt; p.life-=dt*1.5;
+      if(p.life<=0){ particles.splice(i,1); continue; }
+      ctx.globalAlpha=p.life; ctx.fillStyle=p.color; ctx.fillRect(p.x,p.y,3,3); ctx.globalAlpha=1;
+    }
+
     raf=requestAnimationFrame(loop);
   }
+
   renderUI(); resetLevel(maxLevel); state='menu'; renderUI();
   raf=requestAnimationFrame(loop);
   container._cleanup=()=>{ cancelAnimationFrame(raf); clearInterval(watcher); ro.disconnect(); window.vrAd=0; };
