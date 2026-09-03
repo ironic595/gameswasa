@@ -43,11 +43,13 @@
   #modalClose{border:1px solid rgba(56,189,248,0.25);border-radius:20px;padding:6px 14px;font-size:11px;background:#0f172a;color:#e2e8f0}
   #modalContainer{flex:1;display:flex;align-items:center;justify-content:center;background:#030712;position:relative;overflow:hidden}
   @media(min-width:900px){#modal{padding:24px}#modalTop{border-radius:12px 12px 0 0}#modalContainer{border:1px solid rgba(56,189,248,0.2);border-top:0;border-radius:0 0 12px 12px}}
-  /* OVERLAYS DE ANUNCIOS - BIEN CONTROLADOS */
-  #adOverlay{display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.92);align-items:center;justify-content:center;flex-direction:column}
+  /* OVERLAYS DE ANUNCIOS - SDK GAMEMONETIZE USA #gamemonetize-video */
+  #adOverlay{display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.88);align-items:center;justify-content:center;flex-direction:column}
   #adOverlay.open{display:flex}
-  #gmVideo{position:fixed;inset:0;z-index:9999;background:#000;display:none;pointer-events:none}
-  #gmVideo.active{display:block !important;pointer-events:auto;z-index:10000}
+  #gamemonetize-video{position:fixed !important;top:0 !important;left:0 !important;width:100vw !important;height:100vh !important;z-index:9999 !important;background:transparent !important;display:none !important}
+  #gamemonetize-video.active{display:block !important}
+  #gmVideo{position:fixed;inset:0;z-index:9999;background:transparent;display:none}
+  #gmVideo.active{display:block}
   @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 <script>
@@ -91,9 +93,11 @@
       console.log('[vrAd] 1->2 PIDIENDO AD',window.vrAdType);
       window.vrAd=2;
       window._gm_shown=false;
-      var gv=document.getElementById('gmVideo');
+      var gv=document.getElementById('gamemonetize-video') || document.getElementById('gmVideo');
       var ov=document.getElementById('adOverlay');
       if(gv){ gv.innerHTML=''; gv.style.display='block'; gv.classList.add('active'); }
+      // tambien activar alias gmVideo por compatibilidad
+      var gv2=document.getElementById('gmVideo'); if(gv2 && gv!==gv2){ gv2.style.display='block'; gv2.classList.add('active'); }
       if(ov){ ov.classList.add('open'); document.getElementById('adType').textContent=window.vrAdType||''; }
 
       // Intentar mostrar anuncio
@@ -116,27 +120,21 @@
       // Safety 30s nunca quedarse colgado
       setTimeout(function(){ if(window.vrAd===2||window.vrAd===3){ console.log('[vrAd] SAFETY 30s ->4'); window.vrAd=4; } },30000);
     }
-    // AD TERMINO - LIMPIAR TODO - SOLO CUANDO ES 4, NUNCA ANTES
+    // AD TERMINO - LIMPIAR TODO
     if(window.vrAd===4){
-      var gv=document.getElementById('gmVideo');
+      var gv=document.getElementById('gamemonetize-video');
+      var gv2=document.getElementById('gmVideo');
       var ov=document.getElementById('adOverlay');
       if(gv){ gv.classList.remove('active'); gv.style.display='none'; gv.innerHTML=''; }
+      if(gv2){ gv2.classList.remove('active'); gv2.style.display='none'; gv2.innerHTML=''; }
       if(ov){ ov.classList.remove('open'); }
-    }
-    // NUNCA ocultar gmVideo si vrAd es 2 o 3 (ad cargando o reproduciendose)
-    if(window.vrAd===2 || window.vrAd===3){
-      var gv=document.getElementById('gmVideo');
-      if(gv && gv.style.display==='none'){
-        // si alguien lo puso en none por error, restaurarlo
-        gv.style.display='block';
-        gv.classList.add('active');
-      }
     }
   },150);
 </script>
 </head>
 <body>
-<div id="adOverlay"><div style="width:44px;height:44px;border:4px solid #38bdf8;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite"></div><div style="margin-top:14px;color:white;font-weight:800;font-size:14px;letter-spacing:0.05em">CARGANDO ANUNCIO</div><div style="margin-top:4px;color:rgba(255,255,255,0.5);font-size:10px" id="adType">recompensa</div><div style="margin-top:10px;color:rgba(255,255,255,0.3);font-size:9px">Si no carga en 4 segundos te damos la recompensa igual</div></div>
+<div id="adOverlay"><div style="width:44px;height:44px;border:4px solid #38bdf8;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite"></div><div style="margin-top:14px;color:white;font-weight:800;font-size:14px;letter-spacing:0.05em">CARGANDO ANUNCIO</div><div style="margin-top:4px;color:rgba(255,255,255,0.5);font-size:10px" id="adType">recompensa</div></div>
+<div id="gamemonetize-video"></div>
 <div id="gmVideo"></div>
 <header><div class="logo">WASA <span>games.wasa.chat</span></div><div class="search"><input id="q" placeholder="Search games..." oninput="filterGames()"></div><div class="right"><button class="wallet" id="walletBtn">Connect Wallet</button></div></header>
 <div class="wrap"><aside><div style="font-size:10px;color:#94a3b8">Category</div><div style="margin-top:8px"><button style="color:#38bdf8">All</button></div></aside><main><div class="grid" id="grid"></div></main></div>
@@ -170,7 +168,8 @@ function closeGame(){
   document.getElementById('modalContainer').innerHTML='';
   document.body.style.overflow='';
   window.vrAd=0; window.vrAdType=null;
-  var gv=document.getElementById('gmVideo'); if(gv){gv.classList.remove('active');gv.style.display='none';gv.innerHTML='';}
+  var gv=document.getElementById('gamemonetize-video'); if(gv){gv.classList.remove('active');gv.style.display='none';gv.innerHTML='';}
+  var gv2=document.getElementById('gmVideo'); if(gv2){gv2.classList.remove('active');gv2.style.display='none';gv2.innerHTML='';}
   var ov=document.getElementById('adOverlay'); if(ov){ov.classList.remove('open');}
 }
 addEventListener('DOMContentLoaded',loadGames);
