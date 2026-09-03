@@ -122,8 +122,16 @@ export function init(container, args){
     ui.querySelector('#to-menu')?.addEventListener('click',()=>{state='menu';pauseBefore=null;renderUI();});
     ui.querySelector('#btn-ckpt')?.addEventListener('click',()=>{ if(maxLevel<=1){startGame(1);return;} if(getCoins()>=100){ if(confirm(`Continuar desde nivel ${maxLevel} cuesta 100 monedas o ver anuncio. ¿Pagar 100?`)){setCoins(getCoins()-100);startGame(maxLevel); return;} } openAd('checkpoint'); });
     ui.querySelector('#btn-n1')?.addEventListener('click',()=>startGame(1));
-    ui.querySelector('#powBtn')?.addEventListener('click',()=>{if(state!=='playing')return;if(game.power.state==='moving'){game.power.state='locked';game.power.locked=Math.round(game.power.v||65);}else{game.power.state='moving'; game.power.dir = game.power.locked>=50 ? -1 : 1; }renderUI();});
-    ui.querySelector('#shootBtn')?.addEventListener('click',()=>{if(state!=='playing')return;if(game.power.state==='moving'){game.power.state='locked';game.power.locked=Math.round(game.power.v||65);renderUI();return;}if(game.bullets.length>0)return;const vel=260+game.power.locked*5.2+(game.level-1)*8;const cx=W/2,cy=H-88,tx=game.cross.x,ty=game.cross.y,dy=cy-ty,time=Math.max(dy/vel,0.18),vx=(tx-cx)/time,vy=-vel;game.bullets.push({x:cx,y:cy,vx,vy,trail:[]}); game.power.state='moving'; game.power.dir = game.power.locked>=50 ? -1 : 1; renderUI();});
+    ui.querySelector('#powBtn')?.addEventListener('click',()=>{if(state!=='playing')return;if(game.power.state==='moving'){game.power.state='locked';game.power.locked=Math.round(game.power.v);}else{game.power.state='moving'; game.power.dir = game.power.locked>=50 ? -1 : 1;}renderUI();});
+    ui.querySelector('#shootBtn')?.addEventListener('click',()=>{if(state!=='playing')return;if(game.power.state==='moving'){game.power.state='locked';game.power.locked=Math.round(game.power.v);renderUI();return;} // ya lockeada -> disparar
+      if(game.bullets.length>0) return;
+      const vel=260+game.power.locked*5.2+(game.level-1)*8; const cx=W/2,cy=H-88,tx=game.cross.x,ty=game.cross.y,dy=cy-ty,time=Math.max(dy/vel,0.18),vx=(tx-cx)/time,vy=-vel;
+      game.bullets.push({x:cx,y:cy,vx,vy,trail:[]});
+      // despues de disparar, la barra vuelve a moverse automaticamente
+      game.power.state='moving';
+      game.power.dir = game.power.locked>=50 ? -1 : 1;
+      renderUI();
+    });
     ui.querySelector('#cont-nox2')?.addEventListener('click',continueWithoutDouble);
     ui.querySelector('#cont-x2')?.addEventListener('click',()=>openAd('double'));
     ui.querySelector('#ad-lives')?.addEventListener('click',()=>{if(adUses>=3)return; openAd('lives');});
@@ -146,8 +154,10 @@ export function init(container, args){
   function claimReward(){
     const type=_rewardPending;
     _rewardPending=null;
-    window.vrAd=0; // reseteo para proximo pedido
+    window.vrAd=0;
     window.vrAdType=null;
+    window._gm_shown=false;
+    var gv=document.getElementById('gmVideo'); if(gv){gv.classList.remove('active'); gv.style.display='none'; gv.innerHTML='';}
     if(type==='lives'){
       game.misses=Math.max(0,game.misses-3);game.bullets=[];game.power.state='moving';game.power.v=50;adUses++;state='playing';
     }else if(type==='double'){
@@ -166,16 +176,13 @@ export function init(container, args){
     game.level+=1;game.misses=0;game.bullets=[];game.power.state='moving';game.power.v=20;initShips(game.level);game.levelStart=performance.now();state='playing';renderUI();
   }
 
-  // Watcher de vrAd=4 dentro del juego
+  // Watcher de vrAd=4 dentro del juego - NO resetea vrAd a 0 aqui, lo hace claimReward despues de dar recompensa
   setInterval(()=>{
     if(window.vrAd===4 && _rewardPending){
-      console.log('[GAME] vrAd=4 detectado, mostrando recompensa',_rewardPending);
-      window.vrAd=0; // lo reseteamos aca? No, lo resetea claimReward despues de mostrar modal. Pero para evitar loop, lo dejamos en 4 hasta claim?
-      // Mejor: pasar a reward_modal y dejar vrAd en 0 solo despues de claim. Para eso, si vrAd==4, mostramos modal y ponemos vrAd en 0? No, segun tu flujo, 4 es donde se cierra ad y se muestra modal interno.
-      // Flujo tuyo: 1=pide, 2=consola vio, 3=ad corriendo, 4=ad termino -> juego muestra modal recompensa
+      console.log('[GAME] vrAd=4 -> recompensa',_rewardPending);
       state='reward_modal';
       renderUI();
-      window.vrAd=0; // reseteamos para que consola limpie, pero ya estamos en reward_modal
+      // no reseteamos vrAd aqui, lo resetea claimReward al darle continuar
     }
   },200);
 
@@ -197,7 +204,17 @@ export function init(container, args){
         if(s.hitFlash>0)s.hitFlash-=dt*4;
       }
       game.cross.x+=game.cross.dir*game.cross.speed*dt; if(game.cross.x>W-30){game.cross.x=W-30;game.cross.dir=-1;} if(game.cross.x<30){game.cross.x=30;game.cross.dir=1;}
-      if(game.power.state==='moving'){game.power.v+=game.power.dir*game.power.speed*dt; if(game.power.v>=100){game.power.v=100;game.power.dir=-1;} if(game.power.v<=0){game.power.v=0;game.power.dir=1;} game.power.v=Math.max(0,Math.min(100,game.power.v));}else{ game.power.v=game.power.locked; }
+      // POWER BAR - robusta, no se traba
+      if(state==='playing'){
+        if(game.power.state==='moving'){
+          game.power.v += game.power.dir * game.power.speed * dt;
+          if(game.power.v >= 100){ game.power.v=100; game.power.dir=-1; }
+          if(game.power.v <= 0){ game.power.v=0; game.power.dir=1; }
+        } else {
+          // lockeada en 99% etc, mantiene valor
+          game.power.v = game.power.locked;
+        }
+      }
       for(let i=game.bullets.length-1;i>=0;i--){
         const b=game.bullets[i];b.trail.push({x:b.x,y:b.y});if(b.trail.length>8)b.trail.shift();b.x+=b.vx*dt;b.y+=b.vy*dt;
         let hit=false;
@@ -242,6 +259,6 @@ export function init(container, args){
     raf=requestAnimationFrame(loop);
   }
   renderUI(); initShips(1); raf=requestAnimationFrame(loop);
-  canvas.addEventListener('pointerdown',e=>{if(e.target.closest('button')) return; if(state!=='playing') return; if(game.power.state==='moving'){game.power.state='locked';game.power.locked=Math.round(game.power.v||65);renderUI();}else if(game.bullets.length===0){const vel=260+game.power.locked*5.2+(game.level-1)*8;const cx=W/2,cy=H-88,tx=game.cross.x,ty=game.cross.y,dy=cy-ty,time=Math.max(dy/vel,0.18),vx=(tx-cx)/time,vy=-vel;game.bullets.push({x:cx,y:cy,vx,vy,trail:[]}); game.power.state='moving'; game.power.dir = game.power.locked>=50 ? -1 : 1;}});
+  canvas.addEventListener('pointerdown',e=>{if(e.target.closest('button')) return; if(state!=='playing') return; if(game.power.state==='moving'){game.power.state='locked';game.power.locked=Math.round(game.power.v);renderUI();}else if(game.bullets.length===0){const vel=260+game.power.locked*5.2+(game.level-1)*8;const cx=W/2,cy=H-88,tx=game.cross.x,ty=game.cross.y,dy=cy-ty,time=Math.max(dy/vel,0.18),vx=(tx-cx)/time,vy=-vel;game.bullets.push({x:cx,y:cy,vx,vy,trail:[]}); game.power.state='moving'; game.power.dir = game.power.locked>=50 ? -1 : 1; renderUI();}});
   container._cleanup=()=>{cancelAnimationFrame(raf);ro.disconnect(); window.vrAd=0; window.vrAdType=null;};
 }
