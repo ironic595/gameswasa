@@ -82,24 +82,106 @@ export function init(container, args){
 
   function canMove(x,y){ if(x<0||x>=COLS||y<0||y>=ROWS) return false; return grid[y][x]===0; }
 
+  function floodCount(sx,sy, forbidX=-1, forbidY=-1, maxCount=250){
+    // BFS cuenta celdas libres alcanzables desde sx,sy
+    if(!canMove(sx,sy)) return 0;
+    const visited = new Set();
+    const q = [[sx,sy]];
+    visited.add(sx+','+sy);
+    let count=0;
+    let head=0;
+    while(head<q.length && count<maxCount){
+      const [x,y]=q[head++]; count++;
+      for(let d=0;d<4;d++){
+        const nx=x+DIRS[d].x, ny=y+DIRS[d].y;
+        if(nx===forbidX && ny===forbidY) continue;
+        if(nx<0||nx>=COLS||ny<0||ny>=ROWS) continue;
+        const key=nx+','+ny;
+        if(visited.has(key)) continue;
+        if(grid[ny][nx]!==0) continue;
+        // la posicion del jugador rival cuenta como bloqueada para flood
+        if(nx===p1.x && ny===p1.y) continue;
+        visited.add(key);
+        q.push([nx,ny]);
+      }
+    }
+    return count;
+  }
+
   function aiChoose(){
-    const curDir=p2.dir; const options=[];
-    const order=[0,-1,1];
+    const curDir=p2.dir;
+    const difficulty = Math.min(1, 0.35 + round*0.04 + getTotalLevel()*0.005); // 0.35 a 1
+    const lookAhead = 3 + Math.floor(round/3); // a nivel alto mira mas
+    const candidates=[];
+    const order=[0,-1,1]; // frente, izq, der (nunca atras salvo forzado)
     for(let o of order){
       let nd=(curDir+o+4)%4;
       const nx=p2.x+DIRS[nd].x, ny=p2.y+DIRS[nd].y;
-      if(canMove(nx,ny)){
-        let score=0; let tx=nx, ty=ny;
-        for(let s=0;s<9;s++){ if(!canMove(tx,ty)) break; score++; tx+=DIRS[nd].x; ty+=DIRS[nd].y; }
-        const distToP1=Math.abs(nx-p1.x)+Math.abs(ny-p1.y);
-        if(distToP1 < Math.abs(p2.x-p1.x)+Math.abs(p2.y-p1.y)) score+=0.6;
-        options.push({dir:nd,score});
+      if(!canMove(nx,ny)) continue;
+
+      // 1. espacio propio (flood)
+      const mySpace = floodCount(nx, ny, -1,-1, 300);
+
+      // 2. espacio del rival humano si yo voy ahi (cuanto le dejo)
+      const p1Space = floodCount(p1.x, p1.y, nx, ny, 300);
+
+      // 3. chequeo de muerte en 2 pasos
+      let deadIn2=false;
+      let exits=0;
+      for(let d=0;d<4;d++){
+        if(d=== (nd+2)%4) continue; // no volver
+        const ex=nx+DIRS[d].x, ey=ny+DIRS[d].y;
+        if(canMove(ex,ey)) exits++;
       }
+      if(exits===0) deadIn2=true;
+
+      // 4. score
+      let score = mySpace*1.2; // prioriza no encerrarse
+      score -= p1Space*0.45; // intenta dejarle poco espacio al rival (cortar)
+
+      // bonus por acercarse y encerrar
+      const curDist = Math.abs(p2.x-p1.x)+Math.abs(p2.y-p1.y);
+      const newDist = Math.abs(nx-p1.x)+Math.abs(ny-p1.y);
+      if(newDist < curDist) score += 8; // persigue
+      if(curDist < 12 && newDist < curDist) score += 12; // agresivo cuando esta cerca
+
+      // penaliza corredores sin salida
+      if(deadIn2) score -= 200;
+      if(mySpace < 8) score -= 100;
+      if(mySpace < 20) score -= 30;
+      if(p1Space < 10) score += 40; // lo estas encerrando
+
+      // evita ir al borde si hay mejor centro
+      const centerDist = Math.abs(nx-COLS/2)+Math.abs(ny-ROWS/2);
+      score += (COLS+ROWS - centerDist)*0.05;
+
+      // bonus por seguir derecho (menos predecible para humano? pero eficiente)
+      if(o===0) score += 3;
+
+      candidates.push({dir:nd, score, mySpace, p1Space, dead:deadIn2});
     }
-    if(options.length===0){ const back=(curDir+2)%4; return canMove(p2.x+DIRS[back].x,p2.y+DIRS[back].y)?back:curDir; }
-    options.sort((a,b)=>b.score-a.score);
-    if(options.length>1 && Math.random()<0.18) return options[1].dir;
-    return options[0].dir;
+
+    if(candidates.length===0){
+      const back=(curDir+2)%4;
+      return canMove(p2.x+DIRS[back].x, p2.y+DIRS[back].y)?back:curDir;
+    }
+
+    candidates.sort((a,b)=>b.score-a.score);
+
+    // dificultad: a nivel bajo se equivoca, a nivel alto nunca
+    const mistakeChance = Math.max(0, 0.35 - difficulty*0.35); // de 35% a 0%
+    if(candidates.length>1 && Math.random()<mistakeChance){
+      // elige el segundo mejor o aleatorio
+      return Math.random()<0.6 ? candidates[1].dir : candidates[Math.floor(Math.random()*candidates.length)].dir;
+    }
+
+    // si el mejor lleva a muerte segura y hay otro que no, evita
+    if(candidates[0].dead && candidates.some(c=>!c.dead)){
+      const safe=candidates.find(c=>!c.dead);
+      if(safe) return safe.dir;
+    }
+
+    return candidates[0].dir;
   }
 
   function step(){
