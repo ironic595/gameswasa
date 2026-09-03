@@ -1,5 +1,5 @@
 export function init(container, args){
-  const getCoins = args.getCoins||(()=>parseInt(localStorage.getItem('wasa_coins')||'0'));
+  const getCoins = args.getCoins||(()=>parseFloat(localStorage.getItem('wasa_coins')||'0'));
   const setCoins = args.setCoins||((n)=>localStorage.setItem('wasa_coins',n));
   container.innerHTML = `
     <style>
@@ -34,14 +34,25 @@ export function init(container, args){
   calcMetrics();
   let state='menu';
   let round=1, greenWins=0, redWins=0;
-  let grid, p1, p2, tick=0, tempCoins=0;
+  let grid, p1, p2, tick=0, tempCoins=0, lastElapsed=0, lastMult=1, lastBase=0;
   let _rewardPending=null;
+  let roundStart=0;
   const DIRS=[{x:0,y:-1},{x:1,y:0},{x:0,y:1},{x:-1,y:0}];
   function getTotalLevel(){ return ups.v.main*5 + ups.v.sub; }
   function getMaxLevel(){ return 100; }
   function saveUps(){localStorage.setItem('wasa_upgrades_bananatron',JSON.stringify(ups));}
   function saveMax(){if(round>maxRound){maxRound=round;localStorage.setItem('wasa_bananatron_max',maxRound);}}
   function getUpgradeCost(main, sub){ const total = main*5+sub; return Math.floor(60 + total*18 + Math.pow(total,1.35)*2); }
+  function getBaseWASA(lvl){
+    const tier=Math.floor((lvl-1)/10);
+    return 0.005 + tier*0.0025;
+  }
+  function getTimeMult(elapsed){
+    if(elapsed<10) return 3;
+    if(elapsed<20) return 2;
+    return 1;
+  }
+  function fmtWASA(n){ return (Math.round(n*1000000)/1000000).toFixed(6).replace(/0+$/,'').replace(/\.$/,''); }
   function getRivalInterval(lvl){ return Math.max(22, 135 - lvl*3.2 - Math.pow(lvl,0.65)*4); }
   function getPlayerInterval(){ const total=getTotalLevel(); return Math.max(18, 115 - total*0.68 - ups.v.main*0.8); }
   function newGrid(){ const g=[]; for(let y=0;y<ROWS;y++){ g[y]=[]; for(let x=0;x<COLS;x++) g[y][x]=0; } return g; }
@@ -51,7 +62,7 @@ export function init(container, args){
     p2={x:Math.floor(COLS*0.82), y:Math.floor(ROWS*0.5), dir:3, trail:[], alive:true};
     grid[p1.y][p1.x]=1; grid[p2.y][p2.x]=2;
     p1.trail.push({x:p1.x,y:p1.y}); p2.trail.push({x:p2.x,y:p2.y});
-    tick=0; tempCoins=0;
+    tick=0; tempCoins=0; roundStart=performance.now();
   }
   function canMove(x,y){ if(x<0||x>=COLS||y<0||y>=ROWS) return false; return grid[y][x]===0; }
   function floodFull(sx,sy){
@@ -72,7 +83,7 @@ export function init(container, args){
         q.push([nx,ny]);
       }
     }
-    return {count:visited.size, cells:visited};
+    return {count:visited.size};
   }
   function voronoiAfterMove(aiNx, aiNy, p1x, p1y){
     const aiVisited=new Set();
@@ -150,7 +161,7 @@ export function init(container, args){
       if(exits===0) score -= 2000;
       if(exits===1 && myFlood.count<30) score -= 300;
       if(o===0) score+=4;
-      candidates.push({dir:nd, score, my:myFlood.count, p1:p1Flood.count, vor, exits});
+      candidates.push({dir:nd, score});
     }
     if(candidates.length===0){
       const back=(curDir+2)%4;
@@ -179,29 +190,34 @@ export function init(container, args){
   function openAd(type){ if(window.vrAd!==0) return; _rewardPending=type; window.vrAdType=type; window.vrAd=1; state='paused_ad'; }
   function claimReward(){
     const t=_rewardPending; _rewardPending=null; window.vrAd=0; window.vrAdType=null; window._gm_shown=false;
-    if(t==='double'){ tempCoins*=2; coins+=tempCoins; setCoins(coins); state='roundover'; renderUI(); }
+    if(t==='double'){ 
+      const dbl=tempCoins*2;
+      coins+=dbl; setCoins(coins); 
+      tempCoins=dbl;
+      state='roundover'; renderUI(); 
+    }
   }
   function renderUpgrades(){
     const total=getTotalLevel(); const pct=Math.round(total/100*100);
     const m=ups.v.main, s=ups.v.sub; const cost=getUpgradeCost(m,s);
     let nM=m, nS=s+1; if(nS>=5){ nM++; nS=0; }
-    const nextTotal=nM*5+nS;
-    const curMax=getPlayerInterval(), nextMax=Math.max(18,115-nextTotal*0.68-nM*0.8);
+    const curMax=getPlayerInterval();
     const canBuy=coins>=cost && total<100;
+    const baseDisplay=getBaseWASA(round);
     ui.innerHTML=`
       <div style="position:absolute;inset:0;background:linear-gradient(180deg,#020617,#0f172a);padding:12px;overflow:auto">
-        <div style="display:flex;justify-content:space-between"><div style="color:white;font-weight:900">MEJORAS • IA IMPOSIBLE</div><div style="color:#22c55e;font-size:12px">$WASA ${coins}</div></div>
+        <div style="display:flex;justify-content:space-between"><div style="color:white;font-weight:900">MEJORAS • IA IMPOSIBLE</div><div style="color:#22c55e;font-size:11px">${fmtWASA(coins)} $WASA</div></div>
         <div style="margin-top:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(239,68,68,0.35);border-radius:16px;padding:14px">
-          <div style="display:flex;justify-content:space-between"><div style="color:white;font-weight:800">⚡ LÍNEA VERDE</div><div style="color:#22c55e;font-weight:800">${total}/100 • ${pct}%</div></div>
+          <div style="display:flex;justify-content:space-between"><div style="color:white;font-weight:800">⚡ LINEA VERDE</div><div style="color:#22c55e;font-weight:800">${total}/100 • ${pct}%</div></div>
           <div style="margin-top:8px;height:10px;background:rgba(0,0,0,0.5);border-radius:999px;display:flex;gap:2px;padding:2px">
             ${Array.from({length:20}).map((_,mi)=>{ const f=mi<m?1:mi===m?s/5:0; return `<div style="flex:1;background:rgba(0,0,0,0.4);border-radius:999px;overflow:hidden"><div style="height:100%;width:${f*100}%;background:linear-gradient(90deg,#22c55e,#16a34a)"></div></div>`; }).join('')}
           </div>
           <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px">
             <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:8px"><div style="color:#94a3b8">Tu tick</div><div style="color:white;font-weight:800">${curMax.toFixed(0)}ms</div></div>
-            <div style="background:rgba(239,68,68,0.12);border-radius:10px;padding:8px"><div style="color:#fca5a5">Rival R${round} IA VORONOI</div><div style="color:white;font-weight:800">${getRivalInterval(round).toFixed(0)}ms • 0% error</div></div>
+            <div style="background:rgba(239,68,68,0.12);border-radius:10px;padding:8px"><div style="color:#fca5a5">R${round} Base</div><div style="color:white;font-weight:800">${baseDisplay.toFixed(6)} $WASA</div></div>
           </div>
           <button id="buy" style="margin-top:12px;width:100%;background:${canBuy?'linear-gradient(135deg,#22c55e,#16a34a)':'#1e293b'};color:${canBuy?'black':'#475569'};padding:12px;border-radius:999px;font-weight:900">${total>=100?'MAX 100/100':`MEJORAR ${m}-${s} → ${nM}-${nS} • ${cost} $WASA`}</button>
-          <div style="margin-top:6px;font-size:9px;color:#f87171;text-align:center">IA con Voronoi full + flood. Nunca se equivoca. Te encierra con &lt;15 celdas. Rival +3.2ms/lvl ahora (antes +1.6)</div>
+          <div style="margin-top:6px;font-size:9px;color:#86efac;text-align:center">Economia: R1=0.005 / cada 10 niveles +0.0025 • Tiempo &lt;10s x3 / &lt;20s x2</div>
         </div>
         <div style="margin-top:12px;display:flex;gap:8px"><button id="back" style="flex:1;background:white;color:black;padding:10px;border-radius:999px;font-weight:800">VOLVER</button><button id="play" style="flex:1;background:#ef4444;color:white;padding:10px;border-radius:999px;font-weight:800">JUGAR VS IMPOSIBLE</button></div>
       </div>
@@ -213,16 +229,17 @@ export function init(container, args){
   function renderUI(){
     if(state==='menu'){
       const total=getTotalLevel();
+      const base=getBaseWASA(round);
       ui.innerHTML=`
         <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%, rgba(239,68,68,0.18), transparent 60%), linear-gradient(180deg,#020617,#0a0e1e);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;text-align:center">
-          <div style="font-size:10px;letter-spacing:0.3em;color:#ef4444">IA IMPOSIBLE • NO SE EQUIVOCA • VORONOI</div>
+          <div style="font-size:10px;letter-spacing:0.3em;color:#ef4444">IA IMPOSIBLE • ${fmtWASA(base)} $WASA BASE</div>
           <div style="margin-top:6px;font-size:38px;font-weight:900;color:white;line-height:0.9">BANANA<span style="color:#22c55e">TRON</span></div>
-          <div style="margin-top:6px;color:#64748b;font-size:10px">R${round} • GRE ${greenWins} RED ${redWins} • MAX ${maxRound} • VEL ${total}/100 • DIFICIL</div>
+          <div style="margin-top:6px;color:#64748b;font-size:10px">R${round} • VEL ${total}/100 • ${fmtWASA(coins)} $WASA</div>
           <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;width:100%;max-width:280px">
-            <button id="play" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:white;font-weight:900;padding:12px;border-radius:999px;box-shadow:0 0 20px rgba(239,68,68,0.4)">JUGAR VS IA IMPOSIBLE R${round}</button>
+            <button id="play" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:white;font-weight:900;padding:12px;border-radius:999px">JUGAR R${round} • ${fmtWASA(base)} $WASA</button>
             <div style="display:flex;gap:8px"><button id="upg" style="flex:1;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.25);color:#22c55e;padding:10px;border-radius:999px;font-weight:800">⚡ ${total}/100</button><button id="reset" style="flex:1;background:rgba(255,255,255,0.06);color:#94a3b8;padding:10px;border-radius:999px">Reset</button></div>
           </div>
-          <div style="margin-top:10px;font-size:9px;color:#fca5a5">Ahora el rojo no falla nunca y te corta a proposito. Si te gana facil, subi tu velocidad en mejoras.</div>
+          <div style="margin-top:10px;font-size:9px;color:#86efac">&lt;10s x3 / &lt;20s x2 / &gt;20s x1 • Anuncio x2</div>
         </div>
       `;
       ui.querySelector('#play').onclick=()=>{ resetRound(round); state='playing'; renderUI(); };
@@ -230,31 +247,56 @@ export function init(container, args){
       ui.querySelector('#reset').onclick=()=>{ round=1; greenWins=0; redWins=0; renderUI(); };
     }else if(state==='upgrades'){ renderUpgrades(); }
     else if(state==='playing'){
+      const elapsed=(performance.now()-roundStart)/1000;
+      const mult=elapsed<10?3:elapsed<20?2:1;
       ui.innerHTML=`
         <div style="position:absolute;top:6px;left:8px;right:8px;display:flex;justify-content:space-between;font-size:10px;color:white;font-family:monospace">
-          <div style="color:#f87171">R${round} IA IMPOSIBLE • VORONOI</div>
-          <div style="color:#22c55e">${getTotalLevel()}/100</div>
+          <div style="color:#f87171">R${round} • ${elapsed.toFixed(1)}s • x${mult}</div>
+          <div style="color:#22c55e">${fmtWASA(coins)} $WASA</div>
         </div>
       `;
     }else if(state==='roundover'){
       const winGreen=p1.alive && !p2.alive;
-      if(winGreen) greenWins++; else redWins++;
-      if(winGreen) tempCoins=30+round*5; else tempCoins=10;
+      if(winGreen){
+        const elapsed=(performance.now()-roundStart)/1000;
+        const base=getBaseWASA(round);
+        const mult=getTimeMult(elapsed);
+        lastElapsed=elapsed; lastMult=mult; lastBase=base;
+        tempCoins=base*mult;
+        greenWins++;
+      } else {
+        redWins++;
+        tempCoins=0.0005;
+        lastElapsed=0; lastMult=1; lastBase=getBaseWASA(round);
+      }
       saveMax();
       ui.innerHTML=`
         <div style="position:absolute;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:10px">
-          <div style="background:#0f172a;border:2px solid ${winGreen?'#22c55e':'#ef4444'};border-radius:14px;padding:14px;width:100%;max-width:320px;text-align:center">
+          <div style="background:#0f172a;border:2px solid ${winGreen?'#22c55e':'#ef4444'};border-radius:14px;padding:14px;width:100%;max-width:340px;text-align:center">
             <div style="font-size:11px;letter-spacing:0.2em;color:${winGreen?'#22c55e':'#ef4444'}">${winGreen?'LE GANASTE A LA IA IMPOSIBLE!':'LA IA TE ENCERRO'}</div>
             <div style="color:white;font-weight:900;margin-top:6px">R${round} ${winGreen?'GANASTE':'PERDISTE'}</div>
-            <div style="margin-top:8px;font-size:10px;color:#94a3b8">${winGreen?'Increible, esta IA no pierde casi nunca':'Te dejo sin espacio con Voronoi'}</div>
-            <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px"><button id="dbl" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:black;font-weight:900;padding:10px;border-radius:999px">📺 x2 (${tempCoins*2})</button><button id="next" style="background:white;color:black;font-weight:800;padding:10px;border-radius:999px">SIGUIENTE R${round+1}</button></div>
+            ${winGreen?`<div style="margin-top:8px;background:rgba(0,0,0,0.4);border-radius:10px;padding:8px;font-size:10px;color:#cbd5e1">
+              <div style="display:flex;justify-content:space-between"><span>Base R${round}</span><span>${lastBase.toFixed(6)} $WASA</span></div>
+              <div style="display:flex;justify-content:space-between"><span>Tiempo ${lastElapsed.toFixed(1)}s</span><span>x${lastMult}</span></div>
+              <div style="display:flex;justify-content:space-between;font-weight:800;color:#22c55e;margin-top:4px"><span>Total</span><span>${fmtWASA(tempCoins)} $WASA</span></div>
+            </div>`: `<div style="margin-top:8px;font-size:10px;color:#94a3b8">Consuelo 0.0005 $WASA</div>`}
+            <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
+              ${winGreen?`<button id="dbl" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:black;font-weight:900;padding:10px;border-radius:999px">📺 x2 (${fmtWASA(tempCoins*2)} $WASA)</button>`:''}
+              <button id="next" style="background:white;color:black;font-weight:800;padding:10px;border-radius:999px">${winGreen?'SIGUIENTE':'REINTENTAR'} R${winGreen?round+1:round}</button>
+            </div>
           </div>
         </div>
       `;
-      ui.querySelector('#dbl').onclick=()=>openAd('double');
-      ui.querySelector('#next').onclick=()=>{ coins+=tempCoins; setCoins(coins); resetRound(round+1); state='playing'; renderUI(); };
+      ui.querySelector('#dbl')?.addEventListener('click',()=>openAd('double'));
+      ui.querySelector('#next').onclick=()=>{ 
+        if(winGreen){ coins+=tempCoins; setCoins(coins); resetRound(round+1); } else { coins+=tempCoins; setCoins(coins); resetRound(round); }
+        state='playing'; renderUI(); 
+      };
     }else if(state==='paused_ad'){ ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;color:white">Cargando...</div>`; }
-    else if(state==='reward_modal'){ ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:10px"><div style="background:#0f172a;border:1px solid #22c55e;border-radius:12px;padding:12px;width:100%;max-width:260px;text-align:center"><div style="color:#22c55e;font-weight:900">¡RECOMPENSA!</div><button id="claim" style="margin-top:8px;width:100%;background:#22c55e;color:black;font-weight:900;padding:10px;border-radius:999px">RECLAMAR</button></div></div>`; ui.querySelector('#claim').onclick=claimReward; }
+    else if(state==='reward_modal'){ 
+      ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:10px"><div style="background:#0f172a;border:1px solid #22c55e;border-radius:12px;padding:12px;width:100%;max-width:260px;text-align:center"><div style="color:#22c55e;font-weight:900">¡RECOMPENSA x2!</div><div style="color:white;font-size:12px;margin-top:4px">${fmtWASA(tempCoins)} $WASA</div><button id="claim" style="margin-top:8px;width:100%;background:#22c55e;color:black;font-weight:900;padding:10px;border-radius:999px">RECLAMAR</button></div></div>`; 
+      ui.querySelector('#claim').onclick=claimReward; 
+    }
   }
   addEventListener('keydown',e=>{
     if(state!=='playing') return;
