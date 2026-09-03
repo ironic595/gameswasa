@@ -205,7 +205,6 @@ export function init(container, args){
     console.log('[GAME] CLAIM 1 CLICK',type);
     _rewardPending=null; _pendingAdType=null;
     window.vrAd=0; window.vrAdType=null; window._gm_shown=false;
-    var gv=document.getElementById('gmVideo'); if(gv){gv.classList.remove('active');gv.style.display='none';gv.innerHTML='';}
     if(type==='lives'){game.misses=Math.max(0,game.misses-3);game.bullets=[];game.power.state='moving';game.power.v=50;game.power.dir=1;adUses++;state='playing';}
     else if(type==='double'){setCoins(getCoins()+tempCoins); game.points+=tempPoints; maxLevel=Math.max(maxLevel,game.level+1); localStorage.setItem('wasa_max_level',maxLevel); ranking.push({name:'Jugador',score:game.points,level:game.level});ranking.sort((a,b)=>b.score-a.score);ranking=ranking.slice(0,10);localStorage.setItem('wasa_ranking_final',JSON.stringify(ranking)); game.level+=1;game.misses=0;game.bullets=[];game.power.state='moving';game.power.v=20;initShips(game.level);game.levelStart=performance.now();state='playing';}
     else if(type==='checkpoint'){startGame(maxLevel);}
@@ -222,7 +221,7 @@ export function init(container, args){
     game.power.state='moving'; game.power.dir=game.power.locked>=50?-1:1; renderUI();
   }
 
-  let watcher=setInterval(()=>{ if(window.vrAd===4 && _rewardPending && state!=='reward_modal'){ var gv=document.getElementById('gmVideo'); if(gv){gv.classList.remove('active');gv.style.display='none';gv.innerHTML='';} state='reward_modal'; renderUI(); } },150);
+  let watcher=setInterval(()=>{ if(window.vrAd===4 && _rewardPending && state!=='reward_modal'){ state='reward_modal'; renderUI(); } },150);
 
   let raf; function loop(now){
     if(window.vrAd===1||window.vrAd===2||window.vrAd===3){ raf=requestAnimationFrame(loop); return; }
