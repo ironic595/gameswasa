@@ -62,7 +62,7 @@ export function init(container, args){
     p2={x:Math.floor(COLS*0.82), y:Math.floor(ROWS*0.5), dir:3, trail:[], alive:true};
     grid[p1.y][p1.x]=1; grid[p2.y][p2.x]=2;
     p1.trail.push({x:p1.x,y:p1.y}); p2.trail.push({x:p2.x,y:p2.y});
-    tick=0; tempCoins=0; roundStart=performance.now();
+    tick=0; tempCoins=0; roundStart=performance.now(); adClaimedThisRound=false;
   }
   function canMove(x,y){ if(x<0||x>=COLS||y<0||y>=ROWS) return false; return grid[y][x]===0; }
   function floodFull(sx,sy){
@@ -187,14 +187,18 @@ export function init(container, args){
     if(p1.alive && p2.alive && p1.x===p2.x && p1.y===p2.y){ p1.alive=false; p2.alive=false; }
     tick++;
   }
-  function openAd(type){ if(window.vrAd!==0) return; _rewardPending=type; window.vrAdType=type; window.vrAd=1; state='paused_ad'; }
+  let adClaimedThisRound=false;
+  function openAd(type){ if(window.vrAd!==0) return; if(adClaimedThisRound) return; _rewardPending=type; window.vrAdType=type; window.vrAd=1; state='paused_ad'; renderUI(); }
   function claimReward(){
     const t=_rewardPending; _rewardPending=null; window.vrAd=0; window.vrAdType=null; window._gm_shown=false;
-    if(t==='double'){ 
+    if(t==='double' && !adClaimedThisRound){ 
+      adClaimedThisRound=true;
       const dbl=tempCoins*2;
-      coins+=dbl; setCoins(coins); 
-      tempCoins=dbl;
-      state='roundover'; renderUI(); 
+      coins+=dbl; setCoins(coins);
+      // Avanzar directo a siguiente round, no volver a roundover para evitar loop infinito
+      resetRound(round+1);
+      state='playing';
+      renderUI();
     }
   }
   function renderUpgrades(){
@@ -281,7 +285,7 @@ export function init(container, args){
               <div style="display:flex;justify-content:space-between;font-weight:800;color:#22c55e;margin-top:4px"><span>Total</span><span>${fmtWASA(tempCoins)} $WASA</span></div>
             </div>`: `<div style="margin-top:8px;font-size:10px;color:#ef4444">0 $WASA • Sin recompensa por perder</div>`}
             <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
-              ${winGreen?`<button id="dbl" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:black;font-weight:900;padding:10px;border-radius:999px">📺 x2 (${fmtWASA(tempCoins*2)} $WASA)</button>`:''}
+              ${winGreen && !adClaimedThisRound?`<button id="dbl" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:black;font-weight:900;padding:10px;border-radius:999px">📺 x2 (${fmtWASA(tempCoins*2)} $WASA)</button>`:''}
               <button id="next" style="background:white;color:black;font-weight:800;padding:10px;border-radius:999px">${winGreen?'SIGUIENTE':'REINTENTAR'} R${winGreen?round+1:round}</button>
             </div>
           </div>
