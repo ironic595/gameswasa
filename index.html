@@ -194,6 +194,7 @@ async function openGame(slug){ const modal=document.getElementById('modal'); con
 function closeGame(){ document.getElementById('modal').classList.remove('open'); document.getElementById('modalContainer').innerHTML=''; document.body.style.overflow=''; history.pushState({},'',`/`); }
 addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeGame(); closeWalletChooser(); closeWasaBuy(); closeAuthEmail(); closeUserProfile(); const m=document.getElementById('userDropdown'); if(m) m.classList.remove('open'); }});
 addEventListener('DOMContentLoaded',()=>{ 
+  if(!localStorage.getItem('wasa_device_id')) localStorage.setItem('wasa_device_id','dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36));
   setCoins(getCoins()); loadGames();
   const gc = localStorage.getItem('wasa_coins_guest')||'0';
   const el = document.getElementById('verifyGuestCoins');
