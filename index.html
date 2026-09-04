@@ -220,36 +220,11 @@
 </div>
 
 <script>
+// SOLO LOGICA DE JUEGOS + ADS - ESTO QUEDA EN EL INDEX
+// Wallet, compra WASA, D1, todo va en wasa-connection.js aparte
+
 let GAMES=[];
 let currentCat='all';
-const WASA_CONFIG = {
-  USDT_CONTRACT: '0x55d398326f99059fF775485246999027B3197955', // fallback si D1 no responde
-  RECEIVER: null, // se carga desde D1
-  WORKER_URL: 'https://tu-worker.javimsites.workers.dev', // <-- TU WORKER D1
-  PRICES: { 10: 5, 50: 20, 100: 35 },
-  _loaded: false
-};
-
-async function loadWasaConfig(){
-  try{
-    const r = await fetch(WASA_CONFIG.WORKER_URL + '?action=get_wasa_config&t='+Date.now());
-    const j = await r.json();
-    if(j.ok && j.receiver){
-      WASA_CONFIG.RECEIVER = j.receiver;
-      if(j.usdt_contract) WASA_CONFIG.USDT_CONTRACT = j.usdt_contract;
-      if(j.prices) WASA_CONFIG.PRICES = j.prices;
-      WASA_CONFIG._loaded = true;
-      console.log('[WASA] Config cargada desde D1:', j.receiver.slice(0,10)+'...');
-      const foot = document.getElementById('configFooter'); if(foot) foot.textContent = 'USDT BSC • Config segura D1 • Receiver: '+j.receiver.slice(0,6)+'...'+j.receiver.slice(-4);
-      const info = document.getElementById('walletConnectedInfo');
-      // no mostrar nada extra, solo log
-      return j;
-    }
-  }catch(e){
-    console.warn('[WASA] No se pudo cargar config desde D1, usando fallback', e);
-  }
-  return null;
-}
 
 function getCoins(){return parseFloat(localStorage.getItem('wasa_coins')||'0');}
 function fmtWASA(n){ 
@@ -266,153 +241,16 @@ function setCoins(n){
   const he=document.getElementById('headerCoins'); if(he) he.textContent=formatted;
 }
 function addCoins(n){setCoins(getCoins()+n);}
-let connectedWallet = localStorage.getItem('wasa_wallet') || null;
-let connectedNickname = localStorage.getItem('wasa_nick') || null;
-function updateWalletUI(){
-  const btn=document.getElementById('walletBtn');
-  const info=document.getElementById('walletConnectedInfo');
-  if(connectedWallet){
-    btn.textContent = (connectedNickname || connectedWallet.slice(0,6)+'...'+connectedWallet.slice(-4));
-    btn.classList.add('connected');
-    if(info){ info.style.display='block'; info.textContent='✅ Conectado: '+connectedWallet; }
-  }else{
-    btn.textContent='Connect Wallet';
-    btn.classList.remove('connected');
-    if(info) info.style.display='none';
-  }
-}
-function handleWalletBtn(){
-  if(connectedWallet){ openWasaBuy(); }else{ openWalletChooser(); }
-}
-function openWalletChooser(){
-  if(connectedWallet){ openWasaBuy(); return; }
-  document.getElementById('walletChooser').classList.add('open');
-}
-function closeWalletChooser(){ document.getElementById('walletChooser').classList.remove('open'); }
-function openWasaBuy(){ document.getElementById('wasaBuyModal').classList.add('open'); updateWalletUI(); }
-function closeWasaBuy(){ document.getElementById('wasaBuyModal').classList.remove('open'); }
-function openAuthEmail(){ closeWalletChooser(); document.getElementById('authModal').classList.add('open'); }
-function closeAuthEmail(){ document.getElementById('authModal').classList.remove('open'); }
-async function connectWith(type){
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  const currentUrl = window.location.href;
-  const domain = currentUrl.replace('https://','').replace('http://','').split('/')[0];
-  try{
-    if(window.ethereum){
-      const accs = await window.ethereum.request({method:'eth_requestAccounts'});
-      connectedWallet = accs[0];
-      localStorage.setItem('wasa_wallet', connectedWallet);
-      updateWalletUI();
-      closeWalletChooser();
-      openWasaBuy();
-      return;
-    }
-    if(isMobile){
-      if(type==='metamask'){
-        window.location.href = `https://metamask.app.link/dapp/${domain}${window.location.pathname}`;
-        return;
-      }
-      if(type==='trust'){
-        const urlEnc = encodeURIComponent(currentUrl);
-        window.location.href = `https://link.trustwallet.com/open_url?coin_id=60&url=${urlEnc}`;
-        return;
-      }
-      if(type==='rabby'){
-        window.location.href = `https://rabby.io/open?url=${encodeURIComponent(currentUrl)}`;
-        return;
-      }
-      if(type==='okx'){
-        window.location.href = `https://www.okx.com/download?deeplink=okx%3A%2F%2Fwallet%2Fdapp%2Furl%3Furl%3D${encodeURIComponent(currentUrl)}`;
-        return;
-      }
-      if(type==='walletconnect'){
-        alert('WalletConnect: usa Trust o MetaMask en mobile. En desktop instalá extensión.');
-        return;
-      }
-    }
-    if(!window.ethereum){
-      if(type==='metamask'){ window.open('https://metamask.io/download/','_blank'); }
-      else{ alert('Instalá una wallet o abrí esta página dentro de Trust/MetaMask.'); }
-    }
-  }catch(e){ console.error(e); alert('Error conectando: '+e.message); }
-}
-function parseUSDTtoWei(amount){
-  const str = String(amount);
-  const [w,f=''] = str.split('.');
-  const frac = (f+'000000000000000000').slice(0,18);
-  return BigInt(w+frac);
-}
-async function buyWasa(wasaAmount){
-  const usdtAmount = WASA_CONFIG.PRICES[wasaAmount];
-  const nick = document.getElementById('nicknameInput').value.trim() || null;
-  const statusEl = document.getElementById('buyStatus');
-  function showStatus(msg, cls){ statusEl.textContent = msg; statusEl.className = 'status-box '+cls; statusEl.style.display='block'; }
-  if(!connectedWallet){ showStatus('⚠ Conectá billetera primero','status-info'); openWalletChooser(); return; }
-  if(!WASA_CONFIG._loaded){
-    showStatus('⏳ Cargando config segura desde Cloudflare...','status-info');
-    await loadWasaConfig();
-  }
-  if(!WASA_CONFIG.RECEIVER){ showStatus('⚠ No se pudo obtener wallet de cobro desde D1 (Worker caído)','status-err'); return; }
-  try{
-    showStatus('⏳ Preparando pago '+usdtAmount+' USDT -> '+wasaAmount+' WASA...','status-info');
-    const toPadded = WASA_CONFIG.RECEIVER.toLowerCase().replace('0x','').padStart(64,'0');
-    const amountWei = parseUSDTtoWei(String(usdtAmount));
-    const amountHex = amountWei.toString(16).padStart(64,'0');
-    const data = '0xa9059cbb'+toPadded+amountHex;
-    const txHash = await window.ethereum.request({
-      method:'eth_sendTransaction',
-      params:[{ from: connectedWallet, to: WASA_CONFIG.USDT_CONTRACT, data: data }]
-    });
-    showStatus('⏳ Tx enviada: '+txHash+' - Esperando confirmación...','status-info');
-    let receipt = null;
-    for(let i=0;i<60;i++){
-      try{ receipt = await window.ethereum.request({method:'eth_getTransactionReceipt', params:[txHash]}); if(receipt) break; }catch{}
-      await new Promise(r=>setTimeout(r,1000));
-    }
-    if(receipt && (receipt.status==='0x0' || receipt.status===0)){ throw new Error('Transacción fallida on-chain'); }
-    showStatus('✅ Pago confirmado! Guardando en D1...','status-ok');
-    if(nick){ localStorage.setItem('wasa_nick', nick); connectedNickname = nick; }
-    try{
-      await fetch(WASA_CONFIG.WORKER_URL,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({
-          action:'buy_wasa',
-          wallet: connectedWallet,
-          nickname: nick || connectedNickname || '',
-          email: localStorage.getItem('wasa_email')||'',
-          wasa_amount: wasaAmount,
-          usdt_amount: usdtAmount,
-          network: 'BSC',
-          tx_hash: txHash
-        })
-      });
-    }catch(e){ console.warn('D1 save failed', e); }
-    addCoins(getCoins()+wasaAmount);
-    updateWalletUI();
-    showStatus('🎉 ¡Compraste '+wasaAmount+' WASA! Tx: '+txHash.slice(0,16)+'...','status-ok');
-  }catch(e){ showStatus('❌ '+e.message,'status-err'); }
-}
-function doAuthEmail(mode){
-  const email = document.getElementById('authEmail').value.trim().toLowerCase();
-  const pass = document.getElementById('authPass').value;
-  const nick = document.getElementById('authNick').value.trim();
-  const el = document.getElementById('authStatus');
-  function show(m,c){ el.textContent=m; el.className='status-box '+c; el.style.display='block'; }
-  if(!email.includes('@')) return show('Email inválido','status-err');
-  if(pass.length<6) return show('Mín 6 caracteres','status-err');
-  localStorage.setItem('wasa_email', email);
-  if(nick) localStorage.setItem('wasa_nick', nick);
-  show((mode==='login'?'Login OK: ':'Cuenta creada: ')+email,'status-ok');
-  setTimeout(()=>{ closeAuthEmail(); openWasaBuy(); },800);
-}
+
 function setCat(cat){currentCat=cat;document.querySelectorAll('#catFilter button').forEach(b=>b.classList.toggle('active',b.dataset.cat===cat));renderGrid();}
 function filterGames(){renderGrid();}
+
 async function loadGames(){
   try{const r=await fetch('/games.json?t='+Date.now());if(!r.ok) throw 0;GAMES=await r.json();}
-  catch(e){try{const r2=await fetch('./games.json?t='+Date.now());GAMES=await r2.json();}catch(e2){GAMES=[{slug:'space-invaders',title:'SPACE INVADERS',cat:'arcade action',live:true},{slug:'banatron-revelation',title:'BANATRON REVELATION',cat:'arcade',live:true}];}}
+  catch(e){try{const r2=await fetch('./games.json?t='+Date.now());GAMES=await r2.json();}catch(e2){GAMES=[{slug:'space-invaders',title:'SPACE INVADERS',cat:'arcade action',live:true},{slug:'banatron',title:'BANATRON REVELATION',cat:'arcade',live:true}];}}
   renderGrid();
 }
+
 function renderGrid(){
   const grid=document.getElementById('grid');
   const q=(document.getElementById('q').value||'').toLowerCase();
@@ -429,6 +267,7 @@ function renderGrid(){
     let i=0;function next(){if(i>=cand.length){el.innerHTML=`<span style="font-size:24px">🎮</span><span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>`;return;}const img=new Image();img.onload=()=>{el.innerHTML=`<img src="${img.src}" alt="${g.title}"><span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>`;};img.onerror=()=>{i++;next();};img.src=cand[i];}next();
   });
 }
+
 async function openGame(slug){
   const modal=document.getElementById('modal');
   const container=document.getElementById('modalContainer');
@@ -451,19 +290,33 @@ async function openGame(slug){
     if(mod.init){ mod.init(container,{quality,getCoins,addCoins,setCoins,slug}); }
   }catch(e){console.error(e);container.innerHTML=`<div style="text-align:center;color:#94a3b8;font-size:12px">Juego <b style="color:#fff">${slug}</b> no encontrado<br>/games/${slug}/game.js<br><span style="font-size:10px;color:#ef4444">${e.message}</span></div>`;}
 }
-function closeGame(){document.getElementById('modal').classList.remove('open');document.getElementById('modalContainer').innerHTML='';document.body.style.overflow='';history.pushState({},'',`/`); window.vrAd=0; window.vrAdType=null; var gv=document.getElementById('gmVideo'); if(gv){gv.classList.remove('active'); gv.style.display='none';}}
-addEventListener('keydown',e=>{if(e.key==='Escape'){ closeGame(); closeWalletChooser(); closeWasaBuy(); closeAuthEmail(); }});
-addEventListener('DOMContentLoaded',async()=>{
+
+function closeGame(){
+  document.getElementById('modal').classList.remove('open');
+  document.getElementById('modalContainer').innerHTML='';
+  document.body.style.overflow='';
+  history.pushState({},'',`/`);
+  window.vrAd=0; window.vrAdType=null;
+  var gv=document.getElementById('gmVideo');
+  if(gv){gv.classList.remove('active'); gv.style.display='none';}
+}
+
+addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    closeGame();
+    // si existe la conexion, cierra modales de wallet tambien
+    if(window.closeWalletChooser) closeWalletChooser();
+    if(window.closeWasaBuy) closeWasaBuy();
+    if(window.closeAuthEmail) closeAuthEmail();
+  }
+});
+
+addEventListener('DOMContentLoaded',()=>{
   setCoins(getCoins());
   loadGames();
-  updateWalletUI();
-  await loadWasaConfig();
-  const p=new URLSearchParams(location.search);const g=p.get('game');if(g) openGame(g);
-  if(window.ethereum){
-    window.ethereum.request({method:'eth_accounts'}).then(accs=>{
-      if(accs && accs[0]){ connectedWallet = accs[0]; localStorage.setItem('wasa_wallet', accs[0]); updateWalletUI(); }
-    }).catch(()=>{});
-  }
+  const p=new URLSearchParams(location.search);
+  const g=p.get('game');
+  if(g) openGame(g);
 });
 </script>
 </body>
