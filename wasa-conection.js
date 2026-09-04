@@ -2,7 +2,7 @@
 const WASA_CONFIG = {
   USDT_CONTRACT: '0x55d398326f99059fF775485246999027B3197955',
   RECEIVER: null,
-  WORKER_URL: 'https://games-wasa-worker.tu-usuario.workers.dev',
+  WORKER_URL: 'https://games-wasa-worker.javimsites.workers.dev/',
   PRICES: { 10: 5, 50: 20, 100: 35 },
   _loaded: false
 };
