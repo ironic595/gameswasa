@@ -1,4 +1,4 @@
-// wasa-conection.js v5 - FIX definitivo icono gris/amarillo que si actualiza
+// wasa-conection.js v6 - con sync de balance $WASA en D1
 const WASA_CONFIG = {
   USDT_CONTRACT: '0x55d398326f99059fF775485246999027B3197955',
   RECEIVER: null,
@@ -26,26 +26,18 @@ async function loadWasaConfig(){
     }
   }catch(e){ console.warn('D1 no responde', e); }
 }
-
 function getStoredWallet(){ return localStorage.getItem('wasa_wallet'); }
 function getStoredEmail(){ return localStorage.getItem('wasa_email'); }
 function getStoredNick(){ return localStorage.getItem('wasa_nick'); }
-
-function isLogged(){ 
-  // FIX: leer siempre de localStorage por si las variables no se actualizaron
-  return !!(getStoredWallet() || getStoredEmail() || connectedWallet || connectedEmail); 
-}
+function isLogged(){ return !!(getStoredWallet() || getStoredEmail()); }
 
 function updateWalletUI(){
-  // FIX: siempre re-leer de localStorage para estar sync
   connectedWallet = getStoredWallet();
   connectedEmail = getStoredEmail();
   connectedNickname = getStoredNick();
-
   const btn=document.getElementById('walletBtn');
   const info=document.getElementById('walletConnectedInfo');
   const userBtn=document.getElementById('userBtn');
-  
   if(btn){
     if(connectedWallet){
       btn.textContent = (connectedNickname || connectedWallet.slice(0,6)+'...'+connectedWallet.slice(-4));
@@ -70,6 +62,41 @@ function updateWalletUI(){
     }
   }
   if(!isLogged()) closeUserMenu();
+}
+
+// NUEVO: sync balance desde D1
+async function syncBalanceFromD1(){
+  const email = getStoredEmail();
+  const wallet = getStoredWallet();
+  if(!email && !wallet) return;
+  try{
+    const r = await fetch(WASA_CONFIG.WORKER_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'get_balance', email, wallet})});
+    const j = await r.json();
+    if(j.ok && typeof j.wasa_balance !== 'undefined'){
+      const bal = parseFloat(j.wasa_balance)||0;
+      localStorage.setItem('wasa_coins', bal);
+      if(typeof setCoinsUI === 'function') setCoinsUI(bal);
+      // si D1 tiene wallet y no tenemos en local, guardarla
+      if(j.wallet && !wallet && !j.wallet.startsWith('email:')){
+        localStorage.setItem('wasa_wallet', j.wallet);
+        updateWalletUI();
+      }
+      if(j.nickname && !getStoredNick()){
+        localStorage.setItem('wasa_nick', j.nickname);
+        updateWalletUI();
+      }
+      console.log('[WASA] balance sync D1:', bal);
+    }
+  }catch(e){ console.warn('sync balance fail', e); }
+}
+
+async function saveCoinsToD1(delta){
+  const email = getStoredEmail();
+  const wallet = getStoredWallet();
+  if(!email && !wallet) return;
+  try{
+    await fetch(WASA_CONFIG.WORKER_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'add_coins', email, wallet, amount: delta})});
+  }catch(e){}
 }
 
 function handleWalletBtn(){ if(getStoredWallet()){ openWasaBuy(); }else{ openWalletChooser(); } }
@@ -104,12 +131,12 @@ async function doLogin(){
     const j=await r.json(); if(!j.ok) throw new Error(j.error);
     localStorage.setItem('wasa_email', j.email);
     if(j.nickname) localStorage.setItem('wasa_nick', j.nickname);
-    // FIX: actualizar variables y UI inmediato
-    connectedEmail = j.email;
-    connectedNickname = j.nickname || getStoredNick();
+    if(j.wasa_balance!==undefined) localStorage.setItem('wasa_coins', j.wasa_balance);
+    if(j.wallet) localStorage.setItem('wasa_wallet', j.wallet);
     updateWalletUI();
-    showAuthStatus('✅ Login OK','status-ok');
-    setTimeout(()=>{ closeAuthEmail(); },600);
+    if(typeof setCoinsUI === 'function') setCoinsUI(j.wasa_balance||0);
+    showAuthStatus('✅ Login OK: '+j.wasa_balance+' WASA','status-ok');
+    setTimeout(()=>{ closeAuthEmail(); syncBalanceFromD1(); },600);
   }catch(e){ showAuthStatus('❌ '+e.message,'status-err'); }
 }
 async function doRegister(){
@@ -124,10 +151,9 @@ async function doRegister(){
     const j=await r.json(); if(!j.ok) throw new Error(j.error);
     localStorage.setItem('wasa_email', j.email);
     if(nick) localStorage.setItem('wasa_nick', nick);
-    // FIX: actualizar variables y UI inmediato - ESTO ERA LO QUE FALTABA
-    connectedEmail = j.email;
-    connectedNickname = nick || null;
+    localStorage.setItem('wasa_coins', j.wasa_balance||0);
     updateWalletUI();
+    if(typeof setCoinsUI === 'function') setCoinsUI(0);
     showAuthStatus('✅ Cuenta creada, ya estás logeado','status-ok',true);
     setTimeout(()=>{ closeAuthEmail(); },800);
   }catch(e){ showAuthStatus('❌ '+e.message,'status-err',true); }
@@ -154,7 +180,12 @@ async function connectWith(type){
     if(window.ethereum){
       const accs=await window.ethereum.request({method:'eth_requestAccounts'});
       localStorage.setItem('wasa_wallet',accs[0]);
-      updateWalletUI(); closeWalletChooser(); openWasaBuy(); return;
+      // si hay email logeado, linkear wallet a email
+      const email = getStoredEmail();
+      if(email){
+        try{ await fetch(WASA_CONFIG.WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'link_wallet',email,wallet:accs[0]})}); }catch(e){}
+      }
+      updateWalletUI(); closeWalletChooser(); openWasaBuy(); syncBalanceFromD1(); return;
     }
     if(isMobile){
       if(type==='metamask'){ window.location.href=`https://metamask.app.link/dapp/${domain}${path}`; return; }
@@ -182,7 +213,8 @@ async function buyWasa(amt){
     if(receipt && (receipt.status==='0x0'||receipt.status===0)) throw new Error('Tx fallida');
     show('✅ Confirmado! Guardando...','status-ok');
     try{ await fetch(WASA_CONFIG.WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'buy_wasa',wallet:getStoredWallet(),nickname:getStoredNick()||'',email:getStoredEmail()||'',wasa_amount:amt,usdt_amount:usdt,network:'BSC',tx_hash:txHash})}); }catch(e){}
-    const cur=parseFloat(localStorage.getItem('wasa_coins')||'0'); localStorage.setItem('wasa_coins',cur+amt); if(typeof setCoins==='function') setCoins(cur+amt); updateWalletUI(); show('🎉 ¡Compraste '+amt+' WASA!','status-ok');
+    const cur=parseFloat(localStorage.getItem('wasa_coins')||'0'); localStorage.setItem('wasa_coins',cur+amt); if(typeof setCoinsUI==='function') setCoinsUI(cur+amt); updateWalletUI(); show('🎉 ¡Compraste '+amt+' WASA!','status-ok');
+    syncBalanceFromD1();
   }catch(e){ show('❌ '+e.message,'status-err'); }
 }
 function handleUserBtn(){
@@ -213,6 +245,8 @@ async function saveProfile(){
 function logoutUser(){
   closeUserMenu(); closeUserProfile();
   localStorage.removeItem('wasa_wallet'); localStorage.removeItem('wasa_email'); localStorage.removeItem('wasa_nick');
+  localStorage.setItem('wasa_coins','0');
+  if(typeof setCoinsUI==='function') setCoinsUI(0);
   updateWalletUI();
 }
 document.addEventListener('click', (e)=>{
@@ -221,6 +255,41 @@ document.addEventListener('click', (e)=>{
   if(userMenuOpen && !menu.contains(e.target) && !btn.contains(e.target)){ closeUserMenu(); }
 });
 function doAuthEmail(){ openAuthEmail('login'); }
-window.addEventListener('DOMContentLoaded', async()=>{ updateWalletUI(); await loadWasaConfig(); if(window.ethereum){ window.ethereum.request({method:'eth_accounts'}).then(a=>{ if(a[0]){ localStorage.setItem('wasa_wallet',a[0]); updateWalletUI(); } }).catch(()=>{}); } });
 
-window.WASA_CONFIG=WASA_CONFIG; window.handleUserBtn=handleUserBtn; window.openUserMenu=openUserMenu; window.closeUserMenu=closeUserMenu; window.openUserProfile=openUserProfile; window.closeUserProfile=closeUserProfile; window.saveProfile=saveProfile; window.logoutUser=logoutUser; window.loadWasaConfig=loadWasaConfig; window.updateWalletUI=updateWalletUI; window.handleWalletBtn=handleWalletBtn; window.openWalletChooser=openWalletChooser; window.closeWalletChooser=closeWalletChooser; window.openWasaBuy=openWasaBuy; window.closeWasaBuy=closeWasaBuy; window.openAuthEmail=openAuthEmail; window.closeAuthEmail=closeAuthEmail; window.switchAuthTab=switchAuthTab; window.doLogin=doLogin; window.doRegister=doRegister; window.openForgot=openForgot; window.closeForgot=closeForgot; window.requestPasswordReset=requestPasswordReset; window.verifyPasswordReset=verifyPasswordReset; window.connectWith=connectWith; window.buyWasa=buyWasa; window.doAuthEmail=doAuthEmail;
+// GLOBAL coins functions que usan todos los juegos y que sync a D1
+function setCoinsUI(n){
+  const f = (()=>{
+    const v=parseFloat(n)||0;
+    if(v===0) return '0';
+    if(v<0.001) return v.toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
+    if(v<1) return (Math.round(v*1000000)/1000000).toString();
+    return (Math.round(v*1000)/1000).toString();
+  })() + ' $WASA';
+  const mc=document.getElementById('modalCoins'); if(mc) mc.textContent=f;
+  const hc=document.getElementById('headerCoins'); if(hc) hc.textContent=f;
+  const pe=document.getElementById('profileCoins'); if(pe) pe.textContent=f;
+}
+function getCoins(){ return parseFloat(localStorage.getItem('wasa_coins')||'0'); }
+function setCoins(n){
+  const old = parseFloat(localStorage.getItem('wasa_coins')||'0');
+  const delta = n - old;
+  localStorage.setItem('wasa_coins', n);
+  setCoinsUI(n);
+  if(Math.abs(delta)>0.0000001) saveCoinsToD1(delta);
+}
+function addCoins(n){
+  const cur = getCoins();
+  setCoins(cur+n);
+}
+
+window.addEventListener('DOMContentLoaded', async()=>{
+  updateWalletUI();
+  setCoinsUI(getCoins());
+  await loadWasaConfig();
+  await syncBalanceFromD1();
+  if(window.ethereum){
+    window.ethereum.request({method:'eth_accounts'}).then(a=>{ if(a[0]){ localStorage.setItem('wasa_wallet',a[0]); updateWalletUI(); syncBalanceFromD1(); } }).catch(()=>{});
+  }
+});
+
+window.WASA_CONFIG=WASA_CONFIG; window.handleUserBtn=handleUserBtn; window.openUserMenu=openUserMenu; window.closeUserMenu=closeUserMenu; window.openUserProfile=openUserProfile; window.closeUserProfile=closeUserProfile; window.saveProfile=saveProfile; window.logoutUser=logoutUser; window.loadWasaConfig=loadWasaConfig; window.updateWalletUI=updateWalletUI; window.handleWalletBtn=handleWalletBtn; window.openWalletChooser=openWalletChooser; window.closeWalletChooser=closeWalletChooser; window.openWasaBuy=openWasaBuy; window.closeWasaBuy=closeWasaBuy; window.openAuthEmail=openAuthEmail; window.closeAuthEmail=closeAuthEmail; window.switchAuthTab=switchAuthTab; window.doLogin=doLogin; window.doRegister=doRegister; window.openForgot=openForgot; window.closeForgot=closeForgot; window.requestPasswordReset=requestPasswordReset; window.verifyPasswordReset=verifyPasswordReset; window.connectWith=connectWith; window.buyWasa=buyWasa; window.doAuthEmail=doAuthEmail; window.syncBalanceFromD1=syncBalanceFromD1; window.setCoinsUI=setCoinsUI; window.getCoins=getCoins; window.setCoins=setCoins; window.addCoins=addCoins;
