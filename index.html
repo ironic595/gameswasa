@@ -93,6 +93,9 @@
   .profile-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:12px}
   .profile-row b{color:#94a3b8;font-weight:500}
   .profile-row span{color:white;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ #gmLoadingText, #gmLogo{
+  display:none;
+ }
 </style>
 <script>
   window.vrAd=0; window.SDK_OPTIONS={gameId:"4kci7og3klgj0ivy2wz3gd9dth5e7n",onEvent:function(a){if(a.name==='SDK_GAME_PAUSE'){window._gm_shown=true;if(window.vrAd===2){window.vrAd=3;}}if(a.name==='SDK_GAME_START'||a.name==='SDK_ERROR'||a.name==='SDK_GAME_END'){if(window.vrAd===3||window.vrAd===2){window.vrAd=4;}}if(a.name==='SDK_READY'){window._gm_ready=true;}}};
