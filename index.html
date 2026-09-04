@@ -84,6 +84,12 @@
   .status-ok{background:#DCFCE7;color:#166534;border:1px solid #86EFAC}
   .status-err{background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5}
   .status-info{background:rgba(56,189,248,0.1);color:#38bdf8;border:1px solid rgba(56,189,248,0.2)}
+  .tabs{display:flex;gap:8px;margin-bottom:16px;background:#0a0f24;padding:4px;border-radius:12px;border:1px solid rgba(56,189,248,0.15)}
+  .tab{flex:1;padding:10px;border-radius:8px;text-align:center;font-weight:600;cursor:pointer;color:#94a3b8}
+  .tab.active{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000}
+  .forgot-link{font-size:11px;color:#38bdf8;cursor:pointer;text-decoration:underline}
+  .forgot-box{display:none;margin-top:12px;padding:12px;background:rgba(0,0,0,0.3);border-radius:12px}
+  .forgot-box.open{display:block}
 </style>
 <script>
   window.vrAd=0; window.vrAdType=null; window._gm_shown=false;
@@ -206,16 +212,47 @@
   </div>
 </div>
 
-<div id="authModal" class="wasa-overlay" onclick="if(event.target===this) closeAuthEmail()">
+<div id="authModal" class="wasa-overlay">
   <div class="wasa-box">
-    <div class="wasa-head"><b>Login / Registro</b><button class="wasa-close" onclick="closeAuthEmail()">✕</button></div>
-    <div style="font-size:11px;color:#94a3b8;margin-bottom:12px">Billetera no necesita contraseña. Email sí.</div>
-    <input id="authEmail" class="input-wasa" placeholder="Email">
-    <input id="authPass" class="input-wasa" type="password" placeholder="Contraseña (mín 6)">
-    <input id="authNick" class="input-wasa" placeholder="Apodo (opcional)">
-    <div id="authStatus" class="status-box"></div>
-    <button class="btn-wasa btn-wasa-primary" onclick="doAuthEmail('login')">Entrar</button>
-    <button class="btn-wasa btn-wasa-secondary" style="margin-top:8px" onclick="doAuthEmail('register')">Crear cuenta</button>
+    <div class="wasa-head"><b>Mi Cuenta</b><button class="wasa-close" onclick="closeAuthEmail()">✕</button></div>
+    
+    <div class="tabs">
+      <div id="tabLogin" class="tab active" onclick="switchAuthTab('login')">Entrar</div>
+      <div id="tabRegister" class="tab" onclick="switchAuthTab('register')">Crear cuenta</div>
+    </div>
+
+    <!-- LOGIN TAB -->
+    <div id="loginForm">
+      <input id="authEmail" class="input-wasa" placeholder="Email">
+      <input id="authPass" class="input-wasa" type="password" placeholder="Contraseña">
+      <span class="forgot-link" onclick="openForgot()">¿Olvidaste tu contraseña?</span>
+      <div id="authStatus" class="status-box"></div>
+      <button class="btn-wasa btn-wasa-primary" onclick="doLogin()">Entrar</button>
+      
+      <div id="forgotBox" class="forgot-box">
+        <div id="forgotStep1">
+          <input id="forgotEmail" class="input-wasa" placeholder="Tu email">
+          <div id="forgotStatus" class="status-box"></div>
+          <button id="btnForgotSend" class="btn-wasa btn-wasa-secondary" onclick="requestPasswordReset()">Enviar código</button>
+          <button class="btn-wasa btn-wasa-secondary" style="margin-top:8px" onclick="closeForgot()">Cancelar</button>
+        </div>
+        <div id="forgotStep2" style="display:none">
+          <div style="font-size:11px;color:#94a3b8;margin-bottom:8px">Te enviamos código de 6 dígitos (revisá spam)</div>
+          <input id="forgotCode" class="input-wasa" placeholder="Código de 6 dígitos" maxlength="6">
+          <input id="forgotNewPass" class="input-wasa" type="password" placeholder="Nueva contraseña (min 6)">
+          <button id="btnForgotVerify" class="btn-wasa btn-wasa-primary" onclick="verifyPasswordReset()">Cambiar contraseña</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- REGISTER TAB -->
+    <div id="registerForm" style="display:none">
+      <input id="authEmailReg" class="input-wasa" placeholder="Email">
+      <input id="authPassReg" class="input-wasa" type="password" placeholder="Contraseña (min 6)">
+      <input id="authNickReg" class="input-wasa" placeholder="Apodo (opcional)">
+      <div id="authStatusReg" class="status-box"></div>
+      <button class="btn-wasa btn-wasa-primary" onclick="doRegister()">Crear cuenta</button>
+    </div>
   </div>
 </div>
 
