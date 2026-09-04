@@ -1,352 +1,97 @@
 export function init(container, args){
   const getCoins = args.getCoins||(()=>parseFloat(localStorage.getItem('wasa_coins')||'0'));
-  const setCoins = args.setCoins||((n)=>localStorage.setItem('wasa_coins',n));
-  container.innerHTML = `
-    <style>
-      .bt{width:100%;height:100%;position:relative;background:#020617;overflow:hidden;font-family:Inter,system-ui,sans-serif}
-      .bt canvas{width:100%;height:100%;display:block}
-      .bt-ui{position:absolute;inset:0;pointer-events:none}
-      .bt-ui button{pointer-events:auto}
-    </style>
-    <div class="bt"><canvas id="c"></canvas><div id="ui" class="bt-ui"></div></div>
-  `;
-  const wrap=container.querySelector('.bt');
-  const canvas=wrap.querySelector('#c');
-  const ctx=canvas.getContext('2d');
-  const ui=wrap.querySelector('#ui');
-  let W=wrap.clientWidth,H=wrap.clientHeight;
-  function resize(){W=wrap.clientWidth;H=wrap.clientHeight;const dpr=devicePixelRatio||1;canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);}
-  resize(); const ro=new ResizeObserver(resize); ro.observe(wrap);
-  let ups=JSON.parse(localStorage.getItem('wasa_upgrades_bananatron')||'{"v":{"main":0,"sub":0}}');
-  if(!ups.v) ups={v:{main:0,sub:0}};
-  let maxRound=parseInt(localStorage.getItem('wasa_bananatron_max')||'1');
-  let coins=getCoins();
-  const COLS=64, ROWS=44;
-  let cellW, cellH, offsetX, offsetY;
-  function calcMetrics(){
-    const border=12;
-    const availW=W-border*2, availH=H*0.82-border*2;
-    cellW=Math.floor(availW/COLS); cellH=Math.floor(availH/ROWS);
-    const cs=Math.min(cellW,cellH); cellW=cs; cellH=cs;
-    offsetX=Math.floor((W - COLS*cs)/2);
-    offsetY=Math.floor((H*0.82 - ROWS*cs)/2)+border;
-  }
-  calcMetrics();
-  let state='menu';
-  let round=1, greenWins=0, redWins=0;
-  let grid, p1, p2, tick=0, tempCoins=0, lastElapsed=0, lastMult=1, lastBase=0;
-  let _rewardPending=null;
-  let roundStart=0;
+  const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javimsites.workers.dev/';
+  function getDeviceId(){ if(window.getDeviceId) return window.getDeviceId(); let id=localStorage.getItem('wasa_device_id'); if(!id){ id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id; }
+  container.innerHTML = `<style>.bt{width:100%;height:100%;position:relative;background:#020617;overflow:hidden;font-family:Inter,system-ui,sans-serif}.bt canvas{width:100%;height:100%;display:block}.bt-ui{position:absolute;inset:0;pointer-events:none}.bt-ui button{pointer-events:auto}</style><div class="bt"><canvas id="c"></canvas><div id="ui" class="bt-ui"></div></div>`;
+  const wrap=container.querySelector('.bt'); const canvas=wrap.querySelector('#c'); const ctx=canvas.getContext('2d'); const ui=wrap.querySelector('#ui');
+  let W=wrap.clientWidth,H=wrap.clientHeight; function resize(){W=wrap.clientWidth;H=wrap.clientHeight;const dpr=devicePixelRatio||1;canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);} resize(); const ro=new ResizeObserver(resize); ro.observe(wrap);
+  let ups=JSON.parse(localStorage.getItem('wasa_upgrades_bananatron')||'{"v":{"main":0,"sub":0}}'); if(!ups.v) ups={v:{main:0,sub:0}};
+  let maxRound=parseInt(localStorage.getItem('wasa_bananatron_max')||'1'); let coins=getCoins();
+  const COLS=64, ROWS=44; let cellW,cellH,offsetX,offsetY;
+  function calcMetrics(){ const border=12; const availW=W-border*2, availH=H*0.82-border*2; cellW=Math.floor(availW/COLS); cellH=Math.floor(availH/ROWS); const cs=Math.min(cellW,cellH); cellW=cs; cellH=cs; offsetX=Math.floor((W - COLS*cs)/2); offsetY=Math.floor((H*0.82 - ROWS*cs)/2)+border; } calcMetrics();
+  let state='menu'; let round=1; let grid,p1,p2,tick=0,tempCoins=0,lastElapsed=0,lastMult=1,lastBase=0; let _rewardPending=null; let roundStart=0; let currentSessionId=null;
   const DIRS=[{x:0,y:-1},{x:1,y:0},{x:0,y:1},{x:-1,y:0}];
-  function getTotalLevel(){ return ups.v.main*5 + ups.v.sub; }
-  function getMaxLevel(){ return 100; }
+  function getTotalLevel(){ return ups.v.main*5+ups.v.sub; }
   function saveUps(){localStorage.setItem('wasa_upgrades_bananatron',JSON.stringify(ups));}
   function saveMax(){if(round>maxRound){maxRound=round;localStorage.setItem('wasa_bananatron_max',maxRound);}}
-  function getUpgradeCost(main, sub){ const total = main*5+sub; return 0.02 + total*0.008 + Math.pow(total,1.15)*0.0008; }
-  function getBaseWASA(lvl){
-    const tier=Math.floor((lvl-1)/10);
-    return 0.005 + tier*0.0025;
-  }
-  function getTimeMult(elapsed){
-    if(elapsed<10) return 3;
-    if(elapsed<20) return 2;
-    return 1;
-  }
-  function fmtWASA(n){ return (Math.round(n*1000000)/1000000).toFixed(6).replace(/0+$/,'').replace(/\.$/,''); }
-  function getRivalInterval(lvl){ return Math.max(22, 135 - lvl*3.2 - Math.pow(lvl,0.65)*4); }
-  function getPlayerInterval(){ const total=getTotalLevel(); return Math.max(18, 115 - total*0.68 - ups.v.main*0.8); }
+  function getUpgradeCost(main,sub){ const total=main*5+sub; return 0.02+total*0.008+Math.pow(total,1.15)*0.0008; }
+  function getBaseWASA(lvl){ const tier=Math.floor((lvl-1)/10); return 0.005+tier*0.0025; }
+  function getTimeMult(e){ if(e<10) return 3; if(e<20) return 2; return 1; }
+  function fmtWASA(n){ const v=parseFloat(n)||0; if(v===0) return '0'; return (Math.round(v*1000000)/1000000).toFixed(6).replace(/0+$/,'').replace(/\.$/,''); }
+  function getPlayerInterval(){ const total=getTotalLevel(); return Math.max(18,115-total*0.68-ups.v.main*0.8); }
   function newGrid(){ const g=[]; for(let y=0;y<ROWS;y++){ g[y]=[]; for(let x=0;x<COLS;x++) g[y][x]=0; } return g; }
-  function resetRound(r){
-    round=r; grid=newGrid();
-    p1={x:Math.floor(COLS*0.18), y:Math.floor(ROWS*0.5), dir:1, trail:[], alive:true};
-    p2={x:Math.floor(COLS*0.82), y:Math.floor(ROWS*0.5), dir:3, trail:[], alive:true};
-    grid[p1.y][p1.x]=1; grid[p2.y][p2.x]=2;
-    p1.trail.push({x:p1.x,y:p1.y}); p2.trail.push({x:p2.x,y:p2.y});
-    tick=0; tempCoins=0; roundStart=performance.now(); adClaimedThisRound=false;
+  async function startSession(lvl){
+    try{
+      const email=localStorage.getItem('wasa_email'); const wallet=localStorage.getItem('wasa_wallet'); const device_id=getDeviceId();
+      const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'start_game_session', email, wallet, device_id, game_slug:'banatron', level:lvl})});
+      const j=await r.json(); if(j.ok){ currentSessionId=j.session_id; console.log('[BANATRON] session',j.session_id); return j.session_id; }
+    }catch(e){}
+    return null;
   }
+  async function claimSession(isDouble,adWatched){
+    if(!currentSessionId) return {ok:false};
+    try{
+      const email=localStorage.getItem('wasa_email'); const wallet=localStorage.getItem('wasa_wallet'); const device_id=getDeviceId();
+      const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward', session_id:currentSessionId, email, wallet, device_id, game_slug:'banatron', level:round, ad_watched:adWatched, double_reward:isDouble})});
+      const j=await r.json();
+      if(j.ok){
+        const bal=j.wasa_balance ?? j.guest_balance ?? 0;
+        if(j.is_guest){ localStorage.setItem('wasa_coins_guest',bal); localStorage.setItem('wasa_coins','0'); }
+        else { localStorage.setItem('wasa_coins',bal); }
+        coins=getCoins(); if(typeof window.setCoinsUI==='function') window.setCoinsUI(bal);
+        currentSessionId=null; return j;
+      } else { alert('Error: '+j.error); return {ok:false}; }
+    }catch(e){ return {ok:false}; }
+  }
+  function resetRound(r){ round=r; grid=newGrid(); p1={x:Math.floor(COLS*0.18), y:Math.floor(ROWS*0.5), dir:1, trail:[], alive:true}; p2={x:Math.floor(COLS*0.82), y:Math.floor(ROWS*0.5), dir:3, trail:[], alive:true}; grid[p1.y][p1.x]=1; grid[p2.y][p2.x]=2; p1.trail.push({x:p1.x,y:p1.y}); p2.trail.push({x:p2.x,y:p2.y}); tick=0; tempCoins=0; roundStart=performance.now(); adClaimedThisRound=false; startSession(r); }
   function canMove(x,y){ if(x<0||x>=COLS||y<0||y>=ROWS) return false; return grid[y][x]===0; }
-  function floodFull(sx,sy){
-    if(!canMove(sx,sy)) return {count:0};
-    const visited=new Set();
-    const q=[[sx,sy]];
-    visited.add(sx+','+sy);
-    let head=0;
-    while(head<q.length){
-      const [x,y]=q[head++];
-      for(let d=0;d<4;d++){
-        const nx=x+DIRS[d].x, ny=y+DIRS[d].y;
-        const key=nx+','+ny;
-        if(nx<0||nx>=COLS||ny<0||ny>=ROWS) continue;
-        if(visited.has(key)) continue;
-        if(grid[ny][nx]!==0) continue;
-        visited.add(key);
-        q.push([nx,ny]);
-      }
-    }
-    return {count:visited.size};
-  }
-  function voronoiAfterMove(aiNx, aiNy, p1x, p1y){
-    const aiVisited=new Set();
-    const p1Visited=new Set();
-    const aiQ=[[aiNx,aiNy]];
-    const p1Q=[[p1x,p1y]];
-    aiVisited.add(aiNx+','+aiNy);
-    p1Visited.add(p1x+','+p1y);
-    let aiHead=0, p1Head=0;
-    while(aiHead<aiQ.length || p1Head<p1Q.length){
-      const aiLevelSize=aiQ.length-aiHead;
-      for(let i=0;i<aiLevelSize;i++){
-        const [x,y]=aiQ[aiHead++];
-        for(let d=0;d<4;d++){
-          const nx=x+DIRS[d].x, ny=y+DIRS[d].y;
-          const key=nx+','+ny;
-          if(nx<0||nx>=COLS||ny<0||ny>=ROWS) continue;
-          if(aiVisited.has(key)||p1Visited.has(key)) continue;
-          if(grid[ny][nx]!==0) continue;
-          if(nx===p1x && ny===p1y) continue;
-          aiVisited.add(key);
-          aiQ.push([nx,ny]);
-        }
-      }
-      const p1LevelSize=p1Q.length-p1Head;
-      for(let i=0;i<p1LevelSize;i++){
-        const [x,y]=p1Q[p1Head++];
-        for(let d=0;d<4;d++){
-          const nx=x+DIRS[d].x, ny=y+DIRS[d].y;
-          const key=nx+','+ny;
-          if(nx<0||nx>=COLS||ny<0||ny>=ROWS) continue;
-          if(aiVisited.has(key)||p1Visited.has(key)) continue;
-          if(grid[ny][nx]!==0) continue;
-          if(nx===aiNx && ny===aiNy) continue;
-          p1Visited.add(key);
-          p1Q.push([nx,ny]);
-        }
-      }
-      if(aiQ.length>1000 || p1Q.length>1000) break;
-    }
-    return {ai: aiVisited.size, p1: p1Visited.size};
-  }
-  function aiChoose(){
-    const curDir=p2.dir;
-    const candidates=[];
-    const order=[0,-1,1];
-    for(let o of order){
-      let nd=(curDir+o+4)%4;
-      const nx=p2.x+DIRS[nd].x, ny=p2.y+DIRS[nd].y;
-      if(!canMove(nx,ny)) continue;
-      const myFlood = floodFull(nx,ny);
-      const p1Flood = floodFull(p1.x,p1.y);
-      const vor = voronoiAfterMove(nx,ny,p1.x,p1.y);
-      let exits=0;
-      for(let d=0;d<4;d++){
-        if(d===(nd+2)%4) continue;
-        const ex=nx+DIRS[d].x, ey=ny+DIRS[d].y;
-        if(canMove(ex,ey)) exits++;
-      }
-      let score=0;
-      if(myFlood.count===0) score -= 10000;
-      else if(myFlood.count<5) score -= 5000;
-      else if(myFlood.count<12) score -= 400;
-      else score += myFlood.count*2.5;
-      score += (vor.ai - vor.p1*1.8)*4;
-      if(p1Flood.count<8) score += 600;
-      if(p1Flood.count<15) score += 300;
-      if(p1Flood.count<25) score += 100;
-      if(vor.p1<8) score += 1000;
-      if(vor.p1<15) score += 500;
-      if(vor.p1<25) score += 200;
-      const curDist = Math.abs(p2.x-p1.x)+Math.abs(p2.y-p1.y);
-      const newDist = Math.abs(nx-p1.x)+Math.abs(ny-p1.y);
-      if(curDist<20 && newDist<curDist) score+= 60;
-      if(exits===0) score -= 2000;
-      if(exits===1 && myFlood.count<30) score -= 300;
-      if(o===0) score+=4;
-      candidates.push({dir:nd, score});
-    }
-    if(candidates.length===0){
-      const back=(curDir+2)%4;
-      const bx=p2.x+DIRS[back].x, by=p2.y+DIRS[back].y;
-      if(canMove(bx,by)) return back;
-      return curDir;
-    }
-    candidates.sort((a,b)=>b.score-a.score);
-    return candidates[0].dir;
-  }
-  function step(){
-    if(p1.alive){
-      const nx=p1.x+DIRS[p1.dir].x, ny=p1.y+DIRS[p1.dir].y;
-      if(!canMove(nx,ny)) p1.alive=false;
-      else{ p1.x=nx; p1.y=ny; grid[ny][nx]=1; p1.trail.push({x:nx,y:ny}); }
-    }
-    if(p2.alive){
-      p2.dir=aiChoose();
-      const nx=p2.x+DIRS[p2.dir].x, ny=p2.y+DIRS[p2.dir].y;
-      if(!canMove(nx,ny)) p2.alive=false;
-      else{ p2.x=nx; p2.y=ny; grid[ny][nx]=2; p2.trail.push({x:nx,y:ny}); }
-    }
-    if(p1.alive && p2.alive && p1.x===p2.x && p1.y===p2.y){ p1.alive=false; p2.alive=false; }
-    tick++;
-  }
+  function floodFull(sx,sy){ if(!canMove(sx,sy)) return {count:0}; const visited=new Set(); const q=[[sx,sy]]; visited.add(sx+','+sy); let head=0; while(head<q.length){ const [x,y]=q[head++]; for(let d=0;d<4;d++){ const nx=x+DIRS[d].x, ny=y+DIRS[d].y; const key=nx+','+ny; if(nx<0||nx>=COLS||ny<0||ny>=ROWS) continue; if(visited.has(key)) continue; if(grid[ny][nx]!==0) continue; visited.add(key); q.push([nx,ny]); } } return {count:visited.size}; }
+  function voronoiAfterMove(aiNx,aiNy,p1x,p1y){ const aiVisited=new Set(); const p1Visited=new Set(); const aiQ=[[aiNx,aiNy]]; const p1Q=[[p1x,p1y]]; aiVisited.add(aiNx+','+aiNy); p1Visited.add(p1x+','+p1y); let aiHead=0,p1Head=0; while(aiHead<aiQ.length || p1Head<p1Q.length){ const aiLevelSize=aiQ.length-aiHead; for(let i=0;i<aiLevelSize;i++){ const [x,y]=aiQ[aiHead++]; for(let d=0;d<4;d++){ const nx=x+DIRS[d].x, ny=y+DIRS[d].y; const key=nx+','+ny; if(nx<0||nx>=COLS||ny<0||ny>=ROWS) continue; if(aiVisited.has(key)||p1Visited.has(key)) continue; if(grid[ny][nx]!==0) continue; if(nx===p1x && ny===p1y) continue; aiVisited.add(key); aiQ.push([nx,ny]); } } const p1LevelSize=p1Q.length-p1Head; for(let i=0;i<p1LevelSize;i++){ const [x,y]=p1Q[p1Head++]; for(let d=0;d<4;d++){ const nx=x+DIRS[d].x, ny=y+DIRS[d].y; const key=nx+','+ny; if(nx<0||nx>=COLS||ny<0||ny>=ROWS) continue; if(aiVisited.has(key)||p1Visited.has(key)) continue; if(grid[ny][nx]!==0) continue; if(nx===aiNx && ny===aiNy) continue; p1Visited.add(key); p1Q.push([nx,ny]); } } if(aiQ.length>1000 || p1Q.length>1000) break; } return {ai:aiVisited.size, p1:p1Visited.size}; }
+  function aiChoose(){ const curDir=p2.dir; const candidates=[]; const order=[0,-1,1]; for(let o of order){ let nd=(curDir+o+4)%4; const nx=p2.x+DIRS[nd].x, ny=p2.y+DIRS[nd].y; if(!canMove(nx,ny)) continue; const myFlood=floodFull(nx,ny); const p1Flood=floodFull(p1.x,p1.y); const vor=voronoiAfterMove(nx,ny,p1.x,p1.y); let exits=0; for(let d=0;d<4;d++){ if(d===(nd+2)%4) continue; const ex=nx+DIRS[d].x, ey=ny+DIRS[d].y; if(canMove(ex,ey)) exits++; } let score=0; if(myFlood.count===0) score-=10000; else if(myFlood.count<5) score-=5000; else if(myFlood.count<12) score-=400; else score+=myFlood.count*2.5; score+=(vor.ai-vor.p1*1.8)*4; if(p1Flood.count<8) score+=600; if(p1Flood.count<15) score+=300; if(p1Flood.count<25) score+=100; if(vor.p1<8) score+=1000; if(vor.p1<15) score+=500; if(vor.p1<25) score+=200; const curDist=Math.abs(p2.x-p1.x)+Math.abs(p2.y-p1.y); const newDist=Math.abs(nx-p1.x)+Math.abs(ny-p1.y); if(curDist<20 && newDist<curDist) score+=60; if(exits===0) score-=2000; if(exits===1 && myFlood.count<30) score-=300; if(o===0) score+=4; candidates.push({dir:nd,score}); } if(candidates.length===0){ const back=(curDir+2)%4; const bx=p2.x+DIRS[back].x, by=p2.y+DIRS[back].y; if(canMove(bx,by)) return back; return curDir; } candidates.sort((a,b)=>b.score-a.score); return candidates[0].dir; }
+  function step(){ if(p1.alive){ const nx=p1.x+DIRS[p1.dir].x, ny=p1.y+DIRS[p1.dir].y; if(!canMove(nx,ny)) p1.alive=false; else{ p1.x=nx; p1.y=ny; grid[ny][nx]=1; p1.trail.push({x:nx,y:ny}); } } if(p2.alive){ p2.dir=aiChoose(); const nx=p2.x+DIRS[p2.dir].x, ny=p2.y+DIRS[p2.dir].y; if(!canMove(nx,ny)) p2.alive=false; else{ p2.x=nx; p2.y=ny; grid[ny][nx]=2; p2.trail.push({x:nx,y:ny}); } } if(p1.alive && p2.alive && p1.x===p2.x && p1.y===p2.y){ p1.alive=false; p2.alive=false; } tick++; }
   let adClaimedThisRound=false;
-  function openAd(type){ if(window.vrAd!==0) return; if(adClaimedThisRound) return; _rewardPending=type; window.vrAdType=type; window.vrAd=1; state='paused_ad'; renderUI(); }
-  function claimReward(){
-    const t=_rewardPending; _rewardPending=null; window.vrAd=0; window.vrAdType=null; window._gm_shown=false;
-    if(t==='double' && !adClaimedThisRound){ 
-      adClaimedThisRound=true;
-      const dbl=tempCoins*2;
-      coins+=dbl; setCoins(coins);
-      // Avanzar directo a siguiente round, no volver a roundover para evitar loop infinito
-      resetRound(round+1);
-      state='playing';
-      renderUI();
-    }
-  }
+  function openAd(type){ if(window.vrAd!==0) return; if(adClaimedThisRound && type==='double') return; _rewardPending=type; window.vrAdType=type; window.vrAd=1; state='paused_ad'; renderUI(); }
+  async function claimReward(){ const t=_rewardPending; _rewardPending=null; window.vrAd=0; window.vrAdType=null; window._gm_shown=false; if(t==='double' && !adClaimedThisRound){ adClaimedThisRound=true; const res=await claimSession(true,true); if(res.ok){ resetRound(round+1); state='playing'; renderUI(); } } }
   function renderUpgrades(){
-    const total=getTotalLevel(); const pct=Math.round(total/100*100);
-    const m=ups.v.main, s=ups.v.sub; const cost=getUpgradeCost(m,s);
-    let nM=m, nS=s+1; if(nS>=5){ nM++; nS=0; }
-    const curMax=getPlayerInterval();
-    const canBuy=coins>=cost && total<100;
-    const baseDisplay=getBaseWASA(round);
-    ui.innerHTML=`
-      <div style="position:absolute;inset:0;background:linear-gradient(180deg,#020617,#0f172a);padding:12px;overflow:auto">
-        <div style="display:flex;justify-content:space-between"><div style="color:white;font-weight:900">MEJORAS • IA IMPOSIBLE</div><div style="color:#22c55e;font-size:11px">${fmtWASA(coins)} $WASA</div></div>
-        <div style="margin-top:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(239,68,68,0.35);border-radius:16px;padding:14px">
-          <div style="display:flex;justify-content:space-between"><div style="color:white;font-weight:800">⚡ LINEA VERDE</div><div style="color:#22c55e;font-weight:800">${total}/100 • ${pct}%</div></div>
-          <div style="margin-top:8px;height:10px;background:rgba(0,0,0,0.5);border-radius:999px;display:flex;gap:2px;padding:2px">
-            ${Array.from({length:20}).map((_,mi)=>{ const f=mi<m?1:mi===m?s/5:0; return `<div style="flex:1;background:rgba(0,0,0,0.4);border-radius:999px;overflow:hidden"><div style="height:100%;width:${f*100}%;background:linear-gradient(90deg,#22c55e,#16a34a)"></div></div>`; }).join('')}
-          </div>
-          <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px">
-            <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:8px"><div style="color:#94a3b8">Tu tick</div><div style="color:white;font-weight:800">${curMax.toFixed(0)}ms</div></div>
-            <div style="background:rgba(239,68,68,0.12);border-radius:10px;padding:8px"><div style="color:#fca5a5">R${round} Base</div><div style="color:white;font-weight:800">${baseDisplay.toFixed(6)} $WASA</div></div>
-          </div>
-          <button id="buy" style="margin-top:12px;width:100%;background:${canBuy?'linear-gradient(135deg,#22c55e,#16a34a)':'#1e293b'};color:${canBuy?'black':'#475569'};padding:12px;border-radius:999px;font-weight:900">${total>=100?'MAX 100/100':`MEJORAR ${m}-${s} → ${nM}-${nS} • ${fmtWASA(cost)} $WASA`}</button>
-          <div style="margin-top:6px;font-size:9px;color:#86efac;text-align:center">Economia: R1=0.005 / cada 10 niveles +0.0025 • Tiempo &lt;10s x3 / &lt;20s x2</div>
-        </div>
-        <div style="margin-top:12px;display:flex;gap:8px"><button id="back" style="flex:1;background:white;color:black;padding:10px;border-radius:999px;font-weight:800">VOLVER</button><button id="play" style="flex:1;background:#ef4444;color:white;padding:10px;border-radius:999px;font-weight:800">JUGAR VS IMPOSIBLE</button></div>
-      </div>
-    `;
-    ui.querySelector('#buy')?.addEventListener('click',()=>{ if(total>=100||coins<cost) return; coins-=cost; setCoins(coins); ups.v.sub++; if(ups.v.sub>=5){ ups.v.sub=0; ups.v.main++; } saveUps(); renderUpgrades(); });
+    const total=getTotalLevel(); const pct=Math.round(total/100*100); const m=ups.v.main,s=ups.v.sub; const cost=getUpgradeCost(m,s); let nM=m,nS=s+1; if(nS>=5){ nM++; nS=0; } const curMax=getPlayerInterval(); const canBuy=coins>=cost && total<100; const baseDisplay=getBaseWASA(round);
+    ui.innerHTML=`<div style="position:absolute;inset:0;background:linear-gradient(180deg,#020617,#0f172a);padding:12px;overflow:auto"><div style="display:flex;justify-content:space-between"><div style="color:white;font-weight:900">MEJORAS • SECURE</div><div style="color:#22c55e;font-size:11px">${fmtWASA(coins)} $WASA</div></div><div style="margin-top:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(239,68,68,0.35);border-radius:16px;padding:14px"><div style="display:flex;justify-content:space-between"><div style="color:white;font-weight:800">⚡ LINEA VERDE</div><div style="color:#22c55e;font-weight:800">${total}/100 • ${pct}%</div></div><div style="margin-top:8px;height:10px;background:rgba(0,0,0,0.5);border-radius:999px;display:flex;gap:2px;padding:2px">${Array.from({length:20}).map((_,mi)=>{ const f=mi<m?1:mi===m?s/5:0; return `<div style="flex:1;background:rgba(0,0,0,0.4);border-radius:999px;overflow:hidden"><div style="height:100%;width:${f*100}%;background:linear-gradient(90deg,#22c55e,#16a34a)"></div></div>`; }).join('')}</div><div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px"><div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:8px"><div style="color:#94a3b8">Tu tick</div><div style="color:white;font-weight:800">${curMax.toFixed(0)}ms</div></div><div style="background:rgba(239,68,68,0.12);border-radius:10px;padding:8px"><div style="color:#fca5a5">R${round} Base</div><div style="color:white;font-weight:800">${baseDisplay.toFixed(6)} $WASA</div></div></div><button id="buy" style="margin-top:12px;width:100%;background:${canBuy?'linear-gradient(135deg,#22c55e,#16a34a)':'#1e293b'};color:${canBuy?'black':'#475569'};padding:12px;border-radius:999px;font-weight:900">${total>=100?'MAX 100/100':`MEJORAR ${m}-${s} → ${nM}-${nS} • ${fmtWASA(cost)} $WASA`}</button><div style="margin-top:6px;font-size:9px;color:#86efac;text-align:center">Server verified • R1=0.005 / cada 10 +0.0025 • &lt;10s x3</div></div><div style="margin-top:12px;display:flex;gap:8px"><button id="back" style="flex:1;background:white;color:black;padding:10px;border-radius:999px;font-weight:800">VOLVER</button><button id="play" style="flex:1;background:#ef4444;color:white;padding:10px;border-radius:999px;font-weight:800">JUGAR</button></div></div>`;
+    ui.querySelector('#buy')?.addEventListener('click', async()=>{ if(total>=100||coins<cost) return; const email=localStorage.getItem('wasa_email'); const wallet=localStorage.getItem('wasa_wallet'); const device_id=getDeviceId(); try{ const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'add_coins', email, wallet, device_id, amount:-cost})}); const j=await r.json(); if(j.ok){ if(j.is_guest || (!email && !wallet)){ localStorage.setItem('wasa_coins_guest', j.guest_balance ?? j.wasa_balance); } else { localStorage.setItem('wasa_coins', j.wasa_balance); } coins=getCoins(); if(typeof window.setCoinsUI==='function') window.setCoinsUI(j.wasa_balance ?? j.guest_balance); } }catch(e){} ups.v.sub++; if(ups.v.sub>=5){ ups.v.sub=0; ups.v.main++; } saveUps(); renderUpgrades(); });
     ui.querySelector('#back').onclick=()=>{ state='menu'; renderUI(); };
     ui.querySelector('#play').onclick=()=>{ resetRound(round); state='playing'; renderUI(); };
   }
   function renderUI(){
     if(state==='menu'){
-      const total=getTotalLevel();
-      const base=getBaseWASA(round);
-      ui.innerHTML=`
-        <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%, rgba(239,68,68,0.18), transparent 60%), linear-gradient(180deg,#020617,#0a0e1e);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;text-align:center">
-          <div style="font-size:10px;letter-spacing:0.3em;color:#ef4444">IA IMPOSIBLE • ${fmtWASA(base)} $WASA BASE</div>
-          <div style="margin-top:6px;font-size:38px;font-weight:900;color:white;line-height:0.9">BANANA<span style="color:#22c55e">TRON</span></div>
-          <div style="margin-top:6px;color:#64748b;font-size:10px">R${round} • VEL ${total}/100 • ${fmtWASA(coins)} $WASA</div>
-          <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;width:100%;max-width:280px">
-            <button id="play" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:white;font-weight:900;padding:12px;border-radius:999px">JUGAR R${round} • ${fmtWASA(base)} $WASA</button>
-            <div style="display:flex;gap:8px"><button id="upg" style="flex:1;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.25);color:#22c55e;padding:10px;border-radius:999px;font-weight:800">⚡ ${total}/100</button><button id="reset" style="flex:1;background:rgba(255,255,255,0.06);color:#94a3b8;padding:10px;border-radius:999px">Reset</button></div>
-          </div>
-          <div style="margin-top:10px;font-size:9px;color:#86efac">&lt;10s x3 / &lt;20s x2 / &gt;20s x1 • Anuncio x2</div>
-        </div>
-      `;
+      const total=getTotalLevel(); const base=getBaseWASA(round);
+      ui.innerHTML=`<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%, rgba(239,68,68,0.18), transparent 60%), linear-gradient(180deg,#020617,#0a0e1e);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;text-align:center"><div style="font-size:10px;letter-spacing:0.3em;color:#22c55e">SECURE • ${fmtWASA(base)} $WASA BASE • ${currentSessionId?'sess '+currentSessionId.slice(0,6):'no sess'}</div><div style="margin-top:6px;font-size:38px;font-weight:900;color:white;line-height:0.9">BANANA<span style="color:#22c55e">TRON</span></div><div style="margin-top:6px;color:#64748b;font-size:10px">R${round} • VEL ${total}/100 • ${fmtWASA(coins)} $WASA</div><div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;width:100%;max-width:280px"><button id="play" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:white;font-weight:900;padding:12px;border-radius:999px">JUGAR R${round}</button><div style="display:flex;gap:8px"><button id="upg" style="flex:1;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.25);color:#22c55e;padding:10px;border-radius:999px;font-weight:800">⚡ ${total}/100</button><button id="reset" style="flex:1;background:rgba(255,255,255,0.06);color:#94a3b8;padding:10px;border-radius:999px">Reset</button></div></div><div style="margin-top:10px;font-size:9px;color:#86efac">Server calcula: base x tiempo • guest cap 5 WASA</div></div>`;
       ui.querySelector('#play').onclick=()=>{ resetRound(round); state='playing'; renderUI(); };
       ui.querySelector('#upg').onclick=()=>{ state='upgrades'; renderUpgrades(); };
-      ui.querySelector('#reset').onclick=()=>{ round=1; greenWins=0; redWins=0; renderUI(); };
+      ui.querySelector('#reset').onclick=()=>{ round=1; renderUI(); };
     }else if(state==='upgrades'){ renderUpgrades(); }
     else if(state==='playing'){
-      const elapsed=(performance.now()-roundStart)/1000;
-      const mult=elapsed<10?3:elapsed<20?2:1;
-      ui.innerHTML=`
-        <div style="position:absolute;top:6px;left:8px;right:8px;display:flex;justify-content:space-between;font-size:10px;color:white;font-family:monospace">
-          <div style="color:#f87171">R${round} • ${elapsed.toFixed(1)}s • x${mult}</div>
-          <div style="color:#22c55e">${fmtWASA(coins)} $WASA</div>
-        </div>
-      `;
+      const elapsed=(performance.now()-roundStart)/1000; const mult=elapsed<10?3:elapsed<20?2:1;
+      ui.innerHTML=`<div style="position:absolute;top:6px;left:8px;right:8px;display:flex;justify-content:space-between;font-size:10px;color:white;font-family:monospace"><div style="color:#f87171">R${round} • ${elapsed.toFixed(1)}s • x${mult} • SECURE</div><div style="color:#22c55e">${fmtWASA(coins)} $WASA</div></div>`;
     }else if(state==='roundover'){
       const winGreen=p1.alive && !p2.alive;
-      if(winGreen){
-        const elapsed=(performance.now()-roundStart)/1000;
-        const base=getBaseWASA(round);
-        const mult=getTimeMult(elapsed);
-        lastElapsed=elapsed; lastMult=mult; lastBase=base;
-        tempCoins=base*mult;
-        greenWins++;
-      } else {
-        redWins++;
-        tempCoins=0;
-        lastElapsed=0; lastMult=1; lastBase=0;
-      }
-      saveMax();
-      ui.innerHTML=`
-        <div style="position:absolute;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:10px">
-          <div style="background:#0f172a;border:2px solid ${winGreen?'#22c55e':'#ef4444'};border-radius:14px;padding:14px;width:100%;max-width:340px;text-align:center">
-            <div style="font-size:11px;letter-spacing:0.2em;color:${winGreen?'#22c55e':'#ef4444'}">${winGreen?'LE GANASTE A LA IA IMPOSIBLE!':'LA IA TE ENCERRO'}</div>
-            <div style="color:white;font-weight:900;margin-top:6px">R${round} ${winGreen?'GANASTE':'PERDISTE'}</div>
-            ${winGreen?`<div style="margin-top:8px;background:rgba(0,0,0,0.4);border-radius:10px;padding:8px;font-size:10px;color:#cbd5e1">
-              <div style="display:flex;justify-content:space-between"><span>Base R${round}</span><span>${lastBase.toFixed(6)} $WASA</span></div>
-              <div style="display:flex;justify-content:space-between"><span>Tiempo ${lastElapsed.toFixed(1)}s</span><span>x${lastMult}</span></div>
-              <div style="display:flex;justify-content:space-between;font-weight:800;color:#22c55e;margin-top:4px"><span>Total</span><span>${fmtWASA(tempCoins)} $WASA</span></div>
-            </div>`: `<div style="margin-top:8px;font-size:10px;color:#ef4444">0 $WASA • Sin recompensa por perder</div>`}
-            <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
-              ${winGreen && !adClaimedThisRound?`<button id="dbl" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:black;font-weight:900;padding:10px;border-radius:999px">📺 x2 (${fmtWASA(tempCoins*2)} $WASA)</button>`:''}
-              <button id="next" style="background:white;color:black;font-weight:800;padding:10px;border-radius:999px">${winGreen?'SIGUIENTE':'REINTENTAR'} R${winGreen?round+1:round}</button>
-            </div>
-          </div>
-        </div>
-      `;
+      if(winGreen){ const elapsed=(performance.now()-roundStart)/1000; const base=getBaseWASA(round); const mult=getTimeMult(elapsed); lastElapsed=elapsed; lastMult=mult; lastBase=base; tempCoins=base*mult; } else { tempCoins=0; lastElapsed=0; lastMult=1; lastBase=0; } saveMax();
+      ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:10px"><div style="background:#0f172a;border:2px solid ${winGreen?'#22c55e':'#ef4444'};border-radius:14px;padding:14px;width:100%;max-width:340px;text-align:center"><div style="font-size:11px;letter-spacing:0.2em;color:${winGreen?'#22c55e':'#ef4444'}">${winGreen?'GANASTE!':'PERDISTE'}</div><div style="color:white;font-weight:900;margin-top:6px">R${round} ${winGreen?'GANASTE':'PERDISTE'}</div>${winGreen?`<div style="margin-top:8px;background:rgba(0,0,0,0.4);border-radius:10px;padding:8px;font-size:10px;color:#cbd5e1"><div style="display:flex;justify-content:space-between"><span>Base</span><span>${lastBase.toFixed(6)}</span></div><div style="display:flex;justify-content:space-between"><span>Tiempo ${lastElapsed.toFixed(1)}s</span><span>x${lastMult}</span></div><div style="display:flex;justify-content:space-between;font-weight:800;color:#22c55e;margin-top:4px"><span>Server</span><span>${fmtWASA(tempCoins)}</span></div><div style="font-size:8px;color:#475569">${currentSessionId?currentSessionId.slice(0,8):'no sess'}</div></div>`:''}<div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">${winGreen && !adClaimedThisRound?`<button id="dbl" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:black;font-weight:900;padding:10px;border-radius:999px">📺 x2 server</button>`:''}<button id="next" style="background:white;color:black;font-weight:800;padding:10px;border-radius:999px">${winGreen?'COBRAR Y SIGUIENTE':'REINTENTAR'}</button></div></div></div>`;
       ui.querySelector('#dbl')?.addEventListener('click',()=>openAd('double'));
-      ui.querySelector('#next').onclick=()=>{ 
-        if(winGreen){ coins+=tempCoins; setCoins(coins); resetRound(round+1); } else { resetRound(round); }
-        state='playing'; renderUI(); 
-      };
-    }else if(state==='paused_ad'){ ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;color:white">Cargando...</div>`; }
-    else if(state==='reward_modal'){ 
-      ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:10px"><div style="background:#0f172a;border:1px solid #22c55e;border-radius:12px;padding:12px;width:100%;max-width:260px;text-align:center"><div style="color:#22c55e;font-weight:900">¡RECOMPENSA x2!</div><div style="color:white;font-size:12px;margin-top:4px">${fmtWASA(tempCoins)} $WASA</div><button id="claim" style="margin-top:8px;width:100%;background:#22c55e;color:black;font-weight:900;padding:10px;border-radius:999px">RECLAMAR</button></div></div>`; 
-      ui.querySelector('#claim').onclick=claimReward; 
-    }
+      ui.querySelector('#next').onclick=async()=>{ if(winGreen){ const btn=ui.querySelector('#next'); if(btn){ btn.textContent='⏳ Validando...'; btn.disabled=true; } const res=await claimSession(false,false); if(res.ok){ resetRound(round+1); state='playing'; renderUI(); } else { if(btn){ btn.textContent='REINTENTAR COBRO'; btn.disabled=false; } } } else { resetRound(round); state='playing'; renderUI(); } };
+    }else if(state==='paused_ad'){ ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;color:white">Cargando ad...</div>`; }
+    else if(state==='reward_modal'){ ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:10px"><div style="background:#0f172a;border:1px solid #22c55e;border-radius:12px;padding:12px;width:100%;max-width:260px;text-align:center"><div style="color:#22c55e;font-weight:900">¡RECOMPENSA x2 SERVER!</div><div style="color:white;font-size:12px;margin-top:4px">${fmtWASA(tempCoins)} → ${fmtWASA(tempCoins*2)} $WASA</div><button id="claim" style="margin-top:8px;width:100%;background:#22c55e;color:black;font-weight:900;padding:10px;border-radius:999px">RECLAMAR x2</button></div></div>`; ui.querySelector('#claim').onclick=claimReward; }
   }
-  addEventListener('keydown',e=>{
-    if(state!=='playing') return;
-    if((e.key==='ArrowUp'||e.key==='w') && p1.dir!==2) p1.dir=0;
-    if((e.key==='ArrowRight'||e.key==='d') && p1.dir!==3) p1.dir=1;
-    if((e.key==='ArrowDown'||e.key==='s') && p1.dir!==0) p1.dir=2;
-    if((e.key==='ArrowLeft'||e.key==='a') && p1.dir!==1) p1.dir=3;
-  });
-  let touchStart=null;
-  canvas.addEventListener('pointerdown',e=>{ const r=canvas.getBoundingClientRect(); touchStart={x:e.clientX-r.left,y:e.clientY-r.top}; });
-  canvas.addEventListener('pointerup',e=>{
-    if(!touchStart||state!=='playing') return;
-    const r=canvas.getBoundingClientRect(); const dx=(e.clientX-r.left)-touchStart.x, dy=(e.clientY-r.top)-touchStart.y;
-    if(Math.abs(dx)>Math.abs(dy)){ if(dx>20 && p1.dir!==3) p1.dir=1; else if(dx<-20 && p1.dir!==1) p1.dir=3; }
-    else{ if(dy>20 && p1.dir!==0) p1.dir=2; else if(dy<-20 && p1.dir!==2) p1.dir=0; }
-    touchStart=null;
-  });
+  addEventListener('keydown',e=>{ if(state!=='playing') return; if((e.key==='ArrowUp'||e.key==='w') && p1.dir!==2) p1.dir=0; if((e.key==='ArrowRight'||e.key==='d') && p1.dir!==3) p1.dir=1; if((e.key==='ArrowDown'||e.key==='s') && p1.dir!==0) p1.dir=2; if((e.key==='ArrowLeft'||e.key==='a') && p1.dir!==1) p1.dir=3; });
+  let touchStart=null; canvas.addEventListener('pointerdown',e=>{ const r=canvas.getBoundingClientRect(); touchStart={x:e.clientX-r.left,y:e.clientY-r.top}; }); canvas.addEventListener('pointerup',e=>{ if(!touchStart||state!=='playing') return; const r=canvas.getBoundingClientRect(); const dx=(e.clientX-r.left)-touchStart.x, dy=(e.clientY-r.top)-touchStart.y; if(Math.abs(dx)>Math.abs(dy)){ if(dx>20 && p1.dir!==3) p1.dir=1; else if(dx<-20 && p1.dir!==1) p1.dir=3; } else{ if(dy>20 && p1.dir!==0) p1.dir=2; else if(dy<-20 && p1.dir!==2) p1.dir=0; } touchStart=null; });
   let watcher=setInterval(()=>{ if(window.vrAd===4 && _rewardPending && state!=='reward_modal'){ state='reward_modal'; renderUI(); } },150);
-  let raf, acc=0, last=performance.now();
+  let raf,acc=0,last=performance.now();
   function loop(now){
     if(window.vrAd===1||window.vrAd===2||window.vrAd===3){ raf=requestAnimationFrame(loop); return; }
     const dt=Math.min((now-last)/1000,0.033); last=now; acc+=dt*1000;
-    if(state==='playing'){
-      if(acc >= getPlayerInterval()){
-        acc=0; step(); if(!p1.alive || !p2.alive){ state='roundover'; renderUI(); }
-      }
-    }
-    calcMetrics();
-    ctx.fillStyle='black'; ctx.fillRect(0,0,W,H);
-    ctx.strokeStyle='#1e40af'; ctx.lineWidth=3; ctx.strokeRect(offsetX-2, offsetY-2, COLS*cellW+4, ROWS*cellH+4);
-    for(let i=1;i<p1.trail.length;i++){
-      const a=p1.trail[i-1], b=p1.trail[i];
-      ctx.strokeStyle='#22c55e'; ctx.lineWidth=Math.max(2,cellW*0.5); ctx.setLineDash([cellW*0.9, cellW*0.5]);
-      ctx.beginPath(); ctx.moveTo(offsetX+a.x*cellW+cellW/2, offsetY+a.y*cellH+cellH/2); ctx.lineTo(offsetX+b.x*cellW+cellW/2, offsetY+b.y*cellH+cellH/2); ctx.stroke();
-    }
-    for(let i=1;i<p2.trail.length;i++){
-      const a=p2.trail[i-1], b=p2.trail[i];
-      ctx.strokeStyle='#ef4444'; ctx.lineWidth=Math.max(2,cellW*0.5); ctx.setLineDash([cellW*0.9, cellW*0.5]);
-      ctx.beginPath(); ctx.moveTo(offsetX+a.x*cellW+cellW/2, offsetY+a.y*cellH+cellH/2); ctx.lineTo(offsetX+b.x*cellW+cellW/2, offsetY+b.y*cellH+cellH/2); ctx.stroke();
-    }
-    ctx.setLineDash([]);
-    if(p1.trail.length){ const h=p1.trail[p1.trail.length-1]; ctx.fillStyle=p1.alive?'#86efac':'#4ade80'; ctx.fillRect(offsetX+h.x*cellW+1, offsetY+h.y*cellH+1, cellW-2, cellH-2); }
-    if(p2.trail.length){ const h=p2.trail[p2.trail.length-1]; ctx.fillStyle=p2.alive?'#fca5a5':'#f87171'; ctx.fillRect(offsetX+h.x*cellW+1, offsetY+h.y*cellH+1, cellW-2, cellH-2); }
-    raf=requestAnimationFrame(loop);
+    if(state==='playing'){ if(acc>=getPlayerInterval()){ acc=0; step(); if(!p1.alive || !p2.alive){ state='roundover'; renderUI(); } } }
+    calcMetrics(); ctx.fillStyle='black'; ctx.fillRect(0,0,W,H); ctx.strokeStyle='#1e40af'; ctx.lineWidth=3; ctx.strokeRect(offsetX-2,offsetY-2,COLS*cellW+4,ROWS*cellH+4);
+    for(let i=1;i<p1.trail.length;i++){ const a=p1.trail[i-1],b=p1.trail[i]; ctx.strokeStyle='#22c55e'; ctx.lineWidth=Math.max(2,cellW*0.5); ctx.setLineDash([cellW*0.9,cellW*0.5]); ctx.beginPath(); ctx.moveTo(offsetX+a.x*cellW+cellW/2,offsetY+a.y*cellH+cellH/2); ctx.lineTo(offsetX+b.x*cellW+cellW/2,offsetY+b.y*cellH+cellH/2); ctx.stroke(); }
+    for(let i=1;i<p2.trail.length;i++){ const a=p2.trail[i-1],b=p2.trail[i]; ctx.strokeStyle='#ef4444'; ctx.lineWidth=Math.max(2,cellW*0.5); ctx.setLineDash([cellW*0.9,cellW*0.5]); ctx.beginPath(); ctx.moveTo(offsetX+a.x*cellW+cellW/2,offsetY+a.y*cellH+cellH/2); ctx.lineTo(offsetX+b.x*cellW+cellW/2,offsetY+b.y*cellH+cellH/2); ctx.stroke(); }
+    ctx.setLineDash([]); if(p1.trail.length){ const h=p1.trail[p1.trail.length-1]; ctx.fillStyle=p1.alive?'#86efac':'#4ade80'; ctx.fillRect(offsetX+h.x*cellW+1,offsetY+h.y*cellH+1,cellW-2,cellH-2); } if(p2.trail.length){ const h=p2.trail[p2.trail.length-1]; ctx.fillStyle=p2.alive?'#fca5a5':'#f87171'; ctx.fillRect(offsetX+h.x*cellW+1,offsetY+h.y*cellH+1,cellW-2,cellH-2); } raf=requestAnimationFrame(loop);
   }
-  renderUI(); resetRound(maxRound); state='menu'; renderUI();
-  raf=requestAnimationFrame(loop);
+  renderUI(); resetRound(maxRound); state='menu'; renderUI(); raf=requestAnimationFrame(loop);
   container._cleanup=()=>{ cancelAnimationFrame(raf); clearInterval(watcher); ro.disconnect(); window.vrAd=0; };
 }
