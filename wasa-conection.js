@@ -1,4 +1,4 @@
-// wasa-conection.js v9.4 - FIX Loading + undefined + Cerrar Sesion invitado + Creando cuenta
+// wasa-conection.js v9.4 - FIX Loading + undefined + Cerrar Sesion invitado + Creando cuenta + menu invitado -> registro
 const WASA_CONFIG = {
   USDT_CONTRACT: '0x55d398326f99059fF775485246999027B3197955',
   RECEIVER: null,
@@ -43,9 +43,9 @@ function closeWasaBuy(){ document.getElementById('wasaBuyModal')?.classList.remo
 function openAuthEmail(tab){ if(tab) authTab=tab; closeWalletChooser(); closeUserMenu(); closeVerifyModal(); document.getElementById('authModal')?.classList.add('open'); switchAuthTab(authTab); }
 function closeAuthEmail(){ document.getElementById('authModal')?.classList.remove('open'); }
 function switchAuthTab(tab){ authTab=tab; document.getElementById('tabLogin')?.classList.toggle('active',tab==='login'); document.getElementById('tabRegister')?.classList.toggle('active',tab==='register'); const lf=document.getElementById('loginForm'); const rf=document.getElementById('registerForm'); if(lf) lf.style.display=tab==='login'?'block':'none'; if(rf) rf.style.display=tab==='register'?'block':'none'; const fb=document.getElementById('forgotBox'); if(fb) fb.classList.remove('open'); }
-function openUserMenu(){ document.getElementById('userDropdown')?.classList.add('open'); userMenuOpen=true; }
+function openUserMenu(){ if(!isLogged()){ openAuthEmail('register'); return; } document.getElementById('userDropdown')?.classList.add('open'); userMenuOpen=true; }
 function closeUserMenu(){ document.getElementById('userDropdown')?.classList.remove('open'); userMenuOpen=false; }
-function handleUserBtn(){ if(userMenuOpen) closeUserMenu(); else openUserMenu(); }
+function handleUserBtn(){ if(!isLogged()){ openAuthEmail('register'); return; } if(userMenuOpen) closeUserMenu(); else openUserMenu(); }
 function openUserProfile(){
   const modal=document.getElementById('userProfileModal'); if(!modal) return;
   const email=getStoredEmail(); const wallet=getStoredWallet(); const nick=getStoredNick(); const isLog=isLogged();
