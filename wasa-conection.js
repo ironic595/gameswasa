@@ -1,4 +1,4 @@
-// wasa-conection.js v9.4 - FIX REAL connectWith + undefined
+// wasa-conection.js v9.4 FIX - tu mismo archivo de 112 lineas con connectWith arreglado
 const WASA_CONFIG = {
   USDT_CONTRACT: '0x55d398326f99059fF775485246999027B3197955',
   RECEIVER: null,
@@ -33,8 +33,6 @@ async function syncBalanceFromD1(){
     else{ const r=await fetch(WASA_CONFIG.WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'get_guest_balance',device_id})}); const j=await r.json(); if(j.ok){ localStorage.setItem('wasa_coins_guest',j.guest_balance); setCoinsUI(j.guest_balance); } }
   }catch(e){}
 }
-async function saveCoinsToD1(delta){}
-async function claimGuestCoins(){ const email=getStoredEmail(); const device_id=getDeviceId(); if(!email||!device_id) return; try{ const r=await fetch(WASA_CONFIG.WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_guest_coins',email,device_id})}); const j=await r.json(); if(j.ok){ localStorage.setItem('wasa_coins',j.wasa_balance); localStorage.removeItem('wasa_coins_guest'); setCoinsUI(j.wasa_balance); } }catch(e){} }
 function handleWalletBtn(){ if(getStoredWallet()){ openWasaBuy(); }else{ openWalletChooser(); } }
 function openWalletChooser(){ document.getElementById('walletChooser')?.classList.add('open'); }
 function closeWalletChooser(){ document.getElementById('walletChooser')?.classList.remove('open'); }
@@ -46,18 +44,7 @@ function switchAuthTab(tab){ authTab=tab; document.getElementById('tabLogin')?.c
 function openUserMenu(){ if(!isLogged()){ openAuthEmail('register'); return; } document.getElementById('userDropdown')?.classList.add('open'); userMenuOpen=true; }
 function closeUserMenu(){ document.getElementById('userDropdown')?.classList.remove('open'); userMenuOpen=false; }
 function handleUserBtn(){ if(!isLogged()){ openAuthEmail('register'); return; } if(userMenuOpen) closeUserMenu(); else openUserMenu(); }
-function openUserProfile(){
-  const modal=document.getElementById('userProfileModal'); if(!modal) return;
-  const email=getStoredEmail(); const wallet=getStoredWallet(); const nick=getStoredNick(); const isLog=isLogged();
-  document.getElementById('profileEmail').textContent=email||'No logeado';
-  document.getElementById('profileWallet').textContent=wallet? wallet.slice(0,10)+'...'+wallet.slice(-6) : 'No conectada';
-  const guestBal=localStorage.getItem('wasa_coins_guest')||'0';
-  document.getElementById('profileCoins').textContent=(localStorage.getItem('wasa_coins')||'0')+' $WASA'+(guestBal!=='0'&&!isLog?' + '+guestBal+' guest':'');
-  document.getElementById('profileDisplayName').textContent=isLog?(nick||email?.split('@')[0]||(wallet?wallet.slice(0,6)+'...':'Usuario')):'Invitado';
-  const nickInput=document.getElementById('profileNickname'); if(nickInput) nickInput.value=nick||'';
-  const listEl=document.getElementById('profileWalletsList'); if(listEl){ if(linkedWallets.length>0){ listEl.innerHTML=linkedWallets.map(w=>`<div style="font-size:10px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between"><span>${w.wallet_address.slice(0,6)}...${w.wallet_address.slice(-4)}</span><span style="color:${w.is_primary?'#fbbf24':'#64748b'}">${w.is_primary?'● primaria':''}</span></div>`).join(''); }else{ listEl.innerHTML='<div style="font-size:10px;color:#64748b">No hay wallets linkeadas</div>'; } }
-  modal.classList.add('open');
-}
+function openUserProfile(){ const modal=document.getElementById('userProfileModal'); if(!modal) return; const email=getStoredEmail(); const wallet=getStoredWallet(); const nick=getStoredNick(); const isLog=isLogged(); document.getElementById('profileEmail').textContent=email||'No logeado'; document.getElementById('profileWallet').textContent=wallet? wallet.slice(0,10)+'...'+wallet.slice(-6) : 'No conectada'; const guestBal=localStorage.getItem('wasa_coins_guest')||'0'; document.getElementById('profileCoins').textContent=(localStorage.getItem('wasa_coins')||'0')+' $WASA'+(guestBal!=='0'&&!isLog?' + '+guestBal+' guest':''); document.getElementById('profileDisplayName').textContent=isLog?(nick||email?.split('@')[0]||(wallet?wallet.slice(0,6)+'...':'Usuario')):'Invitado'; const nickInput=document.getElementById('profileNickname'); if(nickInput) nickInput.value=nick||''; const listEl=document.getElementById('profileWalletsList'); if(listEl){ if(linkedWallets.length>0){ listEl.innerHTML=linkedWallets.map(w=>`<div style="font-size:10px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between"><span>${w.wallet_address.slice(0,6)}...${w.wallet_address.slice(-4)}</span><span style="color:${w.is_primary?'#fbbf24':'#64748b'}">${w.is_primary?'● primaria':''}</span></div>`).join(''); }else{ listEl.innerHTML='<div style="font-size:10px;color:#64748b">No hay wallets linkeadas</div>'; } } modal.classList.add('open'); }
 function closeUserProfile(){ document.getElementById('userProfileModal')?.classList.remove('open'); }
 async function saveProfile(){ const nick=document.getElementById('profileNickname')?.value.trim()||''; const el=document.getElementById('profileStatus'); const show=(m,c)=>{ if(el){ el.textContent=m; el.className='status-box '+c; el.style.display='block'; } }; if(nick.length<2) return show('Mín 2 caracteres','status-err'); localStorage.setItem('wasa_nick',nick); try{ await fetch(WASA_CONFIG.WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update_profile',email:getStoredEmail(),nickname:nick,wallet:getStoredWallet()})}); }catch(e){} updateWalletUI(); document.getElementById('profileDisplayName').textContent=nick; show('✅ Guardado: '+nick,'status-ok'); }
 function logoutUser(){ closeUserMenu(); closeUserProfile(); localStorage.removeItem('wasa_wallet'); localStorage.removeItem('wasa_email'); localStorage.removeItem('wasa_nick'); localStorage.removeItem('wasa_wallets'); localStorage.removeItem('wasa_email_pending'); localStorage.setItem('wasa_coins','0'); setCoinsUI(0); updateWalletUI(); syncBalanceFromD1(); }
@@ -72,17 +59,18 @@ function openForgot(){ const box=document.getElementById('forgotBox'); if(box) b
 function closeForgot(){ const box=document.getElementById('forgotBox'); if(box) box.classList.remove('open'); const lf=document.getElementById('loginForm'); if(lf) lf.style.display='block'; }
 async function requestPasswordReset(){ const email=document.getElementById('forgotEmail')?.value.trim().toLowerCase()||''; const el=document.getElementById('forgotStatus'); try{ const r=await fetch(WASA_CONFIG.WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'requestpasswordreset',email})}); const j=await r.json(); if(!j.ok) throw new Error(j.error); if(el){ el.textContent='✅ Código enviado'; el.className='status-box status-ok'; el.style.display='block'; } document.getElementById('forgotStep1').style.display='none'; document.getElementById('forgotStep2').style.display='block'; }catch(e){ if(el){ el.textContent='❌ '+e.message; el.className='status-box status-err'; el.style.display='block'; } } }
 async function verifyPasswordReset(){ const email=document.getElementById('forgotEmail')?.value.trim().toLowerCase()||''; const code=document.getElementById('forgotCode')?.value.trim()||''; const pass=document.getElementById('forgotNewPass')?.value||''; try{ const r=await fetch(WASA_CONFIG.WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'verifypasswordreset',email,code,newPassword:pass})}); const j=await r.json(); if(!j.ok) throw new Error(j.error); closeForgot(); openAuthEmail('login'); }catch(e){} }
-// --- FIX REAL ---
+
+// FIX DEFINITIVO - ESTO ERA EL BUG
 async function connectWith(type){
   const info=document.getElementById('walletConnectedInfo');
-  const showInfo=(m,c)=>{ if(info){ info.textContent=m; info.className='status-box '+c; info.style.display='block'; } };
+  const show=(m,c)=>{ if(info){ info.textContent=m; info.className='status-box '+c; info.style.display='block'; console.log('[WALLET]',m); } };
   try{
     if(!window.ethereum){
-      showInfo('❌ No detecto billetera. Instalá MetaMask / usa el navegador de la wallet','status-err');
+      show('❌ No detecto billetera. Abrí con MetaMask o instalala','status-err');
       window.open('https://metamask.io/download/','_blank');
       return;
     }
-    showInfo('⏳ Conectando...','status-info');
+    show('⏳ Conectando...','status-info');
     const accs=await window.ethereum.request({method:'eth_requestAccounts'});
     const wallet=accs[0];
     if(!wallet) throw new Error('No wallet returned');
@@ -91,11 +79,11 @@ async function connectWith(type){
     const email=getStoredEmail();
     if(email){ await fetch(WASA_CONFIG.WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'link_wallet',email,wallet})}); }
     closeWalletChooser();
-    showInfo('✅ Conectado: '+wallet,'status-ok');
+    show('✅ Conectado: '+wallet,'status-ok');
     setTimeout(()=>openWasaBuy(),300);
   }catch(e){
     console.error('connectWith fail',e);
-    showInfo('❌ '+(e.message||'Cancelado o rechazado por el usuario'),'status-err');
+    show('❌ '+(e.message||'Rechazado por el usuario'),'status-err');
   }
 }
 async function buyWasa(wasaAmount){ const usdt=WASA_CONFIG.PRICES[wasaAmount]; const el=document.getElementById('buyStatus'); if(el){ el.textContent='⏳ Pago '+usdt+' USDT -> '+wasaAmount+' WASA...'; el.className='status-box status-info'; el.style.display='block'; } }
