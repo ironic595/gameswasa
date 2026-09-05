@@ -192,7 +192,28 @@ function setCoinsUI(n){ return window.setCoinsUI ? window.setCoinsUI(n) : null; 
 function setCat(cat){currentCat=cat;document.querySelectorAll('#catFilter button').forEach(b=>b.classList.toggle('active',b.dataset.cat===cat));renderGrid();}
 function filterGames(){renderGrid();}
 async function loadGames(){ try{const r=await fetch('/games.json?t='+Date.now());GAMES=await r.json();}catch(e){GAMES=[{slug:'space-invaders',title:'SPACE INVADERS',cat:'arcade action',live:true},{slug:'banatron',title:'BANATRON REVELATION',cat:'arcade',live:true},{slug:'roadfighter',title:'ROAD FIGHTER',cat:'arcade action',live:true}];} renderGrid(); }
-function renderGrid(){ const grid=document.getElementById('grid'); const q=(document.getElementById('q').value||'').toLowerCase(); const filtered=GAMES.filter(g=>{ const mq=!q||g.slug.includes(q)||g.title.toLowerCase().includes(q)||(g.cat||'').includes(q); const mc=currentCat==='all'||(g.cat||'').includes(currentCat); return mq&&mc; }); document.getElementById('count').textContent=filtered.length+' games — '+GAMES.filter(g=>g.live).length+' live'; grid.innerHTML=filtered.map(g=>`<div class="card ${g.live?'live':''}"><div class="thumb" id="thumb-${g.slug}"><span style="color:#334155;font-size:11px">loading...</span><span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span></div><div class="info"><div class="title">${g.title}</div><div class="meta"><span>${(g.cat||'').split(' ')[0]}</span></div></div><div class="play"><span onclick="openGame('${g.slug}')">Play Now</span></div></div>`).join(''); }
+function renderGrid(){ 
+  const grid=document.getElementById('grid'); 
+  const q=(document.getElementById('q').value||'').toLowerCase(); 
+  const filtered=GAMES.filter(g=>{ 
+    const mq=!q||g.slug.includes(q)||g.title.toLowerCase().includes(q)||(g.cat||'').includes(q); 
+    const mc=currentCat==='all'||(g.cat||'').includes(currentCat); 
+    return mq&&mc; 
+  }); 
+  document.getElementById('count').textContent=filtered.length+' games — '+GAMES.filter(g=>g.live).length+' live'; 
+  grid.innerHTML=filtered.map(g=>`
+    <div class="card ${g.live?'live':''}">
+      <div class="thumb" id="thumb-${g.slug}">
+        <img src="/img/${g.slug}.png" alt="${g.title}" loading="lazy" 
+          onerror="this.style.display='none'; this.parentElement.querySelector('.fallback').style.display='flex';"
+          style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;z-index:1">
+        <div class="fallback" style="width:100%;height:100%;display:none;align-items:center;justify-content:center;color:#334155;font-size:24px;font-weight:900;letter-spacing:2px;background:#0b1329">${g.title.slice(0,2)}</div>
+        <span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>
+      </div>
+      <div class="info"><div class="title">${g.title}</div><div class="meta"><span>${(g.cat||'').split(' ')[0]}</span></div></div>
+      <div class="play"><span onclick="openGame('${g.slug}')">Play Now</span></div>
+    </div>`).join(''); 
+}
 async function openGame(slug){ const modal=document.getElementById('modal'); const container=document.getElementById('modalContainer'); const titleEl=document.getElementById('modalTitle'); const qualityEl=document.getElementById('modalQuality'); const isLow=(navigator.deviceMemory||4)<=2; const isMob=innerWidth<900; const quality=isLow||isMob?'lite':'hd'; const game=GAMES.find(g=>g.slug===slug); titleEl.textContent=(game?.title||slug).toUpperCase(); qualityEl.textContent=quality.toUpperCase(); setCoins(getCoins()); modal.classList.add('open'); document.body.style.overflow='hidden'; history.pushState({},'',`/play?game=${slug}`); container.innerHTML=`Loading ${slug}...`; window.vrAd=0; try{ const mod=await import(`/games/${slug}/game.js?t=${Date.now()}`); container.innerHTML=''; if(mod.init){ mod.init(container,{quality,getCoins,addCoins,setCoins,slug}); } }catch(e){container.innerHTML=`No encontrado /games/${slug}/game.js`;} }
 function closeGame(){ document.getElementById('modal').classList.remove('open'); document.getElementById('modalContainer').innerHTML=''; document.body.style.overflow=''; history.pushState({},'',`/`); }
 addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeGame(); closeWalletChooser(); closeWasaBuy(); closeAuthEmail(); closeUserProfile(); const m=document.getElementById('userDropdown'); if(m) m.classList.remove('open'); }});
