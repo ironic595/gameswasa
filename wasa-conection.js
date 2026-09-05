@@ -3,7 +3,7 @@ const WASA_CONFIG = {
   USDT_CONTRACT: '0x55d398326f99059fF775485246999027B3197955',
   RECEIVER: null,
   WORKER_URL: 'https://games-wasa-worker.javimsites.workers.dev/',
-  PRICES: { 10: 2, 50: 10, 100: 19 },
+  PRICES: { 200: 2, 1000: 10, 2000: 19 },
   _loaded: false
 };
 let connectedWallet = null; let connectedNickname = null; let connectedEmail = null;
