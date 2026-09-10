@@ -170,7 +170,7 @@ export async function init(container, args){
         winTitle:'¡GANASTE!',
         loseTitle:'¡SE CAYÓ AL AGUA!',
         winBubble:(w)=>`Efectivamente. Como experto certificado en IA con 10 años de experiencia, puedo confirmar que mi modelo predijo correctamente que la palabra era: <b>${w}</b> ✅`,
-        loseBubble:(w)=>`Lamento informarte que, en mi carácter de experto certificado en IA y referente del sector, debo ratificar que tu respuesta es incorrecta. Seguí participando <b>${w}</b>. Seguí participando. 🤖❌`,
+        loseBubble:(w)=>`Lamento informarte que, en mi carácter de experto certificado en IA y referente del sector, debo ratificar que tu respuesta es incorrecta.<b>${w}</b>. Intentalo de nuevo. 🤖❌`,
         continueBtn:'CONTINUAR +0.01 WASA',
         x2Btn:'X2 ANUNCIO → 0.02 WASA',
         retryBtn:'REINTENTAR',
