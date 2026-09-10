@@ -38,7 +38,7 @@ export function init(container, args){
 }
   </style>
   <div class="pb6" id="pb6">
-    <div class="pb6-top"><div style="font-weight:900;font-size:11px;letter-spacing:.18em;color:#00F0FF">PUZZLE BUBBLE • v9 CENTRADO + MOBILE FIX</div><div style="background:#1b1b27;border-radius:20px;padding:6px 10px;font-size:10px;font-weight:800" id="pb6lvl">LVL 1</div></div>
+    <div class="pb6-top"><div style="font-weight:900;font-size:11px;letter-spacing:.18em;color:#00F0FF">PUZZLE BUBBLE</div><div style="background:#1b1b27;border-radius:20px;padding:6px 10px;font-size:10px;font-weight:800" id="pb6lvl">LVL 1</div></div>
     <div class="pb6-wrap"><div class="pb6-body">
       <div class="pb6-left"><div class="pb6-board" id="pb6board"></div><div style="height:4px;background:rgba(0,0,0,.5)"><div id="pb6bar" style="height:100%;background:linear-gradient(90deg,#00F0FF,#FF00D4);width:0%;transition:width.4s"></div></div><div style="display:flex;justify-content:space-between;padding:6px 10px;font-size:9px;opacity:.5;font-family:monospace"><span>▼ TECHO ▼</span><span id="pb6ceil">45s</span><span>▼ TECHO ▼</span></div></div>
       <div class="pb6-right">
