@@ -1,152 +1,177 @@
-// /games/ahorcado/game.js - AHORCADO PREMIUM v2 - FIX VENDOR + CANVAS HANGMAN + CENTRADO REAL
+// /games/ahorcado/game.js - SAPO MOSTAZA v13 - TABLAS + IDIOMA + TODAS LAS PALABRAS + NO SE TRABA
 export async function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javimsites.workers.dev/';
   const getDeviceId = ()=> window.getDeviceId?window.getDeviceId():(()=>{let id=localStorage.getItem('wasa_device_id'); if(!id){id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id;})();
-  const quality = args?.quality || ( (navigator.deviceMemory||4)<=2 || innerWidth<900? 'lite':'hd');
-  const isLite = quality==='lite';
   const base='/games/ahorcado/';
   const candidates=['vendors-app.8f3c2a1b.chunk.js','vendors~app.8f3c2a1b.chunk.js'];
+  const FROG_URL = base+'frog.png';
 
   function safeDecode(s,key){
     try{
-      const bin=atob(s); const b=new Uint8Array(bin.length);
-      for(let i=0;i<bin.length;i++) b[i]=bin.charCodeAt(i);
-      const out=new Uint8Array(b.length);
-      for(let i=0;i<b.length;i++) out[i]=b[i]^key.charCodeAt(i%key.length);
+      const bin=atob(s); const out=new Uint8Array(bin.length);
+      for(let i=0;i<bin.length;i++) out[i]=bin.charCodeAt(i)^key.charCodeAt(i%key.length);
       return new TextDecoder().decode(out);
-    }catch(e){return '';}
+    }catch{return '';}
   }
   async function loadVendor(){
     if(window._0x4a2f || window.webpackChunkWasa?.['8f3c2a1b']) return true;
-    for(const name of candidates){
-      const ok=await new Promise(res=>{
-        const s=document.createElement('script'); s.src=base+name+'?t='+Date.now(); s.async=false;
-        s.onload=()=>res(true); s.onerror=()=>res(false);
-        document.head.appendChild(s);
-      });
+    for(const n of candidates){
+      const ok=await new Promise(r=>{ const s=document.createElement('script'); s.src=base+n+'?t='+Date.now(); s.async=true; s.onload=()=>r(true); s.onerror=()=>r(false); document.head.appendChild(s); });
       if(ok && (window._0x4a2f || window.webpackChunkWasa?.['8f3c2a1b'])) return true;
     }
     return false;
   }
 
-  container.innerHTML=`<div style="display:grid;place-items:center;height:100%;background:#08080d;color:#fff;font-family:monospace">CARGANDO AHORCADO...</div>`;
-  await loadVendor();
-  const chunk=window._0x4a2f || window.webpackChunkWasa?.['8f3c2a1b'];
-  if(!chunk){
-    container.innerHTML=`<div style="color:#ff6b6b;text-align:center;padding:40px">Falta vendor. Subí vendors-app.8f3c2a1b.chunk.js a /games/ahorcado/</div>`; return;
-  }
-  const key=chunk.k, dict=chunk.w;
-  const wordsByCat={};
-  for(const cat in dict){ wordsByCat[cat]=dict[cat].map(h=>safeDecode(h,key)).filter(w=>w.length>2); }
-  const cats=Object.keys(wordsByCat);
+  // UI MOSTAZA - se crea una vez
+  container.innerHTML=`
+  <style>
+.ah{background:#D4A12C;color:#2b1a0a;width:100%;height:100%;display:flex;flex-direction:column;font-family:'Space Grotesk',system-ui;overflow:hidden}
+.ah-top{height:48px;display:flex;justify-content:space-between;align-items:center;padding:0 12px;background:#B88518;border-bottom:2px solid rgba(0,0,0,.15);flex-shrink:0;gap:8px}
+.ah-lang{display:flex;gap:6px;background:#fff3;border-radius:20px;padding:3px}
+.ah-lang button{padding:5px 12px;border-radius:16px;border:0;font-weight:800;font-size:11px;cursor:pointer;background:transparent;color:#5a3a00}
+.ah-lang button.active{background:#2b1a0a;color:#FFD86A}
+.ah-wrap{flex:1;display:flex;justify-content:center;align-items:center;padding:12px;overflow:auto;background:radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.25) 0%, transparent 60%), #D4A12C}
+.ah-body{display:flex;gap:16px;align-items:flex-start;justify-content:center;margin:auto}
+.ah-tower{flex:0 0 280px;width:280px;height:420px;background:#fff9e6;border:3px solid #8a5a00;border-radius:18px;position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.ah-water{position:absolute;bottom:0;left:0;right:0;height:38px;background:#5DE0F5;border-top:3px solid #1aa3b8;border-radius:0 0 15px 15px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#0a4a55}
+.ah-plank{position:absolute;left:20px;right:20px;height:18px;background:linear-gradient(180deg,#FF8C1A,#CC5A00);border:2px solid #7a2e00;border-radius:9px;box-shadow:0 2px 0 rgba(0,0,0,.2);transition:transform.6s cubic-bezier(.6,-0.28,.74,.05), opacity.4s}
+.ah-plank.broken{transform:translateY(400px) rotate(35deg);opacity:0}
+.ah-frog{position:absolute;width:78px;height:78px;left:50%;transform:translateX(-50%);transition:top.5s ease, transform.5s ease;z-index:5;object-fit:contain;filter:drop-shadow(0 4px 6px rgba(0,0,0,.3))}
+.ah-frog.fall{top:370px!important;transform:translateX(-50%) rotate(25deg) scale(.8)}
+.ah-panel{flex:0 0 360px;width:360px;display:flex;flex-direction:column;gap:10px}
+.ah-card{background:#fffef6;border:2px solid #8a5a00;border-radius:14px;padding:12px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.ah-word{font-size:24px;letter-spacing:5px;font-weight:900;text-align:center;font-family:monospace;min-height:34px;color:#2b1a0a}
+.ah-keys{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.ah-key{height:38px;border-radius:8px;background:#fff;border:2px solid #8a5a00;color:#2b1a0a;font-weight:800;cursor:pointer}
+.ah-key.used{opacity:.3;pointer-events:none}
+.ah-key.hit{background:#2ECC71;border-color:#1a7a42;color:#fff}
+.ah-key.miss{background:#FF3B30;border-color:#7a0000;color:#fff}
+  @media(max-width:900px){.ah-body{flex-direction:column}.ah-tower,.ah-panel{width:min(100vw - 20px, 360px);flex:0 0 auto}.ah-tower{height:380px}}
+  </style>
+  <div class="ah"><div class="ah-top">
+    <div style="font-weight:900;font-size:11px;letter-spacing:.12em">SAPO • AHORCADO MOSTAZA</div>
+    <div class="ah-lang"><button id="langEs" class="active">ES 🇪🇸</button><button id="langEn">EN 🇺🇸</button></div>
+    <select id="catSel" style="height:32px;border-radius:16px;border:2px solid #8a5a00;background:#fffef6;padding:0 8px;font-weight:700;font-size:11px;max-width:140px"></select>
+  </div>
+  <div class="ah-wrap"><div class="ah-body">
+    <div class="ah-tower" id="tower"><div class="ah-water">💧 AGUA 💧</div></div>
+    <div class="ah-panel">
+      <div class="ah-card"><div id="ah-word" class="ah-word">CARGANDO...</div><div id="ah-hint" style="text-align:center;font-size:10px;opacity:.6"></div></div>
+      <div class="ah-card"><div id="ah-keys" class="ah-keys"></div><div id="ah-action" style="margin-top:10px"></div></div>
+    </div>
+  </div></div></div>`;
 
-  let cat=cats[Math.floor(Math.random()*cats.length)];
-  let wordList=wordsByCat[cat];
-  let word=wordList[Math.floor(Math.random()*wordList.length)];
-  let guessed=new Set(), errors=0, maxErrors=6, sess=null;
+  const tower = container.querySelector('#tower');
+  const elWord = container.querySelector('#ah-word');
+  const elKeys = container.querySelector('#ah-keys');
+  const elAction = container.querySelector('#ah-action');
+  const elHint = container.querySelector('#ah-hint');
+  const catSel = container.querySelector('#catSel');
+  const langEs = container.querySelector('#langEs');
+  const langEn = container.querySelector('#langEn');
 
-  async function startSess(){ try{ const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'start_game_session',email,wallet,device_id,game_slug:'ahorcado'})}); const j=await r.json(); if(j.ok) sess=j.session_id; }catch(e){} }
-  async function claim(isDouble,ad){ if(!sess) await startSess(); try{ const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward',session_id:sess,email,wallet,device_id,game_slug:'ahorcado',ad_watched:ad,double_reward:isDouble})}); const j=await r.json(); if(j.ok){ const bal=j.wasa_balance??j.guest_balance??0; if(j.is_guest) localStorage.setItem('wasa_coins_guest',bal); else localStorage.setItem('wasa_coins',bal); if(window.setCoinsUI) window.setCoinsUI(bal); sess=null; return true;} }catch(e){} return false; }
+  const loaded = await loadVendor();
+  if(!loaded){ elWord.textContent='Falta vendor'; return; }
 
-  function drawHangman(c, err){
-    c.clearRect(0,0,320,260);
-    c.strokeStyle='#2a2a3a'; c.lineWidth=4; c.lineCap='round';
-    // base
-    c.beginPath(); c.moveTo(20,240); c.lineTo(120,240); c.moveTo(70,240); c.lineTo(70,20); c.lineTo(200,50); c.stroke();
-    if(err>0){ // cabeza
-      c.beginPath(); c.strokeStyle='#fff'; c.lineWidth=3; c.arc(200,70,20,0,Math.PI*2); c.stroke();
+  const chunk = window._0x4a2f || window.webpackChunkWasa['8f3c2a1b'];
+  const key = chunk.k; const dict = chunk.w;
+  let currentLang = 'es';
+  const CACHE_KEY='sapo_cache_mostaza_v13';
+  let cache={}; try{ cache=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); }catch{}
+
+  async function getWords(cat){
+    if(cache[cat]?.length>5) return cache[cat];
+    const hashes=dict[cat]||[]; const out=[];
+    for(let i=0;i<hashes.length;i+=40){
+      for(let j=i;j<Math.min(i+40,hashes.length);j++){ const w=safeDecode(hashes[j],key); if(w.length>2) out.push(w); }
+      if(i%120===0) await new Promise(r=>setTimeout(r,0));
     }
-    if(err>1){ c.beginPath(); c.moveTo(200,90); c.lineTo(200,150); c.stroke(); } // cuerpo
-    if(err>2){ c.beginPath(); c.moveTo(200,110); c.lineTo(170,130); c.stroke(); } // brazo izq
-    if(err>3){ c.beginPath(); c.moveTo(200,110); c.lineTo(230,130); c.stroke(); } // brazo der
-    if(err>4){ c.beginPath(); c.moveTo(200,150); c.lineTo(175,190); c.stroke(); } // pierna izq
-    if(err>5){ c.beginPath(); c.moveTo(200,150); c.lineTo(225,190); c.stroke(); } // pierna der
-  }
-
-  function render(){
-    const display = word.split('').map(l=>guessed.has(l)?l:'_').join(' ');
-    const isWin =!display.includes('_');
-    const isLose = errors>=maxErrors;
-    container.innerHTML=`
-    <style>
-  .ah{width:100%;height:100%;background:#08080d;color:#fff;display:flex;flex-direction:column;overflow:hidden}
-  .ah-top{height:42px;display:flex;justify-content:space-between;align-items:center;padding:0 12px;background:#0f0f17;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
-  .ah-wrap{flex:1;display:flex;justify-content:center;align-items:center;padding:12px;overflow:auto}
-  .ah-body{display:flex;gap:14px;align-items:flex-start;justify-content:center;margin:auto}
-  .ah-left{flex:0 0 340px;width:340px;background:#0f0f17;border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;align-items:center;padding:12px}
-  .ah-right{flex:0 0 360px;width:360px;display:flex;flex-direction:column;gap:10px}
-  .ah-cv{width:320px;height:260px;background:#0a0a14;border-radius:12px}
-  .ah-word{font-size:26px;letter-spacing:6px;font-weight:900;margin:12px 0;font-family:monospace;text-align:center;min-height:32px}
-  .ah-cat{font-size:10px;opacity:.5;letter-spacing:.12em;text-transform:uppercase;text-align:center}
-  .ah-keys{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-  .ah-key{height:38px;border-radius:10px;background:#1c1c2a;border:1px solid rgba(255,255,255,.08);color:#fff;font-weight:800;cursor:pointer;transition:.15s}
-  .ah-key:hover:not(:disabled){background:#2a2a3a;transform:translateY(-1px)}
-  .ah-key:disabled{opacity:.25}
-  .ah-key.hit{background:rgba(0,255,136,.15);border-color:rgba(0,255,136,.3);color:#00ff88}
-  .ah-key.miss{background:rgba(255,43,43,.15);border-color:rgba(255,43,43,.3);color:#ff4444}
-   @media(max-width:900px){.ah-body{flex-direction:column;align-items:center}.ah-left,.ah-right{width:min(100vw - 20px, 360px);flex:0 0 auto}}
-    </style>
-    <div class="ah"><div class="ah-top"><div style="font-weight:900;font-size:10px;letter-spacing:.15em;color:#00F0FF">AHORCADO • ${cat.toUpperCase().replace('_',' • ')} • ${quality.toUpperCase()}</div><div style="font-size:10px;background:#1b1b27;border-radius:16px;padding:4px 8px">${errors}/${maxErrors} ERRORES</div></div>
-    <div class="ah-wrap"><div class="ah-body">
-      <div class="ah-left"><canvas id="ahCv" class="ah-cv" width="320" height="260"></canvas><div class="ah-cat">${cat.replace('es_','ES • ').replace('en_','EN • ')}</div><div class="ah-word">${isLose?word:display}</div>
-      ${isWin?`<div style="color:#00ff88;font-weight:900;text-align:center">¡GANASTE!</div>`:''}
-      ${isLose?`<div style="color:#ff4444;font-weight:900;text-align:center">PERDISTE - ERA: ${word}</div>`:''}
-      </div>
-      <div class="ah-right">
-        <div style="background:#15151f;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:10px;display:flex;justify-content:space-between;font-size:11px"><span>OBJETIVO</span><b>ADIVINÁ LA PALABRA</b></div>
-        <div class="ah-keys" id="keys"></div>
-        <div id="ahActions"></div>
-      </div>
-    </div></div></div>`;
-
-    const cv=container.querySelector('#ahCv'); if(cv) drawHangman(cv.getContext('2d'), errors);
-
-    const keysEl=container.querySelector('#keys');
-    if(keysEl){
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(l=>{
-        const b=document.createElement('button');
-        const isGuessed=guessed.has(l);
-        b.className='ah-key'+(isGuessed?(word.includes(l)?' hit':' miss'):'');
-        b.textContent=l; b.disabled=isGuessed||isWin||isLose;
-        b.onclick=()=>{ if(guessed.has(l)) return; guessed.add(l); if(!word.includes(l)) errors++; render(); };
-        keysEl.appendChild(b);
-      });
-    }
-    const actions=container.querySelector('#ahActions');
-    if(actions){
-      if(isWin){
-        actions.innerHTML=`<button id="claim" style="width:100%;height:48px;border-radius:24px;background:#fff;color:#000;font-weight:900">RECLAMAR +0.01 WASA</button><button id="claimX2" style="margin-top:8px;width:100%;height:48px;border-radius:24px;background:linear-gradient(90deg,#FF00D4,#00F0FF);color:#fff;font-weight:900">X2 ANUNCIO → 0.02</button><button id="next" style="margin-top:8px;width:100%;height:40px;border-radius:20px;background:#222;color:#fff">SIGUIENTE PALABRA</button>`;
-        actions.querySelector('#claim').onclick=async(e)=>{ e.target.textContent='VALIDANDO...'; const ok=await claim(false,false); if(ok) e.target.textContent='✅ +0.01 ACREDITADO'; else e.target.textContent='REINTENTAR'; };
-        actions.querySelector('#claimX2').onclick=()=>{ window.vrAd=1; window.vrAdType='double'; window._ahPending={cat,word}; actions.querySelector('#claimX2').textContent='CARGANDO AD...'; };
-        actions.querySelector('#next').onclick=()=>newRound();
-      } else if(isLose){
-        actions.innerHTML=`<button id="retry" style="width:100%;height:48px;border-radius:24px;background:#fff;color:#000;font-weight:900">REINTENTAR - MISMA CATEGORÍA</button><button id="nextCat" style="margin-top:8px;width:100%;height:40px;border-radius:20px;background:#222;color:#fff">CAMBIAR CATEGORÍA</button>`;
-        actions.querySelector('#retry').onclick=()=>{ guessed=new Set(); errors=0; word=wordList[Math.floor(Math.random()*wordList.length)]; render(); };
-        actions.querySelector('#nextCat').onclick=()=>newRound();
-      }
-    }
+    cache[cat]=out; try{ localStorage.setItem(CACHE_KEY,JSON.stringify(cache)); }catch{}
+    return out;
   }
 
-  function newRound(){
-    cat=cats[Math.floor(Math.random()*cats.length)];
-    wordList=wordsByCat[cat];
-    word=wordList[Math.floor(Math.random()*wordList.length)];
-    guessed=new Set(); errors=0; startSess(); render();
+  function getCatsByLang(lang){
+    return Object.keys(dict).filter(c=>c.startsWith(lang+'_'));
   }
 
-  // ad x2 listener
-  const adIv=setInterval(async()=>{
-    if(window.vrAd===4 && window.vrAdType==='double' && window._ahPending){
-      window.vrAd=0; window.vrAdType=null; const p=window._ahPending; window._ahPending=null;
-      const ok=await claim(true,true);
-      if(ok){
-        const actions=container.querySelector('#ahActions');
-        if(actions) actions.innerHTML=`<div style="background:rgba(0,255,136,.15);border:1px solid rgba(0,255,136,.3);border-radius:12px;padding:12px;text-align:center;color:#00ff88;font-weight:900">✅ X2 +0.02 WASA ACREDITADO</div><button id="next" style="margin-top:8px;width:100%;height:44px;border-radius:22px;background:#fff;color:#000;font-weight:900">SIGUIENTE</button>`;
-        container.querySelector('#next')?.addEventListener('click',()=>newRound());
-      }
-    }
-  },500);
+  function refreshCatSelect(){
+    const cats = getCatsByLang(currentLang);
+    catSel.innerHTML='';
+    cats.forEach(c=>{
+      const o=document.createElement('option'); o.value=c; o.textContent=c.replace(currentLang+'_','').toUpperCase();
+      catSel.appendChild(o);
+    });
+  }
 
-  startSess(); render();
-  container._cleanup=()=>{ clearInterval(adIv); window.vrAd=0; };
+  // torre de tablas
+  const PLANK_POS = [30,90,150,210,270,330]; // y de cada tabla (6 tablas)
+  let planks=[], frogEl, word, guessed, errors, maxErrors=6;
+
+  function buildTower(){
+    tower.querySelectorAll('.ah-plank,.ah-frog').forEach(e=>e.remove());
+    planks=[];
+    PLANK_POS.forEach((y,i)=>{
+      const p=document.createElement('div'); p.className='ah-plank'; p.style.top=y+'px'; p.style.width=(220 - i*10)+'px'; p.style.left=(40 + i*5)+'px';
+      tower.appendChild(p); planks.push(p);
+    });
+    frogEl=document.createElement('img'); frogEl.className='ah-frog'; frogEl.src=FROG_URL; frogEl.onerror=()=>{ frogEl.outerHTML=`<div class="ah-frog" style="font-size:56px;display:grid;place-items:center">🐸</div>`; frogEl=container.querySelector('.ah-frog'); };
+    frogEl.style.top=(PLANK_POS[0]-62)+'px'; tower.appendChild(frogEl);
+  }
+
+  async function newRound(){
+    const cat = catSel.value || getCatsByLang(currentLang)[0];
+    const words = await getWords(cat);
+    word = words[Math.floor(Math.random()*words.length)];
+    guessed=new Set(); errors=0;
+    elHint.textContent = `${cat.toUpperCase()} • ${words.length} palabras • ${word.length} letras`;
+    buildTower();
+    buildKeys();
+    update();
+  }
+
+  function buildKeys(){
+    elKeys.innerHTML=''; elAction.innerHTML='';
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(l=>{
+      const b=document.createElement('button'); b.className='ah-key'; b.textContent=l; b.dataset.l=l;
+      b.onclick=()=>{
+        if(guessed.has(l)) return;
+        guessed.add(l);
+        if(!word.includes(l)){ errors++; b.classList.add('miss'); const plankToBreak = planks[planks.length-1-errors]; if(plankToBreak) plankToBreak.classList.add('broken'); if(errors<maxErrors){ const nextTop = PLANK_POS[errors]; if(frogEl) frogEl.style.top=(nextTop-62)+'px'; } else { if(frogEl) frogEl.classList.add('fall'); } if(navigator.vibrate) navigator.vibrate(30); }
+        else b.classList.add('hit');
+        b.classList.add('used');
+        update();
+      };
+      elKeys.appendChild(b);
+    });
+  }
+
+  function update(){
+    const display = word.split('').map(ch=>guessed.has(ch)?ch:'_').join(' ');
+    elWord.textContent = display;
+    const win=!display.includes('_'); const lose=errors>=maxErrors;
+    if(win || lose){
+      elKeys.querySelectorAll('button').forEach(b=>b.disabled=true);
+      const btn=document.createElement('button');
+      btn.style.cssText='width:100%;height:46px;border-radius:22px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0;cursor:pointer';
+      btn.textContent = win? `¡GANASTE! ${word} → +0.01 WASA` : `SE CAYÓ AL AGUA: ${word} - REINTENTAR`;
+      btn.onclick=async()=>{
+        if(win){
+          try{
+            const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId();
+            const rs=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'start_game_session',email,wallet,device_id,game_slug:'ahorcado'})});
+            const js=await rs.json();
+            if(js.ok){ const rc=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward',session_id:js.session_id,email,wallet,device_id,game_slug:'ahorcado',ad_watched:false,double_reward:false})}); const j=await rc.json(); if(j.ok && window.setCoinsUI){ const bal=j.wasa_balance??j.guest_balance??0; localStorage.setItem(j.is_guest?'wasa_coins_guest':'wasa_coins',bal); window.setCoinsUI(bal); } }
+          }catch{}
+        }
+        newRound();
+      };
+      elAction.innerHTML=''; elAction.appendChild(btn);
+    }
+  }
+
+  langEs.onclick=()=>{ currentLang='es'; langEs.classList.add('active'); langEn.classList.remove('active'); refreshCatSelect(); newRound(); };
+  langEn.onclick=()=>{ currentLang='en'; langEn.classList.add('active'); langEs.classList.remove('active'); refreshCatSelect(); newRound(); };
+  catSel.onchange=()=>newRound();
+
+  refreshCatSelect(); newRound();
 }
