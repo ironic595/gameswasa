@@ -53,6 +53,10 @@ export async function init(container, args){
 .ah-sapo-img{width:160px;height:160px;object-fit:contain;margin:0 auto 8px;display:block;filter:drop-shadow(0 8px 12px rgba(0,0,0,.3))}
 .ah-bubble{background:#2b1a0a;color:#FFD86A;border-radius:16px 16px 16px 4px;padding:10px 14px;font-size:13px;font-weight:700;line-height:1.3;margin:0 auto 12px;max-width:360px;position:relative}
 .ah-bubble{position:relative;margin-bottom:14px}.ah-bubble:after{content:'';position:absolute;bottom:-8px;left:50%;margin-left:-8px;width:16px;height:16px;background:inherit;transform:rotate(45deg);border-radius:0 0 2px 0}
+.ah-timer{height:10px;background:#2b1a0a22;border-radius:10px;overflow:hidden;border:1px solid #8a5a00;margin:6px 0}
+.ah-timer-bar{height:100%;background:linear-gradient(90deg,#2ECC71,#00F0FF);transition:width 1s linear,width .3s ease}
+.ah-timer-bar.warn{background:linear-gradient(90deg,#FF8C00,#FF3B30)}
+.ah-timer-text{text-align:center;font-size:10px;font-weight:900;letter-spacing:.08em;margin-top:2px}
   @media(max-width:900px){.ah-body{flex-direction:column}.ah-tower,.ah-panel{width:min(100vw - 20px, 360px);flex:0 0 auto}.ah-tower{height:360px}}
   </style>
   <div class="ah"><div class="ah-top">
@@ -63,7 +67,7 @@ export async function init(container, args){
   <div class="ah-wrap"><div class="ah-body">
     <div class="ah-tower" id="tower"><div class="ah-water">💧 AGUA 💧</div></div>
     <div class="ah-panel">
-      <div class="ah-card"><div id="ah-word" class="ah-word">CARGANDO...</div><div id="ah-hint" style="text-align:center;font-size:10px;opacity:.6"></div></div>
+      <div class="ah-card"><div id="ah-word" class="ah-word">CARGANDO...</div><div id="ah-hint" style="text-align:center;font-size:10px;opacity:.6"></div><div class="ah-timer"><div id="ah-timer-bar" class="ah-timer-bar" style="width:100%"></div></div><div id="ah-timer-text" class="ah-timer-text">60s</div></div>
       <div class="ah-card"><div id="ah-keys" class="ah-keys"></div></div>
     </div>
   </div></div>
@@ -72,12 +76,51 @@ export async function init(container, args){
   const tower=container.querySelector('#tower'); const elWord=container.querySelector('#ah-word'); const elKeys=container.querySelector('#ah-keys'); const elHint=container.querySelector('#ah-hint'); const elWin=container.querySelector('#ah-win'); const catSel=container.querySelector('#catSel'); const langEs=container.querySelector('#langEs'); const langEn=container.querySelector('#langEn');
   const loaded=await loadVendor(); if(!loaded){ elWord.textContent='Falta vendor'; return; }
   const chunk=window._0x4a2f || window.webpackChunkWasa['8f3c2a1b']; const key=chunk.k; const dict=chunk.w;
-  let currentLang='es'; const CACHE_KEY='sapo_cache_mostaza_v20'; let cache={}; try{ cache=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); }catch{}
+  let currentLang='es'; const CACHE_KEY='sapo_cache_mostaza_v24_timer'; let cache={}; try{ cache=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); }catch{}
   async function getWords(cat){ if(cache[cat]?.length>5) return cache[cat]; const hashes=dict[cat]||[]; const out=[]; for(let i=0;i<hashes.length;i+=40){ for(let j=i;j<Math.min(i+40,hashes.length);j++){ const w=safeDecode(hashes[j],key); if(w.length>2) out.push(w); } if(i%120===0) await new Promise(r=>setTimeout(r,0)); } cache[cat]=out; try{ localStorage.setItem(CACHE_KEY,JSON.stringify(cache)); }catch{} return out; }
   function getCatsByLang(lang){ return Object.keys(dict).filter(c=>c.startsWith(lang+'_')); }
   function refreshCatSelect(){ const cats=getCatsByLang(currentLang); catSel.innerHTML=''; cats.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c.replace(currentLang+'_','').toUpperCase(); catSel.appendChild(o); }); }
 
   const PLANK_POS=[10,70,130,190,250,310];
+  
+  let timerIv=null, timeLeft=30, maxTime=30, isPaused=false;
+  const timerBar=container.querySelector('#ah-timer-bar');
+  const timerText=container.querySelector('#ah-timer-text');
+  function startTimer(){
+    clearInterval(timerIv);
+    timeLeft=maxTime; maxTime=30;
+    updateTimerUI();
+    timerIv=setInterval(()=>{
+      if(isPaused) return;
+      timeLeft--;
+      updateTimerUI();
+      if(timeLeft<=0){
+        clearInterval(timerIv);
+        S.lose();
+        showTimeOut();
+      }
+    },1000);
+  }
+  function updateTimerUI(){
+    const pct=Math.max(0,(timeLeft/maxTime)*100);
+    if(timerBar){ timerBar.style.width=pct+'%'; timerBar.classList.toggle('warn', timeLeft<=15); }
+    if(timerText){ timerText.textContent=timeLeft+'s'; timerText.style.color=timeLeft<=10?'#FF3B30':'#2b1a0a'; }
+  }
+  function showTimeOut(){
+    isPaused=true;
+    const L=t();
+    elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card" style="background:#fff3cd;border-color:#8a5a00">
+      <h2 style="margin:0 0 12px;font-weight:900;color:#8a5a00;font-size:22px">${currentLang==='en'?'TIME IS UP!':'¡TIEMPO AGOTADO!'}</h2>
+      <div class="ah-bubble" style="background:#8a5a00;color:#FFD86A">${currentLang==='en'?`As a certified AI expert, I must inform you that your time has expired. My model calculated you had ${maxTime}s and you failed. Word was: <b>${word}</b> ⏰`:`En mi carácter de experto certificado en IA, debo informarte que tu tiempo se ha agotado. Mi modelo había calculado ${maxTime}s y no lo lograste. La palabra era: <b>${word}</b> ⏰`}</div>
+      <img src="${FROG_LOSE}" class="ah-sapo-img" onerror="this.style.display='none'">
+      <button id="btnTimeoutContinue" style="width:100%;height:50px;border-radius:24px;background:#2b1a0a;color:#fff;font-weight:900;border:0;cursor:pointer;margin-top:12px">${L.retryBtn}</button>
+      <button id="btnTimeoutAd" style="width:100%;height:54px;margin-top:10px;border-radius:26px;background:linear-gradient(90deg,#FF8C00,#FF00D4);color:#fff;font-weight:900;border:0;cursor:pointer;font-size:14px">${currentLang==='en'?'+30s WATCH AD':' +30s VER ANUNCIO'}</button>
+    </div></div>`;
+    elWin.querySelector('#btnTimeoutContinue').onclick=()=>{ isPaused=false; incForced(); if(gamesWithoutAd>=2){ showForcedAd(()=>{ resetForced(); newRound(); }); } else { newRound(); } };
+    elWin.querySelector('#btnTimeoutAd').onclick=()=>{ window.vrAd=1; window.vrAdType='extra_time'; window._sapoExtraTimePending=true; elWin.querySelector('#btnTimeoutAd').textContent=t().loadingAd; };
+  }
+
+
   let planks=[], frogEl, word, guessed, errors, maxErrors=6, sess=null, claiming=false;
   const FORCED_KEY='sapo_games_without_ad'; let gamesWithoutAd=parseInt(localStorage.getItem(FORCED_KEY)||'0');
   function resetForced(){ gamesWithoutAd=0; localStorage.setItem(FORCED_KEY,'0'); }
@@ -86,7 +129,7 @@ export async function init(container, args){
   async function claim(isDouble,ad){ if(claiming) return false; if(!sess) await startSess(); if(!sess) return false; claiming=true; try{ const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward',session_id:sess,email,wallet,device_id,game_slug:'ahorcado',ad_watched:ad,double_reward:isDouble})}); const j=await r.json(); if(j.ok){ const bal=j.wasa_balance??j.guest_balance??0; if(j.is_guest) localStorage.setItem('wasa_coins_guest',bal); else localStorage.setItem('wasa_coins',bal); if(window.setCoinsUI) window.setCoinsUI(bal); sess=null; claiming=false; return true; } }catch{} claiming=false; return false; }
   function showForcedAd(next){ elWin.innerHTML=''; window._forcedNext=next; window._sapoForcedPending=true; window.vrAdType='interstitial'; window.vrAd=1; }
   function buildTower(){ tower.querySelectorAll('.ah-plank,.ah-frog').forEach(e=>e.remove()); planks=[]; PLANK_POS.forEach((y,i)=>{ const p=document.createElement('div'); p.className='ah-plank'; p.style.top=y+'px'; p.style.width=(260 - i*10)+'px'; p.style.left=(20 + i*5)+'px'; tower.appendChild(p); planks.push(p); }); frogEl=document.createElement('img'); frogEl.className='ah-frog'; frogEl.src=FROG_URL; frogEl.alt='🐸'; frogEl.onerror=()=>{ frogEl.outerHTML=`<div class="ah-frog" style="font-size:64px;display:grid;place-items:center">🐸</div>`; frogEl=tower.querySelector('.ah-frog'); }; frogEl.style.top=(PLANK_POS[0]-68)+'px'; tower.appendChild(frogEl); }
-  async function newRound(){ const cat=catSel.value||getCatsByLang(currentLang)[0]; const words=await getWords(cat); word=words[Math.floor(Math.random()*words.length)]; guessed=new Set(); errors=0; elWin.innerHTML=''; sess=null; startSess(); elHint.textContent=`${cat.toUpperCase()} • ${words.length} palabras`; buildTower(); buildKeys(); update(); }
+  async function newRound(){ const cat=catSel.value||getCatsByLang(currentLang)[0]; const words=await getWords(cat); word=words[Math.floor(Math.random()*words.length)]; guessed=new Set(); errors=0; elWin.innerHTML=''; sess=null; startSess(); elHint.textContent=`${cat.toUpperCase()} • ${words.length} palabras`; buildTower(); buildKeys(); update(); startTimer(); }
   function buildKeys(){
     elKeys.innerHTML='';
     'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(l=>{
@@ -141,7 +184,7 @@ export async function init(container, args){
     const display=word.split('').map(ch=>guessed.has(ch)?ch:'_').join(' ');
     elWord.textContent=display; const win=!display.includes('_'); const lose=errors>=maxErrors;
     const L=t();
-    if(win){
+    if(win){ clearInterval(timerIv);
       try{ ctx().resume(); }catch{} S.win();
       elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card">
         <h2 style="margin:0 0 12px;font-weight:900;color:#2b1a0a;font-size:22px">${L.winTitle}</h2>
@@ -152,7 +195,7 @@ export async function init(container, args){
       </div></div>`;
       elWin.querySelector('#btnClaim').onclick=async(e)=>{ e.target.textContent=L.validating; e.target.disabled=true; const ok=await claim(false,false); if(ok){ S.coin(); incForced(); e.target.textContent=L.accredited; setTimeout(()=>{ if(gamesWithoutAd>=2){ showForcedAd(()=>{ resetForced(); newRound(); }); } else { newRound(); } },600); } else{ e.target.textContent=L.errorRetry; e.target.disabled=false; } };
       elWin.querySelector('#btnX2').onclick=()=>{ window.vrAd=1; window.vrAdType='double'; window._sapoPending=true; elWin.querySelector('#btnX2').textContent=L.loadingAd; };
-    }else if(lose){
+    }else if(lose){ clearInterval(timerIv);
       try{ ctx().resume(); }catch{} S.lose();
       elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card" style="background:#ffe9e9;border-color:#7a0000">
         <h2 style="margin:0 0 12px;font-weight:900;color:#7a0000;font-size:22px">${L.loseTitle}</h2>
@@ -169,6 +212,23 @@ export async function init(container, args){
       const ok=await claim(true,true);
       if(ok){ resetForced(); S.coin(); const L2=t(); elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card"><h2 style="margin:0 0 12px;font-weight:900">${L2.x2credited}</h2><div class="ah-bubble">${L2.x2bubble}</div><img src="${FROG_WIN}" class="ah-sapo-img"><button id="btnNext" style="width:100%;height:44px;margin-top:12px;border-radius:22px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0">${L2.continueBtn.replace(' +0.01 WASA','').replace(' CONTINUE',' NEXT')}</button></div></div>`; elWin.querySelector('#btnNext').onclick=()=>newRound(); }
     }
+    if(window.vrAd===4 && window.vrAdType==='extra_time' && window._sapoExtraTimePending){
+      window.vrAd=0; window.vrAdType=null; window._sapoExtraTimePending=false;
+      timeLeft=30; maxTime=30; isPaused=false;
+      elWin.innerHTML='';
+      updateTimerUI();
+      timerIv=setInterval(()=>{
+        if(isPaused) return;
+        timeLeft--;
+        updateTimerUI();
+        if(timeLeft<=0){
+          clearInterval(timerIv);
+          S.lose();
+          showTimeOut();
+        }
+      },1000);
+      S.coin();
+    }
     if(window.vrAd===4 && window.vrAdType==='interstitial' && window._sapoForcedPending){
       window.vrAd=0; window.vrAdType=null; window._sapoForcedPending=false; resetForced(); const fn=window._forcedNext; window._forcedNext=null; if(fn) fn(); else newRound();
     }
@@ -177,5 +237,5 @@ export async function init(container, args){
   langEn.onclick=()=>{ currentLang='en'; langEn.classList.add('active'); langEs.classList.remove('active'); refreshCatSelect(); newRound(); };
   catSel.onchange=()=>newRound();
   refreshCatSelect(); newRound();
-  container._cleanup=()=>{ clearInterval(adIv); try{ actx&&actx.close(); }catch{} };
+  container._cleanup=()=>{ clearInterval(adIv); clearInterval(timerIv); try{ actx&&actx.close(); }catch{} };
 }
