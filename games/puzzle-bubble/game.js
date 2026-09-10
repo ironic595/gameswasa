@@ -1,9 +1,7 @@
-// game v7 - CENTRADO REAL + FIX BOLAS FLOTANDO EN EL AIRE
+// game v8 - CENTRADO REAL + FIX COLOR + SIN WASA DUPLICADO
 export function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javimsites.workers.dev/';
   const getDeviceId = ()=> window.getDeviceId?window.getDeviceId():(()=>{let id=localStorage.getItem('wasa_device_id'); if(!id){id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id;})();
-  const fmt = n => { const v=parseFloat(n)||0; if(v===0) return '0'; return (Math.round(v*1e6)/1e6).toFixed(6).replace(/0+$/,'').replace(/\.$/,''); }
-
   const B=8,Q=12,WE=38,HALF=WE/2,UU=WE*0.865,RN=B*WE+HALF+2,NU=Q*UU+80;
   const XE=[{hex:"#00F0FF",grad:"radial-gradient(65% 65% at 35% 30%, #fff 0%, #a8f7ff 15%, #00F0FF 55%, #0090a6 100%)"},{hex:"#FF00D4",grad:"radial-gradient(65% 65% at 35% 30%, #fff 0%, #ffb3f0 15%, #FF00D4 55%, #8a006e 100%)"},{hex:"#FFE600",grad:"radial-gradient(65% 65% at 35% 30%, #fff 0%, #fff6a0 18%, #FFE600 55%, #a68600 100%)"},{hex:"#00FF88",grad:"radial-gradient(65% 65% at 35% 30%, #fff 0%, #a6ffd1 18%, #00FF88 55%, #008a48 100%)"},{hex:"#FF6B2B",grad:"radial-gradient(65% 65% at 35% 30%, #fff 0%, #ffcfad 18%, #FF6B2B 55%, #9c3100 100%)"}];
   const Oe=(r,c)=>({x:c*WE+(r%2?HALF:0)+HALF+1,y:r*UU+HALF+8});
@@ -21,8 +19,8 @@ export function init(container, args){
   <style>
 .pb6{width:100%;height:100%;background:#08080d;color:#fff;font-family:'Space Grotesk',system-ui;display:flex;flex-direction:column;overflow:hidden}
 .pb6-top{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(15,15,23,.9);border-bottom:1px solid rgba(255,255,255,.1)}
-.pb6-wrap{flex:1;width:100%;display:grid;place-items:center;padding:14px;overflow:auto}
-.pb6-body{display:flex;gap:14px;align-items:flex-start;justify-content:center;width:fit-content;margin:0 auto}
+.pb6-wrap{flex:1;width:100%;display:flex;justify-content:center;align-items:flex-start;padding:20px;overflow:auto}
+.pb6-body{display:flex;gap:16px;align-items:flex-start;justify-content:center;margin:0 auto}
 .pb6-left{flex:0 0 ${RN}px;width:${RN}px;background:#0f0f17;border:1px solid rgba(255,255,255,.1);border-radius:20px;overflow:hidden}
 .pb6-board{position:relative;width:${RN}px;height:${NU}px;touch-action:none;background:#0f0f17}
 .pb6-right{flex:0 0 340px;width:340px;display:flex;flex-direction:column;gap:10px}
@@ -34,13 +32,12 @@ export function init(container, args){
   @media(max-width:900px){.pb6-body{flex-direction:column;align-items:center}.pb6-right{width:min(100vw - 24px, ${RN}px);flex:0 0 auto}}
   </style>
   <div class="pb6" id="pb6">
-    <div class="pb6-top"><div style="font-weight:900;font-size:11px;letter-spacing:.18em;color:#00F0FF">PUZZLE BUBBLE • v7 CENTRADO + FIX FLOTANTES</div><div style="display:flex;gap:6px"><div style="background:#1b1b27;border-radius:20px;padding:6px 10px;font-size:10px;font-weight:800" id="pb6lvl">LVL 1</div><div style="background:linear-gradient(135deg,#FFE600,#FF6B2B);color:#000;border-radius:20px;padding:6px 10px;font-size:10px;font-weight:900" id="pb6w">0 WASA</div></div></div>
+    <div class="pb6-top"><div style="font-weight:900;font-size:11px;letter-spacing:.18em;color:#00F0FF">PUZZLE BUBBLE • v8 CENTRADO REAL • FIX COLOR</div><div style="background:#1b1b27;border-radius:20px;padding:6px 10px;font-size:10px;font-weight:800" id="pb6lvl">LVL 1</div></div>
     <div class="pb6-wrap"><div class="pb6-body">
       <div class="pb6-left"><div class="pb6-board" id="pb6board"></div><div style="height:4px;background:rgba(0,0,0,.5)"><div id="pb6bar" style="height:100%;background:linear-gradient(90deg,#00F0FF,#FF00D4);width:0%;transition:width.4s"></div></div><div style="display:flex;justify-content:space-between;padding:6px 10px;font-size:9px;opacity:.5;font-family:monospace"><span>▼ TECHO ▼</span><span id="pb6ceil">45s</span><span>▼ TECHO ▼</span></div></div>
       <div class="pb6-right">
-        <div class="pb6-stats"><div class="pb6-st"><b id="pb6obj">0/30</b><span>OBJETIVO POPS</span></div><div class="pb6-st"><b id="pb6tm">45s / 12 tiros</b><span>TECHO EN</span></div><div class="pb6-st"><b id="pb6sc">0</b><span>SCORE</span></div><div class="pb6-st"><b id="pb6rw">+0.000000</b><span>WASA</span></div></div>
-        <div style="background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;font-size:11px;font-family:monospace"><div style="display:flex;justify-content:space-between;opacity:.6;margin-bottom:6px"><span>PROGRESIÓN v7</span><span id="pb6prog">LVL1 45s→10s</span></div><div>Target: <b id="pb6tgt">30</b> pops • Shots: <b id="pb6sht">12</b> → techo</div><div style="margin-top:6px;opacity:.5">🖱 MOVER / TOCAR / ←→ + ESPACIO • GHOST + TRAYECTORIA</div></div>
-        <div style="background:#11111a;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px;display:flex;align-items:center;gap:8px"><span style="font-size:10px;opacity:.5">SIGUIENTE:</span><div id="pb6next" style="width:22px;height:22px;border-radius:50%"></div><span style="font-size:10px;opacity:.5;margin-left:auto">Cañón abajo • apuntá y soltá</span></div>
+        <div class="pb6-stats"><div class="pb6-st"><b id="pb6obj">0/30</b><span>OBJETIVO POPS</span></div><div class="pb6-st"><b id="pb6tm">45s / 12 tiros</b><span>TECHO EN</span></div><div class="pb6-st"><b id="pb6sc">0</b><span>SCORE</span></div><div class="pb6-st"><b id="pb6next" style="width:22px;height:22px;border-radius:50%"></b><span>SIGUIENTE</span></div></div>
+        <div style="background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;font-size:11px;font-family:monospace"><div style="display:flex;justify-content:space-between;opacity:.6;margin-bottom:6px"><span>PROGRESIÓN v8</span><span id="pb6prog">LVL1 45s→10s</span></div><div>Target: <b id="pb6tgt">30</b> pops • Shots: <b id="pb6sht">12</b> → techo</div></div>
       </div>
     </div></div>
     <div id="pb6ui"></div>
@@ -61,17 +58,25 @@ export function init(container, args){
     popped=0; shot=0; ceilT=maxT(); cur=Math.floor(Math.random()*colors()); nxt=Math.floor(Math.random()*colors()); angle=-90; shooting=null; ghost=null; traj=[]; parts=[]; score=0; startSess(); updateUI(); startCeil(); draw();
   }
   function startCeil(){ if(ceilIv) clearInterval(ceilIv); ceilIv=setInterval(()=>{ ceilT--; updateUI(); if(ceilT<=0){ pushCeil(); ceilT=maxT(); } },1000); }
-  function pushCeil(){ let ng=tu(grid); for(let r=Q-1;r>0;r--) ng[r]=[...ng[r-1]]; let nr=Array(B).fill(null); for(let c=0;c<B;c++) if(Math.random()>0.15) nr[c]=Math.floor(Math.random()*colors()); ng[0]=nr; // FIX: si queda flotando despues de bajar techo, que caiga
-    let floating=hm(ng); if(floating.length){ floating.forEach(([rr,cc])=>{ ng[rr][cc]=null; }); }
-    if(ng[Q-1].some(v=>v!==null)){ lose(); return; } grid=ng; shot=0; draw(); }
+  function pushCeil(){
+    // FIX COLOR: guardamos copia del grid ORIGINAL antes de mover
+    const old = tu(grid);
+    let ng=Array.from({length:Q},()=>Array(B).fill(null));
+    for(let r=Q-1;r>0;r--){ ng[r]=[...old[r-1]]; } // preserva color exacto
+    let nr=Array(B).fill(null);
+    for(let c=0;c<B;c++) if(Math.random()>0.15) nr[c]=Math.floor(Math.random()*colors());
+    ng[0]=nr;
+    // si queda flotando, que caiga, no que cambie color
+    let floating=hm(ng); floating.forEach(([rr,cc])=> ng[rr][cc]=null );
+    if(ng[Q-1].some(v=>v!==null)){ lose(); return; }
+    grid=ng; shot=0; draw();
+  }
   function updateUI(){
     container.querySelector('#pb6lvl').textContent='LVL '+level;
     container.querySelector('#pb6obj').textContent=popped+'/'+target();
     container.querySelector('#pb6tm').textContent=ceilT+'s / '+need()+' tiros';
     container.querySelector('#pb6sc').textContent=score;
-    container.querySelector('#pb6rw').textContent='+'+fmt(total);
     container.querySelector('#pb6bar').style.width=Math.min(100,popped/target()*100)+'%';
-    container.querySelector('#pb6w').textContent=fmt(total)+' WASA';
     container.querySelector('#pb6ceil').textContent=ceilT+'s • LVL'+level;
     container.querySelector('#pb6tgt').textContent=target();
     container.querySelector('#pb6sht').textContent=need();
@@ -90,20 +95,13 @@ export function init(container, args){
     let cannon=document.createElement('div'); cannon.style.position='absolute'; cannon.style.left=(It-29)+'px'; cannon.style.top=(Dt-6)+'px'; cannon.style.width='58px'; cannon.style.height='58px'; cannon.style.borderRadius='50%'; cannon.style.background='#1b1b27'; cannon.style.border='2px solid rgba(255,255,255,.15)'; cannon.style.display='grid'; cannon.style.placeItems='center'; cannon.innerHTML=`<div class="bubble" style="width:40px;height:40px;background:${XE[cur].grad}"></div>`; board.appendChild(cannon);
   }
   function place(r,c,col){
-    // Si ya existe algo ahí, buscar otro lugar
     if(grid[r][c]!==null){ let alt=lu(Oe(r,c).x,Oe(r,c).y,grid); if(!alt){ shooting=null; draw(); return; } r=alt.r; c=alt.c; }
     let ng=tu(grid); ng[r][c]=col;
-    // FIX PRINCIPAL: si la bola que acabás de poner no está conectada al techo, que se caiga, no que quede flotando
-    if(!isConnectedTop(ng,r,c)){
-      parts.push({x:Oe(r,c).x,y:Oe(r,c).y,vx:(Math.random()-0.5)*4,vy:-2,col,life:1});
-      // no la dejamos en el grid, rebota
-      cur=nxt; nxt=Math.floor(Math.random()*colors()); shooting=null; shot++; updateUI(); draw(); return;
-    }
+    if(!isConnectedTop(ng,r,c)){ parts.push({x:Oe(r,c).x,y:Oe(r,c).y,vx:(Math.random()-0.5)*4,vy:-2,col,life:1}); cur=nxt; nxt=Math.floor(Math.random()*colors()); shooting=null; shot++; updateUI(); draw(); return; }
     let conn=vm(ng,r,c);
     if(conn.length>=3){
       conn.forEach(([rr,cc])=>{ let p=Oe(rr,cc); parts.push({x:p.x,y:p.y,vx:(Math.random()-0.5)*8,vy:(Math.random()-0.5)*8-2,col:ng[rr][cc],life:1}); ng[rr][cc]=null; });
-      let floating=hm(ng);
-      floating.forEach(([rr,cc])=>{ let p=Oe(rr,cc); parts.push({x:p.x,y:p.y,vx:(Math.random()-0.5)*6,vy:(Math.random()-0.5)*6-2,col:ng[rr][cc],life:1}); ng[rr][cc]=null; });
+      let floating=hm(ng); floating.forEach(([rr,cc])=>{ let p=Oe(rr,cc); parts.push({x:p.x,y:p.y,vx:(Math.random()-0.5)*6,vy:(Math.random()-0.5)*6-2,col:ng[rr][cc],life:1}); ng[rr][cc]=null; });
       popped+=conn.length+floating.length; score+=conn.length*15+floating.length*8;
       grid=ng; updateUI(); if(popped>=target()||Vo(grid)===0){ win(); return; }
     } else { grid=ng; }
@@ -111,8 +109,8 @@ export function init(container, args){
   }
   function win(){
     if(ceilIv) clearInterval(ceilIv);
-    ui.innerHTML=`<div class="pb6-win"><div class="pb6-card"><div style="width:64px;height:64px;margin:0 auto;border-radius:50%;background:linear-gradient(135deg,#00F0FF,#FF00D4);display:grid;place-items:center;font-size:28px">✓</div><h2 style="font-size:22px;font-weight:900;margin-top:10px">¡NIVEL ${level} COMPLETADO!</h2><div style="margin-top:14px;background:#0e0e14;border-radius:16px;padding:14px;border:1px solid rgba(255,255,255,.1)"><div style="font-size:26px;font-weight:900;color:#00FF88">${fmt(0.01)} WASA</div><button id="bCl" style="margin-top:12px;width:100%;height:48px;border-radius:24px;background:#fff;color:#000;font-weight:900">RECLAMAR +0.01 WASA</button><button id="bX2" style="margin-top:8px;width:100%;height:48px;border-radius:24px;background:linear-gradient(90deg,#FF00D4,#00F0FF);color:#fff;font-weight:900">VER ANUNCIO X2 → 0.02 WASA</button></div></div></div>`;
-    ui.querySelector('#bCl').onclick=async()=>{ let b=ui.querySelector('#bCl'); b.textContent='VALIDANDO...'; b.disabled=true; let r=await claim(false,false); if(r.ok){ total+=0.01; updateUI(); level++; localStorage.setItem('pb_level',level); ui.innerHTML=`<div class="pb6-win"><div class="pb6-card"><div style="font-size:32px">✅</div><div style="font-weight:900;margin:8px 0">ACREDITADO ${fmt(0.01)} WASA</div><button id="ok" style="margin-top:12px;width:100%;height:48px;border-radius:24px;background:#fff;color:#000;font-weight:900">SIGUIENTE LVL${level}</button></div></div>`; ui.querySelector('#ok').onclick=()=>{ ui.innerHTML=''; initGrid(); }; } else { b.textContent='REINTENTAR'; b.disabled=false; } };
+    ui.innerHTML=`<div class="pb6-win"><div class="pb6-card"><div style="width:64px;height:64px;margin:0 auto;border-radius:50%;background:linear-gradient(135deg,#00F0FF,#FF00D4);display:grid;place-items:center;font-size:28px">✓</div><h2 style="font-size:22px;font-weight:900;margin-top:10px">¡NIVEL ${level} COMPLETADO!</h2><div style="margin-top:14px;background:#0e0e14;border-radius:16px;padding:14px;border:1px solid rgba(255,255,255,.1)"><div style="font-size:26px;font-weight:900;color:#00FF88">+0.01 WASA</div><button id="bCl" style="margin-top:12px;width:100%;height:48px;border-radius:24px;background:#fff;color:#000;font-weight:900">RECLAMAR +0.01 WASA</button><button id="bX2" style="margin-top:8px;width:100%;height:48px;border-radius:24px;background:linear-gradient(90deg,#FF00D4,#00F0FF);color:#fff;font-weight:900">VER ANUNCIO X2 → 0.02 WASA</button></div></div></div>`;
+    ui.querySelector('#bCl').onclick=async()=>{ let b=ui.querySelector('#bCl'); b.textContent='VALIDANDO...'; b.disabled=true; let r=await claim(false,false); if(r.ok){ level++; localStorage.setItem('pb_level',level); ui.innerHTML=`<div class="pb6-win"><div class="pb6-card"><div style="font-size:32px">✅</div><div style="font-weight:900;margin:8px 0">ACREDITADO +0.01</div><button id="ok" style="margin-top:12px;width:100%;height:48px;border-radius:24px;background:#fff;color:#000;font-weight:900">SIGUIENTE LVL${level}</button></div></div>`; ui.querySelector('#ok').onclick=()=>{ ui.innerHTML=''; initGrid(); }; } else { b.textContent='REINTENTAR'; b.disabled=false; } };
     ui.querySelector('#bX2').onclick=()=>{ openAd('double'); ui.querySelector('#bX2').textContent='CARGANDO AD...'; ui.querySelector('#bX2').disabled=true; };
   }
   function lose(){ if(ceilIv) clearInterval(ceilIv); ui.innerHTML=`<div class="pb6-win"><div class="pb6-card" style="background:#1a1012;border-color:rgba(255,43,43,.3)"><div style="width:64px;height:64px;margin:0 auto;border-radius:50%;background:#FF2B2B;display:grid;place-items:center;font-size:28px">✕</div><h2 style="font-size:20px;font-weight:900;margin-top:10px">TECHO ALCANZADO</h2><div style="display:flex;gap:8px;margin-top:16px"><button id="bAg" style="flex:1;height:44px;border-radius:24px;background:#fff;color:#000;font-weight:800">REINTENTAR LVL ${level}</button><button id="bR" style="flex:1;height:44px;border-radius:24px;background:#222;color:#fff;border:1px solid rgba(255,255,255,.15)">RESET</button></div></div></div>`; ui.querySelector('#bAg').onclick=()=>{ ui.innerHTML=''; initGrid(); }; ui.querySelector('#bR').onclick=()=>{ level=1; localStorage.setItem('pb_level',1); ui.innerHTML=''; initGrid(); }; }
@@ -121,7 +119,7 @@ export function init(container, args){
   board.addEventListener('pointerdown', e=>{ e.preventDefault(); let rect=board.getBoundingClientRect(), scaleX=RN/rect.width, scaleY=NU/rect.height, x=(e.clientX-rect.left)*scaleX, y=(e.clientY-rect.top)*scaleY; let ang=Math.atan2(y-Dt,x-It)*180/Math.PI; if(ang>-15) ang=-15; if(ang<-165) ang=-165; angle=ang; shoot(); }, {passive:false});
   window.addEventListener('keydown', e=>{ if(e.code==='ArrowLeft') angle=Math.max(-165,angle-4); if(e.code==='ArrowRight') angle=Math.min(-15,angle+4); if(e.code==='Space'||e.code==='ArrowUp'){ e.preventDefault(); shoot(); } let g=ym(angle,grid,It,Dt); ghost=g?{x:g.x,y:g.y}:null; traj=gm(angle,grid,It,Dt); draw(); });
   let partIv=setInterval(()=>{ parts=parts.map(p=>({...p,x:p.x+p.vx,y:p.y+p.vy,vy:p.vy+0.25,life:p.life-0.02})).filter(p=>p.life>0); draw(); },16);
-  let adIv=setInterval(async()=>{ if(window.vrAd===4 && pend){ let t=pend; pend=null; window.vrAd=0; window.vrAdType=null; window._gm_shown=false; ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.75);display:grid;place-items:center;z-index:60;color:#fff">Validando X2...</div>`; let r=await claim(true,true); if(r.ok){ total+=0.02; updateUI(); level++; localStorage.setItem('pb_level',level); ui.innerHTML=`<div class="pb6-win"><div class="pb6-card"><div style="font-size:32px">✅</div><div style="font-weight:900;margin:8px 0">X2 ACREDITADO v7</div><button id="ok2" style="margin-top:12px;width:100%;height:48px;border-radius:24px;background:#fff;color:#000;font-weight:900">SIGUIENTE LVL${level}</button></div></div>`; ui.querySelector('#ok2').onclick=()=>{ ui.innerHTML=''; initGrid(); }; } } },300);
+  let adIv=setInterval(async()=>{ if(window.vrAd===4 && pend){ let t=pend; pend=null; window.vrAd=0; window.vrAdType=null; window._gm_shown=false; let r=await claim(true,true); if(r.ok){ level++; localStorage.setItem('pb_level',level); ui.innerHTML=`<div class="pb6-win"><div class="pb6-card"><div style="font-size:32px">✅</div><div style="font-weight:900;margin:8px 0">X2 ACREDITADO</div><button id="ok2" style="margin-top:12px;width:100%;height:48px;border-radius:24px;background:#fff;color:#000;font-weight:900">SIGUIENTE LVL${level}</button></div></div>`; ui.querySelector('#ok2').onclick=()=>{ ui.innerHTML=''; initGrid(); }; } } },300);
   initGrid();
   container._cleanup=()=>{ clearInterval(ceilIv); clearInterval(partIv); clearInterval(adIv); window.vrAd=0; };
 }
