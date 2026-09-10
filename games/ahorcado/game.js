@@ -1,4 +1,4 @@
-// /games/ahorcado/game.js - SAPO MOSTAZA v15 - SIN RECUADRO + POPUP X2
+// /games/ahorcado/game.js - v16 MOSTAZA FINAL - SIN RECUADRO + 2 BOTONES
 export async function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javimsites.workers.dev/';
   const getDeviceId = ()=> window.getDeviceId?window.getDeviceId():(()=>{let id=localStorage.getItem('wasa_device_id'); if(!id){id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id;})();
@@ -74,12 +74,12 @@ export async function init(container, args){
   const langEn = container.querySelector('#langEn');
 
   const loaded = await loadVendor();
-  if(!loaded){ elWord.textContent='Falta vendor'; return; }
+  if(!loaded){ elWord.textContent='Falta vendor - subí vendors-app.8f3c2a1b.chunk.js'; return; }
 
   const chunk = window._0x4a2f || window.webpackChunkWasa['8f3c2a1b'];
   const key = chunk.k; const dict = chunk.w;
   let currentLang='es';
-  const CACHE_KEY='sapo_cache_mostaza_v15';
+  const CACHE_KEY='sapo_cache_mostaza_v16';
   let cache={}; try{ cache=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); }catch{}
   async function getWords(cat){
     if(cache[cat]?.length>5) return cache[cat];
@@ -151,27 +151,31 @@ export async function init(container, args){
         <div style="font-size:48px">🎉</div>
         <h2 style="margin:8px 0;font-weight:900;color:#2b1a0a">¡GANASTE!</h2>
         <div style="font-size:14px;margin:6px 0">Palabra: <b>${word}</b></div>
-        <div style="margin:14px 0;background:#fff3a0;border:2px dashed #8a5a00;border-radius:12px;padding:10px;font-weight:900">+0.01 WASA</div>
-        <button id="btnClaim" style="width:100%;height:48px;border-radius:24px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0;cursor:pointer">RECLAMAR +0.01 WASA</button>
-        <button id="btnX2" style="width:100%;height:48px;margin-top:8px;border-radius:24px;background:linear-gradient(90deg,#FF00D4,#00F0FF);color:#fff;font-weight:900;border:0;cursor:pointer">VER ANUNCIO X2 → 0.02 WASA</button>
-        <button id="btnCont" style="width:100%;height:40px;margin-top:8px;border-radius:20px;background:#fff;border:2px solid #8a5a00;color:#2b1a0a;font-weight:800;cursor:pointer">CONTINUAR SIN RECLAMAR</button>
+        <button id="btnClaim" style="width:100%;height:54px;border-radius:26px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0;cursor:pointer;font-size:15px;margin-top:12px">CONTINUAR +0.01 WASA</button>
+        <button id="btnX2" style="width:100%;height:54px;margin-top:10px;border-radius:26px;background:linear-gradient(90deg,#FF00D4,#00F0FF);color:#fff;font-weight:900;border:0;cursor:pointer;font-size:15px">X2 ANUNCIO → 0.02 WASA</button>
       </div></div>`;
-      elWin.querySelector('#btnClaim').onclick=async(e)=>{ e.target.textContent='VALIDANDO...'; const ok=await claim(false,false); e.target.textContent=ok?'✅ +0.01 ACREDITADO':'REINTENTAR'; if(ok) setTimeout(()=>newRound(),1200); };
-      elWin.querySelector('#btnX2').onclick=()=>{ window.vrAd=1; window.vrAdType='double'; window._sapoPending=true; elWin.querySelector('#btnX2').textContent='CARGANDO ANUNCIO...'; };
-      elWin.querySelector('#btnCont').onclick=()=>newRound();
+      elWin.querySelector('#btnClaim').onclick=async(e)=>{
+        e.target.textContent='VALIDANDO...'; e.target.disabled=true;
+        const ok=await claim(false,false);
+        if(ok){ e.target.textContent='✅ +0.01 ACREDITADO'; setTimeout(()=>newRound(),700); }
+        else{ e.target.textContent='ERROR - REINTENTAR'; e.target.disabled=false; }
+      };
+      elWin.querySelector('#btnX2').onclick=()=>{
+        window.vrAd=1; window.vrAdType='double'; window._sapoPending=true;
+        elWin.querySelector('#btnX2').textContent='CARGANDO ANUNCIO...';
+      };
     }else if(lose){
       elWin.innerHTML=`
       <div class="ah-win"><div class="ah-win-card" style="background:#ffe0e0;border-color:#7a0000">
         <div style="font-size:48px">💦</div>
         <h2 style="margin:8px 0;font-weight:900;color:#7a0000">¡SE CAYÓ AL AGUA!</h2>
         <div style="font-size:14px;margin:6px 0">Era: <b>${word}</b></div>
-        <button id="btnRetry" style="width:100%;height:48px;margin-top:12px;border-radius:24px;background:#2b1a0a;color:#fff;font-weight:900;border:0;cursor:pointer">REINTENTAR</button>
+        <button id="btnRetry" style="width:100%;height:50px;margin-top:12px;border-radius:24px;background:#2b1a0a;color:#fff;font-weight:900;border:0;cursor:pointer">REINTENTAR</button>
       </div></div>`;
       elWin.querySelector('#btnRetry').onclick=()=>newRound();
     }
   }
 
-  // ad x2 listener
   const adIv=setInterval(async()=>{
     if(window.vrAd===4 && window.vrAdType==='double' && window._sapoPending){
       window.vrAd=0; window.vrAdType=null; window._sapoPending=false;
@@ -180,7 +184,7 @@ export async function init(container, args){
         elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card"><div style="font-size:48px">✅</div><h2>¡X2 ACREDITADO!</h2><div style="margin:10px 0;font-weight:900">+0.02 WASA</div><button id="btnNext" style="width:100%;height:44px;border-radius:22px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0">SIGUIENTE</button></div></div>`;
         elWin.querySelector('#btnNext').onclick=()=>newRound();
       }else{
-        elWin.querySelector('#btnX2')&&(elWin.querySelector('#btnX2').textContent='ERROR - REINTENTAR');
+        const b=elWin.querySelector('#btnX2'); if(b) b.textContent='ERROR - REINTENTAR';
       }
     }
   },500);
