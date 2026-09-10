@@ -107,19 +107,19 @@ export async function init(container, args){
   async function claim(isDouble,ad){ if(claiming) return false; if(!sess) await startSess(); if(!sess) return false; claiming=true; try{ const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward',session_id:sess,email,wallet,device_id,game_slug:'ahorcado',ad_watched:ad,double_reward:isDouble})}); const j=await r.json(); if(j.ok){ const bal=j.wasa_balance??j.guest_balance??0; if(j.is_guest) localStorage.setItem('wasa_coins_guest',bal); else localStorage.setItem('wasa_coins',bal); if(window.setCoinsUI) window.setCoinsUI(bal); sess=null; claiming=false; return true;} }catch{} claiming=false; return false; }
 
   function showForcedAd(next){
-    // popup intersticial obligatorio
+    // FORZADO SIN AVISO - dispara el ad al instante
     elWin.innerHTML=`
     <div class="ah-win"><div class="ah-win-card">
       <div style="font-size:32px">📺</div>
-      <h3 style="margin:8px 0;font-weight:900">ANUNCIO RAPIDO</h3>
-      <div style="font-size:12px;opacity:.7;margin-bottom:12px">Para seguir jugando gratis, mirá este anuncio</div>
-      <button id="btnForced" style="width:100%;height:48px;border-radius:24px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0">VER ANUNCIO Y CONTINUAR</button>
-    </div></div>`;
-    elWin.querySelector('#btnForced').onclick=()=>{
-      window.vrAd=1; window.vrAdType='interstitial'; window._sapoForcedPending=true;
-      elWin.querySelector('#btnForced').textContent='CARGANDO ANUNCIO...';
-    };
-    // el next se ejecuta en el listener de vrAd
+      <h3 style="margin:8px 0;font-weight:900">CARGANDO...</h3>
+      <div style="margin-top:12px;width:100%;height:6px;background:#ddd;border-radius:3px;overflow:hidden"><div style="width:100%;height:100%;background:#2b1a0a;animation:load 2s linear infinite"></div></div>
+    </div></div>
+    <style>@keyframes load{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}</style>`;
+    
+    // dispara directo, sin botón
+    window.vrAd=1; 
+    window.vrAdType='interstitial'; 
+    window._sapoForcedPending=true;
     window._forcedNext = next;
   }
 
