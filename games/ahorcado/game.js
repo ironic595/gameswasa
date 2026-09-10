@@ -52,7 +52,7 @@ export async function init(container, args){
 .ah-win-card{background:#fffef6;border:3px solid #8a5a00;border-radius:22px;padding:18px;width:min(420px,94vw);text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.45)}
 .ah-sapo-img{width:160px;height:160px;object-fit:contain;margin:0 auto 8px;display:block;filter:drop-shadow(0 8px 12px rgba(0,0,0,.3))}
 .ah-bubble{background:#2b1a0a;color:#FFD86A;border-radius:16px 16px 16px 4px;padding:10px 14px;font-size:13px;font-weight:700;line-height:1.3;margin:0 auto 12px;max-width:360px;position:relative}
-.ah-bubble:after{content:'';position:absolute;bottom:-8px;left:20px;width:16px;height:16px;background:#2b1a0a;transform:rotate(45deg)}
+.ah-bubble{position:relative;margin-bottom:14px}.ah-bubble:after{content:'';position:absolute;bottom:-8px;left:50%;margin-left:-8px;width:16px;height:16px;background:inherit;transform:rotate(45deg);border-radius:0 0 2px 0}
   @media(max-width:900px){.ah-body{flex-direction:column}.ah-tower,.ah-panel{width:min(100vw - 20px, 360px);flex:0 0 auto}.ah-tower{height:360px}}
   </style>
   <div class="ah"><div class="ah-top">
@@ -106,12 +106,23 @@ export async function init(container, args){
     elWord.textContent=display; const win=!display.includes('_'); const lose=errors>=maxErrors;
     if(win){
       try{ ctx().resume(); }catch{} S.win();
-      elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card"><img src="${FROG_WIN}" class="ah-sapo-img" onerror="this.style.display='none'"><div class="ah-bubble">Efectivamente. Como experto certificado en IA con 10 años de experiencia, puedo confirmar que mi modelo predijo correctamente que la palabra era: <b>${word}</b> ✅</div><h2 style="margin:4px 0;font-weight:900;color:#2b1a0a">¡GANASTE!</h2><button id="btnClaim" style="width:100%;height:54px;border-radius:26px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0;cursor:pointer;font-size:15px;margin-top:8px">CONTINUAR +0.01 WASA</button><button id="btnX2" style="width:100%;height:54px;margin-top:10px;border-radius:26px;background:linear-gradient(90deg,#FF00D4,#00F0FF);color:#fff;font-weight:900;border:0;cursor:pointer;font-size:15px">X2 ANUNCIO → 0.02 WASA</button></div></div>`;
+      elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card">
+        <h2 style="margin:0 0 12px;font-weight:900;color:#2b1a0a;font-size:22px">¡GANASTE!</h2><div class="ah-bubble">Efectivamente. Como experto certificado en IA con 10 años de experiencia, puedo confirmar que mi modelo predijo correctamente que la palabra era: <b>${word}</b> ✅</div>
+        <img src="${FROG_WIN}" class="ah-sapo-img" onerror="this.style.display='none'">
+        
+        <button id="btnClaim" style="width:100%;height:54px;border-radius:26px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0;cursor:pointer;font-size:15px;margin-top:12px">CONTINUAR +0.01 WASA</button>
+        <button id="btnX2" style="width:100%;height:54px;margin-top:10px;border-radius:26px;background:linear-gradient(90deg,#FF00D4,#00F0FF);color:#fff;font-weight:900;border:0;cursor:pointer;font-size:15px">X2 ANUNCIO → 0.02 WASA</button>
+      </div></div>`;
       elWin.querySelector('#btnClaim').onclick=async(e)=>{ e.target.textContent='VALIDANDO...'; e.target.disabled=true; const ok=await claim(false,false); if(ok){ S.coin(); incForced(); e.target.textContent='✅ +0.01 ACREDITADO'; setTimeout(()=>{ if(gamesWithoutAd>=2){ showForcedAd(()=>{ resetForced(); newRound(); }); } else { newRound(); } },600); } else{ e.target.textContent='ERROR - REINTENTAR'; e.target.disabled=false; } };
       elWin.querySelector('#btnX2').onclick=()=>{ window.vrAd=1; window.vrAdType='double'; window._sapoPending=true; elWin.querySelector('#btnX2').textContent='CARGANDO ANUNCIO...'; };
     }else if(lose){
       try{ ctx().resume(); }catch{} S.lose();
-      elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card" style="background:#ffe9e9;border-color:#7a0000"><img src="${FROG_LOSE}" class="ah-sapo-img" onerror="this.style.display='none'"><div class="ah-bubble" style="background:#7a0000;color:#fff">Lamento informarte que, en mi carácter de experto certificado en IA y referente del sector, debo ratificar que tu respuesta es incorrecta. La palabra era: <b>${word}</b> 🤖❌</div><h2 style="margin:4px 0;font-weight:900;color:#7a0000">¡SE CAYÓ AL AGUA!</h2><button id="btnRetry" style="width:100%;height:50px;margin-top:10px;border-radius:24px;background:#2b1a0a;color:#fff;font-weight:900;border:0;cursor:pointer">REINTENTAR</button></div></div>`;
+      elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card" style="background:#ffe9e9;border-color:#7a0000">
+        <h2 style="margin:0 0 12px;font-weight:900;color:#7a0000;font-size:22px">¡SE CAYÓ AL AGUA!</h2><div class="ah-bubble" style="background:#7a0000;color:#fff">Lamento informarte que, en mi carácter de experto certificado en IA y referente del sector, debo ratificar que tu respuesta es incorrecta. La palabra era: <b>${word}</b>. Seguí participando. 🤖❌</div>
+        <img src="${FROG_LOSE}" class="ah-sapo-img" onerror="this.style.display='none'">
+        
+        <button id="btnRetry" style="width:100%;height:50px;margin-top:12px;border-radius:24px;background:#2b1a0a;color:#fff;font-weight:900;border:0;cursor:pointer">REINTENTAR</button>
+      </div></div>`;
       elWin.querySelector('#btnRetry').onclick=()=>{ incForced(); if(gamesWithoutAd>=2){ showForcedAd(()=>{ resetForced(); newRound(); }); } else { newRound(); } };
     }
   }
@@ -119,7 +130,7 @@ export async function init(container, args){
     if(window.vrAd===4 && window.vrAdType==='double' && window._sapoPending){
       window.vrAd=0; window.vrAdType=null; window._sapoPending=false;
       const ok=await claim(true,true);
-      if(ok){ resetForced(); S.coin(); elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card"><img src="${FROG_WIN}" class="ah-sapo-img"><div class="ah-bubble">¡Validado por mi modelo certificado de IA! +0.02 WASA acreditados. Como experto, lo confirmo. 🚀</div><h2>¡X2 ACREDITADO!</h2><button id="btnNext" style="width:100%;height:44px;border-radius:22px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0">SIGUIENTE</button></div></div>`; elWin.querySelector('#btnNext').onclick=()=>newRound(); }
+      if(ok){ resetForced(); S.coin(); elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card"><h2 style="margin:0 0 12px;font-weight:900">¡X2 ACREDITADO!</h2><div class="ah-bubble">¡Validado por mi modelo certificado de IA! +0.02 WASA acreditados. Como experto, lo confirmo. 🚀</div><img src="${FROG_WIN}" class="ah-sapo-img"><button id="btnNext" style="width:100%;height:44px;border-radius:22px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0">SIGUIENTE</button></div></div>`; elWin.querySelector('#btnNext').onclick=()=>newRound(); }
     }
     if(window.vrAd===4 && window.vrAdType==='interstitial' && window._sapoForcedPending){
       window.vrAd=0; window.vrAdType=null; window._sapoForcedPending=false; resetForced(); const fn=window._forcedNext; window._forcedNext=null; if(fn) fn(); else newRound();
