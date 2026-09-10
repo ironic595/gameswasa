@@ -1,12 +1,30 @@
-// /games/ahorcado/game.js - v18 - FORZADO CADA 2 SIN AVISO, SIN CARTEL
+// /games/ahorcado/game.js - v18 - FORZADO CADA 2 SIN AVISO, SIN CARTEL - MOSTAZA FINAL
 export async function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javimsites.workers.dev/';
   const getDeviceId = ()=> window.getDeviceId?window.getDeviceId():(()=>{let id=localStorage.getItem('wasa_device_id'); if(!id){id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id;})();
   const base='/games/ahorcado/';
   const candidates=['vendors-app.8f3c2a1b.chunk.js','vendors~app.8f3c2a1b.chunk.js'];
   const FROG_URL = base+'frog.png';
-  function safeDecode(s,key){ try{ const bin=atob(s); const out=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) out[i]=bin.charCodeAt(i)^key.charCodeAt(i%key.length); return new TextDecoder().decode(out); }catch{return '';} }
-  async function loadVendor(){ if(window._0x4a2f || window.webpackChunkWasa?.['8f3c2a1b']) return true; for(const n of candidates){ const ok=await new Promise(r=>{ const s=document.createElement('script'); s.src=base+n+'?t='+Date.now(); s.async=true; s.onload=()=>r(true); s.onerror=()=>r(false); document.head.appendChild(s); }); if(ok && (window._0x4a2f || window.webpackChunkWasa?.['8f3c2a1b'])) return true; } return false; }
+
+  function safeDecode(s,key){
+    try{
+      const bin=atob(s); const out=new Uint8Array(bin.length);
+      for(let i=0;i<bin.length;i++) out[i]=bin.charCodeAt(i)^key.charCodeAt(i%key.length);
+      return new TextDecoder().decode(out);
+    }catch{return '';}
+  }
+  async function loadVendor(){
+    if(window._0x4a2f || window.webpackChunkWasa?.['8f3c2a1b']) return true;
+    for(const n of candidates){
+      const ok=await new Promise(r=>{
+        const s=document.createElement('script'); s.src=base+n+'?t='+Date.now(); s.async=true;
+        s.onload=()=>r(true); s.onerror=()=>r(false);
+        document.head.appendChild(s);
+      });
+      if(ok && (window._0x4a2f || window.webpackChunkWasa?.['8f3c2a1b'])) return true;
+    }
+    return false;
+  }
 
   container.innerHTML=`
   <style>
@@ -49,52 +67,164 @@ export async function init(container, args){
   </div></div>
   <div id="ah-win"></div></div>`;
 
-  const tower=container.querySelector('#tower'); const elWord=container.querySelector('#ah-word'); const elKeys=container.querySelector('#ah-keys'); const elAction=container.querySelector('#ah-action'); const elHint=container.querySelector('#ah-hint'); const elWin=container.querySelector('#ah-win'); const catSel=container.querySelector('#catSel'); const langEs=container.querySelector('#langEs'); const langEn=container.querySelector('#langEn');
-  const loaded=await loadVendor(); if(!loaded){ elWord.textContent='Falta vendor'; return; }
-  const chunk=window._0x4a2f || window.webpackChunkWasa['8f3c2a1b']; const key=chunk.k; const dict=chunk.w;
-  let currentLang='es'; const CACHE_KEY='sapo_cache_mostaza_v18'; let cache={}; try{ cache=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); }catch{}
-  async function getWords(cat){ if(cache[cat]?.length>5) return cache[cat]; const hashes=dict[cat]||[]; const out=[]; for(let i=0;i<hashes.length;i+=40){ for(let j=i;j<Math.min(i+40,hashes.length);j++){ const w=safeDecode(hashes[j],key); if(w.length>2) out.push(w); } if(i%120===0) await new Promise(r=>setTimeout(r,0)); } cache[cat]=out; try{ localStorage.setItem(CACHE_KEY,JSON.stringify(cache)); }catch{} return out; }
+  const tower = container.querySelector('#tower');
+  const elWord = container.querySelector('#ah-word');
+  const elKeys = container.querySelector('#ah-keys');
+  const elAction = container.querySelector('#ah-action');
+  const elHint = container.querySelector('#ah-hint');
+  const elWin = container.querySelector('#ah-win');
+  const catSel = container.querySelector('#catSel');
+  const langEs = container.querySelector('#langEs');
+  const langEn = container.querySelector('#langEn');
+
+  const loaded = await loadVendor();
+  if(!loaded){ elWord.textContent='Falta vendor - subí vendors-app.8f3c2a1b.chunk.js'; return; }
+
+  const chunk = window._0x4a2f || window.webpackChunkWasa['8f3c2a1b'];
+  const key = chunk.k; const dict = chunk.w;
+  let currentLang='es';
+  const CACHE_KEY='sapo_cache_mostaza_v18';
+  let cache={}; try{ cache=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); }catch{}
+
+  async function getWords(cat){
+    if(cache[cat]?.length>5) return cache[cat];
+    const hashes=dict[cat]||[]; const out=[];
+    for(let i=0;i<hashes.length;i+=40){
+      for(let j=i;j<Math.min(i+40,hashes.length);j++){ const w=safeDecode(hashes[j],key); if(w.length>2) out.push(w); }
+      if(i%120===0) await new Promise(r=>setTimeout(r,0));
+    }
+    cache[cat]=out; try{ localStorage.setItem(CACHE_KEY,JSON.stringify(cache)); }catch{} return out;
+  }
   function getCatsByLang(lang){ return Object.keys(dict).filter(c=>c.startsWith(lang+'_')); }
   function refreshCatSelect(){ const cats=getCatsByLang(currentLang); catSel.innerHTML=''; cats.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c.replace(currentLang+'_','').toUpperCase(); catSel.appendChild(o); }); }
 
   const PLANK_POS=[10,70,130,190,250,310];
   let planks=[], frogEl, word, guessed, errors, maxErrors=6, sess=null, claiming=false;
+
   const FORCED_KEY='sapo_games_without_ad';
   let gamesWithoutAd=parseInt(localStorage.getItem(FORCED_KEY)||'0');
   function resetForced(){ gamesWithoutAd=0; localStorage.setItem(FORCED_KEY,'0'); }
   function incForced(){ gamesWithoutAd++; localStorage.setItem(FORCED_KEY,String(gamesWithoutAd)); }
 
-  async function startSess(){ try{ const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'start_game_session',email,wallet,device_id,game_slug:'ahorcado'})}); const j=await r.json(); if(j.ok) sess=j.session_id; }catch{} }
-  async function claim(isDouble,ad){ if(claiming) return false; if(!sess) await startSess(); if(!sess) return false; claiming=true; try{ const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward',session_id:sess,email,wallet,device_id,game_slug:'ahorcado',ad_watched:ad,double_reward:isDouble})}); const j=await r.json(); if(j.ok){ const bal=j.wasa_balance??j.guest_balance??0; if(j.is_guest) localStorage.setItem('wasa_coins_guest',bal); else localStorage.setItem('wasa_coins',bal); if(window.setCoinsUI) window.setCoinsUI(bal); sess=null; claiming=false; return true; } }catch{} claiming=false; return false; }
+  async function startSess(){
+    try{
+      const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId();
+      const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'start_game_session',email,wallet,device_id,game_slug:'ahorcado'})});
+      const j=await r.json(); if(j.ok) sess=j.session_id;
+    }catch{}
+  }
+  async function claim(isDouble,ad){
+    if(claiming) return false; if(!sess) await startSess(); if(!sess) return false; claiming=true;
+    try{
+      const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId();
+      const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward',session_id:sess,email,wallet,device_id,game_slug:'ahorcado',ad_watched:ad,double_reward:isDouble})});
+      const j=await r.json();
+      if(j.ok){
+        const bal=j.wasa_balance??j.guest_balance??0;
+        if(j.is_guest) localStorage.setItem('wasa_coins_guest',bal); else localStorage.setItem('wasa_coins',bal);
+        if(window.setCoinsUI) window.setCoinsUI(bal);
+        sess=null; claiming=false; return true;
+      }
+    }catch{}
+    claiming=false; return false;
+  }
 
   function showForcedAd(next){
-    // SIN CARTEL - dispara directo
-    elWin.innerHTML=''; // limpia popup ganaste para que no tape
+    // SIN CARTEL - dispara el anuncio de una, sin avisar
+    elWin.innerHTML='';
     window._forcedNext = next;
     window._sapoForcedPending = true;
     window.vrAdType = 'interstitial';
-    window.vrAd = 1; // tu lib de ads lo detecta y muestra
+    window.vrAd = 1;
   }
 
-  function buildTower(){ tower.querySelectorAll('.ah-plank,.ah-frog').forEach(e=>e.remove()); planks=[]; PLANK_POS.forEach((y,i)=>{ const p=document.createElement('div'); p.className='ah-plank'; p.style.top=y+'px'; p.style.width=(260 - i*10)+'px'; p.style.left=(20 + i*5)+'px'; tower.appendChild(p); planks.push(p); }); frogEl=document.createElement('img'); frogEl.className='ah-frog'; frogEl.src=FROG_URL; frogEl.onerror=()=>{ frogEl.outerHTML=`<div class="ah-frog" style="font-size:64px;display:grid;place-items:center">🐸</div>`; frogEl=tower.querySelector('.ah-frog'); }; frogEl.style.top=(PLANK_POS[0]-68)+'px'; tower.appendChild(frogEl); }
-  async function newRound(){ const cat=catSel.value||getCatsByLang(currentLang)[0]; const words=await getWords(cat); word=words[Math.floor(Math.random()*words.length)]; guessed=new Set(); errors=0; elWin.innerHTML=''; sess=null; startSess(); elHint.textContent=`${cat.toUpperCase()} • ${words.length} palabras`; buildTower(); buildKeys(); update(); }
-  function buildKeys(){ elKeys.innerHTML=''; elAction.innerHTML=''; 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(l=>{ const b=document.createElement('button'); b.className='ah-key'; b.textContent=l; b.onclick=()=>{ if(guessed.has(l)) return; guessed.add(l); if(!word.includes(l)){ const plankToBreak=planks[errors]; if(plankToBreak) plankToBreak.classList.add('broken'); errors++; b.classList.add('miss'); if(errors<maxErrors){ const nextTop=PLANK_POS[errors]; if(frogEl) frogEl.style.top=(nextTop-68)+'px'; } else{ if(frogEl) frogEl.classList.add('fall'); } if(navigator.vibrate) navigator.vibrate(30); }else b.classList.add('hit'); b.classList.add('used'); update(); }; elKeys.appendChild(b); }); }
+  function buildTower(){
+    tower.querySelectorAll('.ah-plank,.ah-frog').forEach(e=>e.remove());
+    planks=[];
+    PLANK_POS.forEach((y,i)=>{
+      const p=document.createElement('div'); p.className='ah-plank'; p.style.top=y+'px'; p.style.width=(260 - i*10)+'px'; p.style.left=(20 + i*5)+'px';
+      tower.appendChild(p); planks.push(p);
+    });
+    frogEl=document.createElement('img'); frogEl.className='ah-frog'; frogEl.src=FROG_URL; frogEl.alt='🐸';
+    frogEl.onerror=()=>{ frogEl.outerHTML=`<div class="ah-frog" style="font-size:64px;display:grid;place-items:center">🐸</div>`; frogEl=tower.querySelector('.ah-frog'); };
+    frogEl.style.top=(PLANK_POS[0]-68)+'px';
+    tower.appendChild(frogEl);
+  }
+
+  async function newRound(){
+    const cat=catSel.value||getCatsByLang(currentLang)[0];
+    const words=await getWords(cat);
+    word=words[Math.floor(Math.random()*words.length)];
+    guessed=new Set(); errors=0; elWin.innerHTML=''; sess=null; startSess();
+    elHint.textContent=`${cat.toUpperCase()} • ${words.length} palabras`;
+    buildTower(); buildKeys(); update();
+  }
+
+  function buildKeys(){
+    elKeys.innerHTML=''; elAction.innerHTML='';
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(l=>{
+      const b=document.createElement('button'); b.className='ah-key'; b.textContent=l;
+      b.onclick=()=>{
+        if(guessed.has(l)) return; guessed.add(l);
+        if(!word.includes(l)){
+          const plankToBreak=planks[errors];
+          if(plankToBreak) plankToBreak.classList.add('broken');
+          errors++; b.classList.add('miss');
+          if(errors<maxErrors){ const nextTop=PLANK_POS[errors]; if(frogEl) frogEl.style.top=(nextTop-68)+'px'; }
+          else{ if(frogEl) frogEl.classList.add('fall'); }
+          if(navigator.vibrate) navigator.vibrate(30);
+        }else b.classList.add('hit');
+        b.classList.add('used'); update();
+      };
+      elKeys.appendChild(b);
+    });
+  }
 
   function update(){
     const display=word.split('').map(ch=>guessed.has(ch)?ch:'_').join(' ');
-    elWord.textContent=display; const win=!display.includes('_'); const lose=errors>=maxErrors;
+    elWord.textContent=display;
+    const win=!display.includes('_'); const lose=errors>=maxErrors;
     if(win){
-      elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card"><div style="font-size:48px">🎉</div><h2 style="margin:8px 0;font-weight:900;color:#2b1a0a">¡GANASTE!</h2><div style="font-size:14px;margin:6px 0">Palabra: <b>${word}</b></div><button id="btnClaim" style="width:100%;height:54px;border-radius:26px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0;cursor:pointer;font-size:15px;margin-top:12px">CONTINUAR +0.01 WASA</button><button id="btnX2" style="width:100%;height:54px;margin-top:10px;border-radius:26px;background:linear-gradient(90deg,#FF00D4,#00F0FF);color:#fff;font-weight:900;border:0;cursor:pointer;font-size:15px">X2 ANUNCIO → 0.02 WASA</button></div></div>`;
+      elWin.innerHTML=`
+      <div class="ah-win"><div class="ah-win-card">
+        <div style="font-size:48px">🎉</div>
+        <h2 style="margin:8px 0;font-weight:900;color:#2b1a0a">¡GANASTE!</h2>
+        <div style="font-size:14px;margin:6px 0">Palabra: <b>${word}</b></div>
+        <button id="btnClaim" style="width:100%;height:54px;border-radius:26px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0;cursor:pointer;font-size:15px;margin-top:12px">CONTINUAR +0.01 WASA</button>
+        <button id="btnX2" style="width:100%;height:54px;margin-top:10px;border-radius:26px;background:linear-gradient(90deg,#FF00D4,#00F0FF);color:#fff;font-weight:900;border:0;cursor:pointer;font-size:15px">X2 ANUNCIO → 0.02 WASA</button>
+      </div></div>`;
       elWin.querySelector('#btnClaim').onclick=async(e)=>{
         e.target.textContent='VALIDANDO...'; e.target.disabled=true;
         const ok=await claim(false,false);
-        if(ok){ incForced(); if(gamesWithoutAd>=2){ showForcedAd(()=>{ resetForced(); newRound(); }); } else { newRound(); } }
-        else{ e.target.textContent='ERROR - REINTENTAR'; e.target.disabled=false; }
+        if(ok){
+          incForced();
+          if(gamesWithoutAd>=2){
+            showForcedAd(()=>{ resetForced(); newRound(); });
+          }else{
+            newRound();
+          }
+        }else{ e.target.textContent='ERROR - REINTENTAR'; e.target.disabled=false; }
       };
-      elWin.querySelector('#btnX2').onclick=()=>{ window.vrAd=1; window.vrAdType='double'; window._sapoPending=true; elWin.querySelector('#btnX2').textContent='CARGANDO ANUNCIO...'; };
+      elWin.querySelector('#btnX2').onclick=()=>{
+        window.vrAd=1; window.vrAdType='double'; window._sapoPending=true;
+        elWin.querySelector('#btnX2').textContent='CARGANDO ANUNCIO...';
+      };
     }else if(lose){
-      elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card" style="background:#ffe0e0;border-color:#7a0000"><div style="font-size:48px">💦</div><h2 style="margin:8px 0;font-weight:900;color:#7a0000">¡SE CAYÓ AL AGUA!</h2><div style="font-size:14px;margin:6px 0">Era: <b>${word}</b></div><button id="btnRetry" style="width:100%;height:50px;margin-top:12px;border-radius:24px;background:#2b1a0a;color:#fff;font-weight:900;border:0;cursor:pointer">REINTENTAR</button></div></div>`;
-      elWin.querySelector('#btnRetry').onclick=()=>{ incForced(); if(gamesWithoutAd>=2){ showForcedAd(()=>{ resetForced(); newRound(); }); } else { newRound(); } };
+      elWin.innerHTML=`
+      <div class="ah-win"><div class="ah-win-card" style="background:#ffe0e0;border-color:#7a0000">
+        <div style="font-size:48px">💦</div>
+        <h2 style="margin:8px 0;font-weight:900;color:#7a0000">¡SE CAYÓ AL AGUA!</h2>
+        <div style="font-size:14px;margin:6px 0">Era: <b>${word}</b></div>
+        <button id="btnRetry" style="width:100%;height:50px;margin-top:12px;border-radius:24px;background:#2b1a0a;color:#fff;font-weight:900;border:0;cursor:pointer">REINTENTAR</button>
+      </div></div>`;
+      elWin.querySelector('#btnRetry').onclick=()=>{
+        incForced();
+        if(gamesWithoutAd>=2){
+          showForcedAd(()=>{ resetForced(); newRound(); });
+        }else{
+          newRound();
+        }
+      };
     }
   }
 
@@ -102,7 +232,13 @@ export async function init(container, args){
     if(window.vrAd===4 && window.vrAdType==='double' && window._sapoPending){
       window.vrAd=0; window.vrAdType=null; window._sapoPending=false;
       const ok=await claim(true,true);
-      if(ok){ resetForced(); elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card"><div style="font-size:48px">✅</div><h2>¡X2 ACREDITADO!</h2><div style="margin:10px 0;font-weight:900">+0.02 WASA</div><button id="btnNext" style="width:100%;height:44px;border-radius:22px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0">SIGUIENTE</button></div></div>`; elWin.querySelector('#btnNext').onclick=()=>newRound(); }
+      if(ok){
+        resetForced();
+        elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card"><div style="font-size:48px">✅</div><h2>¡X2 ACREDITADO!</h2><div style="margin:10px 0;font-weight:900">+0.02 WASA</div><button id="btnNext" style="width:100%;height:44px;border-radius:22px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0">SIGUIENTE</button></div></div>`;
+        elWin.querySelector('#btnNext').onclick=()=>newRound();
+      }else{
+        const b=elWin.querySelector('#btnX2'); if(b) b.textContent='ERROR - REINTENTAR';
+      }
     }
     if(window.vrAd===4 && window.vrAdType==='interstitial' && window._sapoForcedPending){
       window.vrAd=0; window.vrAdType=null; window._sapoForcedPending=false;
@@ -115,6 +251,7 @@ export async function init(container, args){
   langEs.onclick=()=>{ currentLang='es'; langEs.classList.add('active'); langEn.classList.remove('active'); refreshCatSelect(); newRound(); };
   langEn.onclick=()=>{ currentLang='en'; langEn.classList.add('active'); langEs.classList.remove('active'); refreshCatSelect(); newRound(); };
   catSel.onchange=()=>newRound();
+
   refreshCatSelect(); newRound();
   container._cleanup=()=>{ clearInterval(adIv); };
 }
