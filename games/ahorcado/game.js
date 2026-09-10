@@ -1,4 +1,4 @@
-// /games/ahorcado/game.js - SAPO MOSTAZA v13 - TABLAS + IDIOMA + TODAS LAS PALABRAS + NO SE TRABA
+// /games/ahorcado/game.js - SAPO MOSTAZA v14 - FIX: TABLAS DESAPARECEN DE ARRIBA PARA ABAJO
 export async function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javimsites.workers.dev/';
   const getDeviceId = ()=> window.getDeviceId?window.getDeviceId():(()=>{let id=localStorage.getItem('wasa_device_id'); if(!id){id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id;})();
@@ -16,13 +16,16 @@ export async function init(container, args){
   async function loadVendor(){
     if(window._0x4a2f || window.webpackChunkWasa?.['8f3c2a1b']) return true;
     for(const n of candidates){
-      const ok=await new Promise(r=>{ const s=document.createElement('script'); s.src=base+n+'?t='+Date.now(); s.async=true; s.onload=()=>r(true); s.onerror=()=>r(false); document.head.appendChild(s); });
+      const ok=await new Promise(r=>{
+        const s=document.createElement('script'); s.src=base+n+'?t='+Date.now(); s.async=true;
+        s.onload=()=>r(true); s.onerror=()=>r(false);
+        document.head.appendChild(s);
+      });
       if(ok && (window._0x4a2f || window.webpackChunkWasa?.['8f3c2a1b'])) return true;
     }
     return false;
   }
 
-  // UI MOSTAZA - se crea una vez
   container.innerHTML=`
   <style>
 .ah{background:#D4A12C;color:#2b1a0a;width:100%;height:100%;display:flex;flex-direction:column;font-family:'Space Grotesk',system-ui;overflow:hidden}
@@ -33,16 +36,16 @@ export async function init(container, args){
 .ah-wrap{flex:1;display:flex;justify-content:center;align-items:center;padding:12px;overflow:auto;background:radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.25) 0%, transparent 60%), #D4A12C}
 .ah-body{display:flex;gap:16px;align-items:flex-start;justify-content:center;margin:auto}
 .ah-tower{flex:0 0 280px;width:280px;height:420px;background:#fff9e6;border:3px solid #8a5a00;border-radius:18px;position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.25)}
-.ah-water{position:absolute;bottom:0;left:0;right:0;height:38px;background:#5DE0F5;border-top:3px solid #1aa3b8;border-radius:0 0 15px 15px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#0a4a55}
-.ah-plank{position:absolute;left:20px;right:20px;height:18px;background:linear-gradient(180deg,#FF8C1A,#CC5A00);border:2px solid #7a2e00;border-radius:9px;box-shadow:0 2px 0 rgba(0,0,0,.2);transition:transform.6s cubic-bezier(.6,-0.28,.74,.05), opacity.4s}
-.ah-plank.broken{transform:translateY(400px) rotate(35deg);opacity:0}
-.ah-frog{position:absolute;width:78px;height:78px;left:50%;transform:translateX(-50%);transition:top.5s ease, transform.5s ease;z-index:5;object-fit:contain;filter:drop-shadow(0 4px 6px rgba(0,0,0,.3))}
+.ah-water{position:absolute;bottom:0;left:0;right:0;height:38px;background:#5DE0F5;border-top:3px solid #1aa3b8;border-radius:0 0 15px 15px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#0a4a55;z-index:2}
+.ah-plank{position:absolute;left:20px;right:20px;height:18px;background:linear-gradient(180deg,#FF8C1A,#CC5A00);border:2px solid #7a2e00;border-radius:9px;box-shadow:0 2px 0 rgba(0,0,0,.2);transition:transform.6s cubic-bezier(.6,-0.28,.74,.05), opacity.4s;z-index:3}
+.ah-plank.broken{transform:translateY(500px) rotate(35deg);opacity:0;pointer-events:none}
+.ah-frog{position:absolute;width:78px;height:78px;left:50%;transform:translateX(-50%);transition:top.45s cubic-bezier(.34,1.56,.64,1), transform.5s ease;z-index:6;object-fit:contain;filter:drop-shadow(0 4px 6px rgba(0,0,0,.3))}
 .ah-frog.fall{top:370px!important;transform:translateX(-50%) rotate(25deg) scale(.8)}
 .ah-panel{flex:0 0 360px;width:360px;display:flex;flex-direction:column;gap:10px}
 .ah-card{background:#fffef6;border:2px solid #8a5a00;border-radius:14px;padding:12px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
 .ah-word{font-size:24px;letter-spacing:5px;font-weight:900;text-align:center;font-family:monospace;min-height:34px;color:#2b1a0a}
 .ah-keys{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-.ah-key{height:38px;border-radius:8px;background:#fff;border:2px solid #8a5a00;color:#2b1a0a;font-weight:800;cursor:pointer}
+.ah-key{height:38px;border-radius:8px;background:#fff;border:2px solid #8a5a00;color:#2b1a0a;font-weight:800;cursor:pointer;touch-action:manipulation}
 .ah-key.used{opacity:.3;pointer-events:none}
 .ah-key.hit{background:#2ECC71;border-color:#1a7a42;color:#fff}
 .ah-key.miss{background:#FF3B30;border-color:#7a0000;color:#fff}
@@ -71,12 +74,12 @@ export async function init(container, args){
   const langEn = container.querySelector('#langEn');
 
   const loaded = await loadVendor();
-  if(!loaded){ elWord.textContent='Falta vendor'; return; }
+  if(!loaded){ elWord.textContent='Falta vendor - subí vendors-app.8f3c2a1b.chunk.js'; return; }
 
   const chunk = window._0x4a2f || window.webpackChunkWasa['8f3c2a1b'];
   const key = chunk.k; const dict = chunk.w;
-  let currentLang = 'es';
-  const CACHE_KEY='sapo_cache_mostaza_v13';
+  let currentLang='es';
+  const CACHE_KEY='sapo_cache_mostaza_v14';
   let cache={}; try{ cache=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); }catch{}
 
   async function getWords(cat){
@@ -89,33 +92,28 @@ export async function init(container, args){
     cache[cat]=out; try{ localStorage.setItem(CACHE_KEY,JSON.stringify(cache)); }catch{}
     return out;
   }
-
-  function getCatsByLang(lang){
-    return Object.keys(dict).filter(c=>c.startsWith(lang+'_'));
-  }
-
+  function getCatsByLang(lang){ return Object.keys(dict).filter(c=>c.startsWith(lang+'_')); }
   function refreshCatSelect(){
-    const cats = getCatsByLang(currentLang);
-    catSel.innerHTML='';
-    cats.forEach(c=>{
-      const o=document.createElement('option'); o.value=c; o.textContent=c.replace(currentLang+'_','').toUpperCase();
-      catSel.appendChild(o);
-    });
+    const cats=getCatsByLang(currentLang);
+    catSel.innerHTML=''; cats.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c.replace(currentLang+'_','').toUpperCase(); catSel.appendChild(o); });
   }
 
-  // torre de tablas
-  const PLANK_POS = [30,90,150,210,270,330]; // y de cada tabla (6 tablas)
+  // 6 tablas de arriba a abajo
+  const PLANK_POS = [30,90,150,210,270,330];
   let planks=[], frogEl, word, guessed, errors, maxErrors=6;
 
   function buildTower(){
     tower.querySelectorAll('.ah-plank,.ah-frog').forEach(e=>e.remove());
     planks=[];
     PLANK_POS.forEach((y,i)=>{
-      const p=document.createElement('div'); p.className='ah-plank'; p.style.top=y+'px'; p.style.width=(220 - i*10)+'px'; p.style.left=(40 + i*5)+'px';
+      const p=document.createElement('div'); p.className='ah-plank';
+      p.style.top=y+'px'; p.style.width=(240 - i*8)+'px'; p.style.left=(20 + i*6)+'px';
       tower.appendChild(p); planks.push(p);
     });
-    frogEl=document.createElement('img'); frogEl.className='ah-frog'; frogEl.src=FROG_URL; frogEl.onerror=()=>{ frogEl.outerHTML=`<div class="ah-frog" style="font-size:56px;display:grid;place-items:center">🐸</div>`; frogEl=container.querySelector('.ah-frog'); };
-    frogEl.style.top=(PLANK_POS[0]-62)+'px'; tower.appendChild(frogEl);
+    frogEl=document.createElement('img'); frogEl.className='ah-frog'; frogEl.src=FROG_URL; frogEl.alt='🐸';
+    frogEl.onerror=()=>{ frogEl.outerHTML=`<div class="ah-frog" style="font-size:56px;display:grid;place-items:center">🐸</div>`; frogEl=tower.querySelector('.ah-frog'); };
+    frogEl.style.top=(PLANK_POS[0]-62)+'px';
+    tower.appendChild(frogEl);
   }
 
   async function newRound(){
@@ -136,8 +134,22 @@ export async function init(container, args){
       b.onclick=()=>{
         if(guessed.has(l)) return;
         guessed.add(l);
-        if(!word.includes(l)){ errors++; b.classList.add('miss'); const plankToBreak = planks[planks.length-1-errors]; if(plankToBreak) plankToBreak.classList.add('broken'); if(errors<maxErrors){ const nextTop = PLANK_POS[errors]; if(frogEl) frogEl.style.top=(nextTop-62)+'px'; } else { if(frogEl) frogEl.classList.add('fall'); } if(navigator.vibrate) navigator.vibrate(30); }
-        else b.classList.add('hit');
+        if(!word.includes(l)){
+          // FIX: ROMPE DESDE ARRIBA HACIA ABAJO
+          const plankToBreak = planks[errors];
+          if(plankToBreak) plankToBreak.classList.add('broken');
+          errors++;
+          b.classList.add('miss');
+          if(errors < maxErrors){
+            const nextTop = PLANK_POS[errors];
+            if(frogEl) frogEl.style.top=(nextTop-62)+'px';
+          }else{
+            if(frogEl){ frogEl.classList.add('fall'); }
+          }
+          if(navigator.vibrate) navigator.vibrate(30);
+        }else{
+          b.classList.add('hit');
+        }
         b.classList.add('used');
         update();
       };
