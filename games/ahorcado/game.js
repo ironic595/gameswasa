@@ -61,7 +61,7 @@ export async function init(container, args){
   @media(max-width:900px){.ah-body{flex-direction:column}.ah-tower,.ah-panel{width:min(100vw - 20px, 360px);flex:0 0 auto}.ah-tower{height:360px}}
   </style>
   <div class="ah"><div class="ah-top">
-    <div style="font-weight:900;font-size:11px;letter-spacing:.12em">SAPO • AHORCADO MOSTAZA</div>
+    <div style="font-weight:900;font-size:11px;letter-spacing:.12em">Guess the word: AI Expert Toad</div>
     <div class="ah-lang"><button id="langEs" class="active">ES 🇪🇸</button><button id="langEn">EN 🇺🇸</button></div>
     <select id="catSel" style="height:32px;border-radius:16px;border:2px solid #8a5a00;background:#fffef6;padding:0 8px;font-weight:700;font-size:11px;max-width:140px"></select>
   </div>
@@ -155,8 +155,8 @@ export async function init(container, args){
         loseTitle:'FELL INTO WATER!',
         winBubble:(w)=>`Indeed. As a certified AI expert with 10 years of experience, I can confirm my model correctly predicted the word was: <b>${w}</b> ✅`,
         loseBubble:(w)=>`I must inform you that, in my capacity as a certified AI expert and industry reference, I must ratify that your answer is incorrect. The word was: <b>${w}</b>. Keep participating. 🤖❌`,
-        continueBtn:'CONTINUE +0.01 WASA',
-        x2Btn:'X2 AD → 0.02 WASA',
+        continueBtn:'CONTINUE +0.01 $WASA',
+        x2Btn:'X2 AD → +0.02 $WASA',
         retryBtn:'RETRY',
         x2credited:'X2 CREDITED!',
         x2bubble:'Validated by my certified AI model! +0.02 WASA credited. As an expert, I confirm. 🚀',
@@ -171,14 +171,14 @@ export async function init(container, args){
         loseTitle:'¡SE CAYÓ AL AGUA!',
         winBubble:(w)=>`Efectivamente. Como experto certificado en IA con 10 años de experiencia, puedo confirmar que mi modelo predijo correctamente que la palabra era: <b>${w}</b> ✅`,
         loseBubble:(w)=>`Lamento informarte que, en mi carácter de experto certificado en IA y referente del sector, debo ratificar que tu respuesta es incorrecta.<b>${w}</b>. Intentalo de nuevo. 🤖❌`,
-        continueBtn:'CONTINUAR +0.01 WASA',
-        x2Btn:'X2 ANUNCIO → 0.02 WASA',
+        continueBtn:'CONTINUAR +0.01 $WASA',
+        x2Btn:'VER ANUNCIO x2 → +0.02 $WASA',
         retryBtn:'REINTENTAR',
         x2credited:'¡X2 ACREDITADO!',
         x2bubble:'¡Validado por mi modelo certificado de IA! +0.02 WASA acreditados. Como experto, lo confirmo. 🚀',
         validating:'VALIDANDO...',
         accredited:'✅ +0.01 ACREDITADO',
-        loadingAd:'CARGANDO ANUNCIO...',
+        loadingAd:'CARGANDO...',
         errorRetry:'ERROR - REINTENTAR'
       };
     }
