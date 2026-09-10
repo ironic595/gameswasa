@@ -43,7 +43,7 @@ export function init(container, args){
 @media(max-width:900px){.pb6-wrap{padding:8px}.pb6-body{flex-direction:column;align-items:center;width:100%}.pb6-left{width:min(100vw - 16px, ${RN}px);flex:0 0 auto}.pb6-right{width:min(100vw - 16px, 300px);flex:0 0 auto}.pb6-canvas{width:100%!important;height:auto!important;aspect-ratio:${RN}/${NU}}}
   </style>
   <div class="pb6">
-    <div class="pb6-top"><div style="font-weight:900;font-size:11px;letter-spacing:.15em;color:#2AFF8A">RUZZLE BUBBLE • DINO PUNK</div><div id="pb6lvl" style="background:#1b1b27;border-radius:16px;padding:4px 10px;font-size:10px;font-weight:800">LVL 1</div></div>
+    <div class="pb6-top"><div style="font-weight:900;font-size:11px;letter-spacing:.15em;color:#2AFF8A">RUZZLE BUBBLE • DINO PUNK • SOUNDS</div><div id="pb6lvl" style="background:#1b1b27;border-radius:16px;padding:4px 10px;font-size:10px;font-weight:800">LVL 1</div></div>
     <div class="pb6-wrap"><div class="pb6-body">
       <div class="pb6-left"><canvas id="pb6cv" class="pb6-canvas" width="${RN}" height="${NU}"></canvas><div style="height:3px;background:#000"><div id="pb6bar" style="height:100%;background:linear-gradient(90deg,#2AFF8A,#00D4FF,#FF3BB0);width:0%"></div></div><div style="display:flex;justify-content:space-between;padding:4px 8px;font-size:8px;opacity:.4;font-family:monospace"><span>▼</span><span id="pb6ceil">45s</span><span>▼</span></div></div>
       <div class="pb6-right">
@@ -66,6 +66,38 @@ export function init(container, args){
   canvas.style.width = RN+'px'; canvas.style.height = NU+'px';
   const ctx=canvas.getContext('2d',{alpha:false}); ctx.scale(DPR,DPR);
 
+  // SOUND SYSTEM - low CPU, Web Audio API, no files
+  let audioCtx=null;
+  function getAudio(){ if(!audioCtx){ try{ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return audioCtx; }
+  function playTone(freq, type, vol, dur, slide){
+    const ctx=getAudio(); if(!ctx) return;
+    if(ctx.state==='suspended') ctx.resume();
+    const o=ctx.createOscillator(); const g=ctx.createGain();
+    o.type=type||'sine'; o.frequency.value=freq;
+    if(slide){ o.frequency.linearRampToValueAtTime(slide, ctx.currentTime+dur); }
+    g.gain.setValueAtTime(vol, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(); o.stop(ctx.currentTime+dur);
+  }
+  function sfxPop(count){
+    // pop agudo por cada bola
+    playTone(440+count*40, 'sine', 0.3, 0.12);
+    setTimeout(()=>playTone(880, 'triangle', 0.15, 0.15), 30);
+  }
+  function sfxBounce(){ playTone(200, 'square', 0.15, 0.08); }
+  function sfxShoot(){ playTone(150, 'sine', 0.25, 0.15, 600); }
+  function sfxReady(){ playTone(300, 'sine', 0.3, 0.4, 400); }
+  function sfxGo(){ playTone(400, 'sine', 0.4, 0.3, 800); setTimeout(()=>playTone(600, 'sine', 0.35, 0.4, 900), 100); }
+  function sfxCombo(c){ playTone(300+c*80, 'triangle', 0.35, 0.35, 600+c*50); }
+  function sfxDrop(n){ for(let i=0;i<Math.min(n,5);i++) setTimeout(()=>playTone(200+i*30, 'sine', 0.2, 0.2), i*60); }
+  function sfxWin(){ playTone(400, 'sine', 0.3, 0.2, 600); setTimeout(()=>playTone(600, 'sine', 0.3, 0.3, 900), 150); setTimeout(()=>playTone(800, 'sine', 0.4, 0.5), 300); }
+  function sfxLose(){ playTone(400, 'sawtooth', 0.25, 0.5, 100); }
+  // unlock audio on first click
+  let audioUnlocked=false;
+  function unlockAudio(){ if(audioUnlocked) return; audioUnlocked=true; const ctx=getAudio(); if(ctx && ctx.state==='suspended') ctx.resume(); }
+
+
   let level=parseInt(localStorage.getItem('pb_level')||'1'), target=()=>Math.min(80,30+(level-1)*5), need=()=>Math.max(5,12-Math.floor((level-1)/4)), maxT=()=>Math.max(10,45-(level-1)*0.5);
   let grid=[], score=0, popped=0, cur=0, nxt=0, angle=-90, ghost=null, traj=[], shooting=null, shot=0, ceilT=maxT(), ceilIv=null, sess=null, pend=null, claiming=false;
   let colors=()=>Math.min(5,3+Math.floor(level/2)), It=RN/2, Dt=NU-22;
@@ -81,6 +113,7 @@ export function init(container, args){
     if(popTexts.length>6) popTexts.shift();
     const dinoB=container.querySelector('#dinoBubble');
     if(dinoB){ if(combo>=3) dinoB.textContent=`WOW! ${txt} Combo x${combo}!`; else if(count>=5) dinoB.textContent=`${txt} 🔥🔥`; else if(isFloating) dinoB.textContent=`Caen ${count}!`; else dinoB.textContent=txt; }
+    if(isFloating) sfxDrop(count); else { sfxPop(count); if(combo>1) setTimeout(()=>sfxCombo(combo), 120); }
   }
 
   const spriteCanvases = PAL.map(col=>{
@@ -109,11 +142,13 @@ export function init(container, args){
     if(!ov){ doInitGrid(); return; }
     ov.style.display='grid'; ov.style.opacity='1';
     txt.textContent='READY?'; txt.style.transform='scale(.4)'; txt.style.color='#fff';
+    unlockAudio(); sfxReady();
     if(dinoB) dinoB.textContent='Ready?';
     setTimeout(()=>{ txt.style.transform='scale(1.15)'; },80);
     setTimeout(()=>{ 
       txt.textContent='GO!'; txt.style.color='#2AFF8A';
-      txt.style.transform='scale(.5)'; 
+      txt.style.transform='scale(.5)';
+      sfxGo(); 
       setTimeout(()=>{ txt.style.transform='scale(1.4)'; },40);
       if(dinoB) dinoB.textContent='GO GO GO! 🔥';
     },950);
@@ -174,7 +209,7 @@ export function init(container, args){
   function loop(){
     if(isShooting && shooting){
       shooting.x+=shooting.dirX*14; shooting.y+=shooting.dirY*14;
-      if(shooting.x<=WE/2+2||shooting.x>=RN-WE/2-2){ shooting.dirX*=-1; shooting.x=Math.max(WE/2+2,Math.min(RN-WE/2-2,shooting.x)); }
+      if(shooting.x<=WE/2+2||shooting.x>=RN-WE/2-2){ shooting.dirX*=-1; shooting.x=Math.max(WE/2+2,Math.min(RN-WE/2-2,shooting.x)); sfxBounce(); }
       if(shooting.y<=WE/2+10){ let p=lu(shooting.x,shooting.y,grid); if(p) place(p.r,p.c,shooting.col); else { isShooting=false; shooting=null; drawBoard(); } return; }
       for(let r=0;r<Q;r++) for(let c=0;c<B;c++){ if(r%2===1 && c>=B-1) continue; if(grid[r][c]===null)continue; let g=Oe(r,c); if(Math.hypot(g.x-shooting.x,g.y-shooting.y)<WE*0.9){ let p=lu(shooting.x,shooting.y,grid); if(p) place(p.r,p.c,shooting.col); else { isShooting=false; shooting=null; drawBoard(); } return; } }
       drawBoard(); rafId=requestAnimationFrame(loop);
@@ -201,13 +236,14 @@ export function init(container, args){
   function win(){
     if(ceilIv) clearInterval(ceilIv); isShooting=false; shooting=null; if(rafId) cancelAnimationFrame(rafId);
     const dinoB=container.querySelector('#dinoBubble'); if(dinoB) dinoB.textContent='You Rock! 🤘';
+    sfxWin();
     container.querySelector('#pb6ui').innerHTML=`<div class="pb6-win"><div class="pb6-card"><div style="font-size:28px">✓</div><h2 style="font-size:18px;font-weight:900;margin-top:8px">¡NIVEL ${level}!</h2><div style="margin-top:12px;background:#0e0e14;border-radius:12px;padding:12px"><button id="bCl" style="width:100%;height:44px;border-radius:22px;background:#fff;color:#000;font-weight:900">RECLAMAR +0.01 WASA</button><button id="bX2" style="margin-top:8px;width:100%;height:44px;border-radius:22px;background:linear-gradient(90deg,#2AFF8A,#00D4FF);color:#fff;font-weight:900">X2 ANUNCIO → 0.02</button></div></div></div>`;
     container.querySelector('#bCl').onclick=async()=>{ let b=container.querySelector('#bCl'); b.textContent='VALIDANDO...'; b.disabled=true; let r=await claim(false,false); if(r.ok){ level++; localStorage.setItem('pb_level',level); container.querySelector('#pb6ui').innerHTML=`<div class="pb6-win"><div class="pb6-card"><div style="font-size:28px">✅</div><div style="font-weight:900;margin:8px 0">+0.01 ACREDITADO</div><button id="ok" style="width:100%;height:44px;border-radius:22px;background:#fff;color:#000;font-weight:900">LVL ${level}</button></div></div>`; container.querySelector('#ok').onclick=()=>{ container.querySelector('#pb6ui').innerHTML=''; showReadyGo(); }; } else { b.textContent='REINTENTAR'; b.disabled=false; } };
     container.querySelector('#bX2').onclick=()=>{ openAd('double'); container.querySelector('#bX2').textContent='CARGANDO AD...'; };
   }
   function lose(){ if(ceilIv) clearInterval(ceilIv); isShooting=false; shooting=null; if(rafId) cancelAnimationFrame(rafId); const dinoB=container.querySelector('#dinoBubble'); if(dinoB) dinoB.textContent='Oh no! 😵'; container.querySelector('#pb6ui').innerHTML=`<div class="pb6-win"><div class="pb6-card" style="background:#1a1012"><div style="font-size:28px">✕</div><h2 style="margin-top:8px">TECHO ALCANZADO</h2><div style="display:flex;gap:8px;margin-top:12px"><button id="bAg" style="flex:1;height:40px;border-radius:20px;background:#fff;color:#000;font-weight:800">REINTENTAR</button><button id="bR" style="flex:1;height:40px;border-radius:20px;background:#222;color:#fff">RESET</button></div></div></div>`; container.querySelector('#bAg').onclick=()=>{ container.querySelector('#pb6ui').innerHTML=''; showReadyGo(); }; container.querySelector('#bR').onclick=()=>{ level=1; localStorage.setItem('pb_level',1); container.querySelector('#pb6ui').innerHTML=''; showReadyGo(); }; }
 
-  function shoot(){ if(isShooting) return; let rad=angle*Math.PI/180; shooting={x:It,y:Dt,dirX:Math.cos(rad),dirY:Math.sin(rad),col:cur}; isShooting=true; if(rafId) cancelAnimationFrame(rafId); rafId=requestAnimationFrame(loop); }
+  function shoot(){ unlockAudio(); if(isShooting) return; let rad=angle*Math.PI/180; shooting={x:It,y:Dt,dirX:Math.cos(rad),dirY:Math.sin(rad),col:cur}; isShooting=true; sfxShoot(); if(rafId) cancelAnimationFrame(rafId); rafId=requestAnimationFrame(loop); }
 
   function getPos(e){ const rect=canvas.getBoundingClientRect(); const scaleX=RN/rect.width, scaleY=NU/rect.height; const clientX=e.touches?e.touches[0].clientX:e.clientX; const clientY=e.touches?e.touches[0].clientY:e.clientY; return {x:(clientX-rect.left)*scaleX, y:(clientY-rect.top)*scaleY}; }
   canvas.addEventListener('pointermove', e=>{ if(isShooting) return; let {x,y}=getPos(e); let ang=Math.atan2(y-Dt,x-It)*180/Math.PI; if(ang>-15) ang=-15; if(ang<-165) ang=-165; angle=ang; let g=ym(angle,grid,It,Dt); ghost=g?{x:g.x,y:g.y}:null; traj=gm(angle,grid,It,Dt); drawBoard(); }, {passive:true});
