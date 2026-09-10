@@ -1,5 +1,5 @@
 [
   { "slug": "banatron", "title": "BANATRON REVELATION", "cat": "arcade", "live": true },
   {"slug":"ahorcado", "title": "AHORCADO","cat":"puzzle word","live": true },
-▶{"slug":"2048-madera","title":"2048 MADERA","cat":"puzzle","live":true}
+  {"slug":"2048-madera","title":"2048 MADERA","cat":"puzzle","live":true}
 ]
