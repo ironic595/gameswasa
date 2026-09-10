@@ -56,7 +56,7 @@ export function init(container, args){
 @media(max-width:900px){.pb6-wrap{padding:8px}.pb6-body{flex-direction:column;align-items:center;width:100%}.pb6-left{width:min(100vw - 16px, ${RN}px);flex:0 0 auto}.pb6-right{width:min(100vw - 16px, ${RN}px);flex:0 0 auto}.pb6-canvas{width:100%!important;height:auto!important;aspect-ratio:${RN}/${NU}}}
   </style>
   <div class="pb6">
-    <div class="pb6-top"><div style="font-weight:900;font-size:10px;letter-spacing:.15em;color:#00F0FF">PUZZLE BUBBLE • v17 FIX FLOAT+COLOR • 30 AD</div><div id="pb6lvl" style="background:#1b1b27;border-radius:16px;padding:4px 8px;font-size:10px;font-weight:800">LVL 1</div></div>
+    <div class="pb6-top"><div style="font-weight:900;font-size:10px;letter-spacing:.15em;color:#00F0FF">PUZZLE BUBBLE • v18 POP ANIM • COMBO • 30 AD</div><div id="pb6lvl" style="background:#1b1b27;border-radius:16px;padding:4px 8px;font-size:10px;font-weight:800">LVL 1</div></div>
     <div class="pb6-wrap"><div class="pb6-body">
       <div class="pb6-left"><canvas id="pb6cv" class="pb6-canvas" width="${RN}" height="${NU}"></canvas><div style="height:3px;background:#000"><div id="pb6bar" style="height:100%;background:linear-gradient(90deg,#00F0FF,#FF00D4);width:0%"></div></div><div style="display:flex;justify-content:space-between;padding:4px 8px;font-size:8px;opacity:.4;font-family:monospace"><span>▼</span><span id="pb6ceil">45s</span><span>▼</span></div></div>
       <div class="pb6-right"><div class="pb6-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div class="pb6-st"><b id="pb6obj">0/30</b><br><span>OBJETIVO</span></div><div class="pb6-st"><b id="pb6tm">45s / 12</b><br><span>TECHO</span></div><div class="pb6-st"><b id="pb6sc">0</b><br><span>SCORE</span></div><div class="pb6-st"><b id="pb6nxt" style="display:inline-block;width:16px;height:16px;border-radius:50%"></b><br><span>SIGUIENTE</span></div></div></div>
@@ -74,6 +74,39 @@ export function init(container, args){
   let grid=[], score=0, popped=0, cur=0, nxt=0, angle=-90, ghost=null, traj=[], shooting=null, shot=0, ceilT=maxT(), ceilIv=null, sess=null, pend=null, claiming=false;
   let colors=()=>Math.min(5,3+Math.floor(level/2)), It=RN/2, Dt=NU-22;
   let rafId=null, isShooting=false, shotsSinceAd=0; const SHOTS_PER_AD=30;
+  // animaciones bajo consumo
+  let popTexts=[]; // {x,y,text,color,life,maxLife,scale}
+  let combo=0, lastPopTime=0;
+  const COMBO_WORDS = ["Nice!","Good!","Great!","Very Good!","Excellent!","Amazing!","Incredible!","LEGENDARY!"];
+  function addPopAnim(r,c,colIndex,count,isFloating){
+    const p = Oe(r,c);
+    let txt = "";
+    let bonus = "";
+    if(isFloating) txt = "Drop!";
+    else {
+      if(count>=8) txt = COMBO_WORDS[7];
+      else if(count>=7) txt = COMBO_WORDS[6];
+      else if(count>=6) txt = COMBO_WORDS[5];
+      else if(count>=5) txt = COMBO_WORDS[4];
+      else if(count>=4) txt = COMBO_WORDS[3];
+      else if(count>=3) txt = COMBO_WORDS[2];
+      else txt = COMBO_WORDS[0];
+    }
+    const now = Date.now();
+    if(now - lastPopTime < 2000 && !isFloating) combo++; else combo=1;
+    lastPopTime = now;
+    if(combo>1) bonus = ` Combo x${combo}!`;
+    popTexts.push({
+      x:p.x, y:p.y, text: txt+bonus,
+      color: PAL[colIndex] || "#fff",
+      life: 60, maxLife: 60,
+      scale: 0.5,
+      isCombo: combo>1
+    });
+    // limit array
+    if(popTexts.length>6) popTexts.shift();
+  }
+
 
   const spriteCanvases = PAL.map(col=>{
     const s=document.createElement('canvas'); s.width=WE; s.height=WE; const sc=s.getContext('2d');
@@ -137,6 +170,34 @@ export function init(container, args){
     }
     for(let r=0;r<Q;r++) for(let c=0;c<B;c++){ if(r%2===1 && c>=B-1) continue; let col=grid[r][c]; if(col==null) continue; let {x,y}=Oe(r,c); ctx.drawImage(spriteCanvases[col], x-WE/2, y-WE/2); }
     if(isShooting && shooting){ ctx.drawImage(spriteCanvases[shooting.col], shooting.x-WE/2, shooting.y-WE/2); }
+    // animaciones bajo consumo - textos flotantes
+    for(let t of popTexts){
+      let alpha = t.life / t.maxLife;
+      if(alpha<=0) continue;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(t.x, t.y - (t.maxLife - t.life)*0.8);
+      ctx.scale(t.scale, t.scale);
+      ctx.font = `900 ${t.isCombo?18:14}px system-ui, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgba(0,0,0,0.8)';
+      ctx.strokeText(t.text, 0, 0);
+      ctx.fillStyle = t.color;
+      // brillo
+      ctx.shadowColor = t.color;
+      ctx.shadowBlur = t.isCombo?12:6;
+      ctx.fillText(t.text, 0, 0);
+      ctx.restore();
+    }
+    // update life
+    for(let t of popTexts){ t.life--; t.scale += 0.015; }
+    popTexts = popTexts.filter(t=>t.life>0);
+    if(popTexts.length>0 && !isShooting){
+      if(rafId) cancelAnimationFrame(rafId);
+      rafId=requestAnimationFrame(()=>{ drawBoard(); });
+    }
+
     ctx.fillStyle='#1b1b27'; ctx.beginPath(); ctx.arc(It,Dt,28,0,Math.PI*2); ctx.fill(); ctx.strokeStyle='rgba(255,255,255,.15)'; ctx.stroke();
     ctx.drawImage(spriteCanvases[cur], It-16, Dt-16, 32,32);
   }
@@ -158,8 +219,19 @@ export function init(container, args){
     if(!isConnectedTop(ng,r,c)){ ng[r][c]=null; shot++; shotsSinceAd++; checkAd(); updateUI(); grid=ng; drawBoard(); return; }
     let conn=vm(ng,r,c);
     if(conn.length>=3){
+      // animacion del color principal
+      addPopAnim(r,c,ng[r][c],conn.length,false);
+      // si hay muchas flotantes, anim extra
       conn.forEach(([rr,cc])=> ng[rr][cc]=null );
-      let floating=hm(ng); floating.forEach(([rr,cc])=> ng[rr][cc]=null );
+      let floating=hm(ng); 
+      if(floating.length>0){
+        // anim de drop en el centro de flotantes
+        let avgR = floating.reduce((s,[rr])=>s+rr,0)/floating.length;
+        let avgC = floating.reduce((s,[,cc])=>s+cc,0)/floating.length;
+        addPopAnim(Math.floor(avgR),Math.floor(avgC),ng[r][c],floating.length,true);
+      }
+      floating.forEach(([rr,cc])=> ng[rr][cc]=null );
+
       popped+=conn.length+floating.length; score+=conn.length*15+floating.length*8;
       grid=ng; shot++; shotsSinceAd++; checkAd(); updateUI(); drawBoard();
       if(popped>=target()||grid.flat().every(v=>v===null)){ win(); return; }
