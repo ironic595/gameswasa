@@ -1,12 +1,10 @@
-// game v11 - FIX BLURRY ON PC - HD DPI + SHARP SPRITES
 export function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javimsites.workers.dev/';
   const getDeviceId = ()=> window.getDeviceId?window.getDeviceId():(()=>{let id=localStorage.getItem('wasa_device_id'); if(!id){id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id;})();
   const quality = args?.quality || ( (navigator.deviceMemory||4)<=2 || innerWidth<900? 'lite' : 'hd');
   const isLite = quality==='lite';
 
-  // Increased base size for PC
-  const B=8,Q=12,WE=isLite?34:42,UU=WE*0.865,RN=Math.round(B*WE+WE/2+4),NU=Math.round(Q*UU+90);
+  const B=8,Q=12,WE=isLite?32:38,UU=WE*0.865,RN=B*WE+WE/2+2,NU=Q*UU+80;
   const COLORS_HD=["#00F0FF","#FF00D4","#FFE600","#00FF88","#FF6B2B"];
   const COLORS_LITE=["#00D4FF","#FF3BB0","#FFD400","#2AFF8A","#FF7A2E"];
   const PAL = isLite?COLORS_LITE:COLORS_HD;
@@ -26,59 +24,47 @@ export function init(container, args){
   <style>
 .pb6{width:100%;height:100%;background:#08080d;color:#fff;font-family:system-ui;display:flex;flex-direction:column;overflow:hidden}
 .pb6-top{height:42px;display:flex;justify-content:space-between;align-items:center;padding:0 12px;background:#0f0f17;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
-.pb6-wrap{flex:1;display:flex;justify-content:center;align-items:center;padding:16px;overflow:auto}
-.pb6-body{display:flex;gap:16px;align-items:flex-start;justify-content:center;margin:auto}
-.pb6-left{flex:0 0 ${RN}px;width:${RN}px;background:#0f0f17;border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;image-rendering:-webkit-optimize-contrast}
-.pb6-canvas{display:block;width:${RN}px;height:${NU}px;touch-action:none;image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges}
-.pb6-right{flex:0 0 300px;width:300px;display:flex;flex-direction:column;gap:8px}
+.pb6-wrap{flex:1;display:flex;justify-content:center;align-items:center;padding:12px;overflow:auto}
+.pb6-body{display:flex;gap:12px;align-items:flex-start;justify-content:center;margin:auto}
+.pb6-left{flex:0 0 ${RN}px;width:${RN}px;background:#0f0f17;border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden}
+.pb6-canvas{display:block;width:${RN}px;height:${NU}px;touch-action:none}
+.pb6-right{flex:0 0 280px;width:280px;display:flex;flex-direction:column;gap:8px}
 .pb6-st{background:#15151f;border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px}.pb6-st b{font-family:monospace;font-size:14px}.pb6-st span{font-size:9px;opacity:.5}
 .pb6-win{position:absolute;inset:0;background:rgba(0,0,0,.82);display:grid;place-items:center;z-index:20;padding:16px}
 .pb6-card{background:#15151f;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:18px;text-align:center;width:min(340px,92vw)}
 @media(max-width:900px){.pb6-wrap{padding:8px}.pb6-body{flex-direction:column;align-items:center;width:100%}.pb6-left{width:min(100vw - 16px, ${RN}px);flex:0 0 auto}.pb6-right{width:min(100vw - 16px, ${RN}px);flex:0 0 auto}.pb6-canvas{width:100%!important;height:auto!important;aspect-ratio:${RN}/${NU}}}
   </style>
   <div class="pb6">
-    <div class="pb6-top"><div style="font-weight:900;font-size:10px;letter-spacing:.15em;color:#00F0FF">PUZZLE BUBBLE • v11 HD SHARP • CANVAS</div><div id="pb6lvl" style="background:#1b1b27;border-radius:16px;padding:4px 8px;font-size:10px;font-weight:800">LVL 1</div></div>
+    <div class="pb6-top"><div style="font-weight:900;font-size:10px;letter-spacing:.15em;color:#00F0FF">PUZZLE BUBBLE • v12 HD FIX • CANVAS</div><div id="pb6lvl" style="background:#1b1b27;border-radius:16px;padding:4px 8px;font-size:10px;font-weight:800">LVL 1</div></div>
     <div class="pb6-wrap"><div class="pb6-body">
-      <div class="pb6-left"><canvas id="pb6cv" class="pb6-canvas"></canvas><div style="height:3px;background:#000"><div id="pb6bar" style="height:100%;background:linear-gradient(90deg,#00F0FF,#FF00D4);width:0%"></div></div><div style="display:flex;justify-content:space-between;padding:4px 8px;font-size:8px;opacity:.4;font-family:monospace"><span>▼</span><span id="pb6ceil">45s</span><span>▼</span></div></div>
+      <div class="pb6-left"><canvas id="pb6cv" class="pb6-canvas" width="${RN}" height="${NU}"></canvas><div style="height:3px;background:#000"><div id="pb6bar" style="height:100%;background:linear-gradient(90deg,#00F0FF,#FF00D4);width:0%"></div></div><div style="display:flex;justify-content:space-between;padding:4px 8px;font-size:8px;opacity:.4;font-family:monospace"><span>▼</span><span id="pb6ceil">45s</span><span>▼</span></div></div>
       <div class="pb6-right"><div class="pb6-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div class="pb6-st"><b id="pb6obj">0/30</b><br><span>OBJETIVO</span></div><div class="pb6-st"><b id="pb6tm">45s / 12</b><br><span>TECHO</span></div><div class="pb6-st"><b id="pb6sc">0</b><br><span>SCORE</span></div><div class="pb6-st"><b id="pb6nxt" style="display:inline-block;width:16px;height:16px;border-radius:50%"></b><br><span>SIGUIENTE</span></div></div></div>
     </div></div>
     <div id="pb6ui"></div>
   </div>`;
 
   const canvas=container.querySelector('#pb6cv');
-  const DPR = Math.max(1, Math.min(3, window.devicePixelRatio||1));
-  // HD backing store
-  canvas.width = RN * DPR;
-  canvas.height = NU * DPR;
-  canvas.style.width = RN + 'px';
-  canvas.style.height = NU + 'px';
-  const ctx=canvas.getContext('2d',{alpha:false,desynchronized:false});
+  const DPR = Math.max(1, window.devicePixelRatio||1);
+  // FIX BLUR: upscale backing store only, keep CSS size
+  const origW = RN, origH = NU;
+  canvas.width = origW * DPR;
+  canvas.height = origH * DPR;
+  canvas.style.width = origW+'px';
+  canvas.style.height = origH+'px';
+  const ctx=canvas.getContext('2d',{alpha:false,desynchronized:true});
   ctx.scale(DPR,DPR);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
 
-  const ui=container.querySelector('#pb6ui');
   let level=parseInt(localStorage.getItem('pb_level')||'1'), target=()=>Math.min(80,30+(level-1)*5), need=()=>Math.max(5,12-Math.floor((level-1)/4)), maxT=()=>Math.max(10,45-(level-1)*0.5);
   let grid=[], score=0, popped=0, cur=0, nxt=0, angle=-90, ghost=null, traj=[], shooting=null, shot=0, ceilT=maxT(), ceilIv=null, sess=null, pend=null, claiming=false;
   let colors=()=>Math.min(5,3+Math.floor(level/2)), It=RN/2, Dt=NU-22;
   let dirty=true, rafId=null, lastFrame=0;
 
-  // HD sprites with DPR
   const spriteCanvases = PAL.map(col=>{
-    const s=document.createElement('canvas'); 
-    s.width=WE*DPR; s.height=WE*DPR; 
-    const sc=s.getContext('2d');
-    sc.scale(DPR,DPR);
-    sc.imageSmoothingQuality='high';
-    if(isLite){ 
-      sc.fillStyle=col; sc.beginPath(); sc.arc(WE/2,WE/2,WE/2-1,0,Math.PI*2); sc.fill(); 
-      sc.fillStyle='rgba(255,255,255,.35)'; sc.beginPath(); sc.arc(WE*0.35,WE*0.35,WE*0.18,0,Math.PI*2); sc.fill(); 
-    } else { 
-      const g=sc.createRadialGradient(WE*0.35,WE*0.35,WE*0.1,WE/2,WE/2,WE/2); g.addColorStop(0,'#fff'); g.addColorStop(0.22,col); g.addColorStop(0.7,col); g.addColorStop(1,'#000a'); 
-      sc.fillStyle=g; sc.beginPath(); sc.arc(WE/2,WE/2,WE/2-1.2,0,Math.PI*2); sc.fill();
-      // highlight
-      sc.fillStyle='rgba(255,255,255,.55)'; sc.beginPath(); sc.arc(WE*0.36,WE*0.34,WE*0.18,0,Math.PI*2); sc.fill();
-    }
+    const s=document.createElement('canvas'); s.width=WE; s.height=WE; const sc=s.getContext('2d');
+    if(isLite){ sc.fillStyle=col; sc.beginPath(); sc.arc(WE/2,WE/2,WE/2-1,0,Math.PI*2); sc.fill(); sc.fillStyle='rgba(255,255,255,.35)'; sc.beginPath(); sc.arc(WE*0.35,WE*0.35,WE*0.18,0,Math.PI*2); sc.fill(); }
+    else { const g=sc.createRadialGradient(WE*0.35,WE*0.35,WE*0.1,WE/2,WE/2,WE/2); g.addColorStop(0,'#fff'); g.addColorStop(0.2,col); g.addColorStop(1,'#000'); sc.fillStyle=g; sc.beginPath(); sc.arc(WE/2,WE/2,WE/2-1,0,Math.PI*2); sc.fill(); }
     return s;
   });
 
@@ -115,15 +101,15 @@ export function init(container, args){
   function drawBoard(){
     ctx.fillStyle='#0f0f17'; ctx.fillRect(0,0,RN,NU);
     if(traj.length>1){
-      ctx.strokeStyle='rgba(255,255,255,.35)'; ctx.lineWidth=1.2; ctx.setLineDash(isLite?[5,5]:[8,8]);
+      ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=1; ctx.setLineDash(isLite?[4,4]:[6,6]);
       ctx.beginPath(); ctx.moveTo(traj[0].x,traj[0].y); for(let i=1;i<traj.length;i++) ctx.lineTo(traj[i].x,traj[i].y); ctx.stroke(); ctx.setLineDash([]);
-      if(!isLite && ghost){ ctx.strokeStyle='rgba(255,255,255,.45)'; ctx.setLineDash([4,4]); ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(ghost.x,ghost.y,WE/2-1,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]); }
+      if(!isLite && ghost){ ctx.strokeStyle='rgba(255,255,255,.3)'; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.arc(ghost.x,ghost.y,WE/2-1,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]); }
     }
-    for(let r=0;r<Q;r++) for(let c=0;c<B;c++){ let col=grid[r][c]; if(col==null) continue; let {x,y}=Oe(r,c); ctx.drawImage(spriteCanvases[col], (x-WE/2)*DPR, (y-WE/2)*DPR, WE*DPR, WE*DPR, x-WE/2, y-WE/2, WE, WE); }
-    if(ghost &&!shooting &&!isLite){ ctx.globalAlpha=0.38; let {x,y}=ghost; ctx.drawImage(spriteCanvases[cur], (x-WE/2)*DPR, (y-WE/2)*DPR, WE*DPR, WE*DPR, x-WE/2, y-WE/2, WE, WE); ctx.globalAlpha=1; }
-    if(shooting){ ctx.drawImage(spriteCanvases[shooting.col], (shooting.x-WE/2)*DPR, (shooting.y-WE/2)*DPR, WE*DPR, WE*DPR, shooting.x-WE/2, shooting.y-WE/2, WE, WE); }
-    ctx.fillStyle='#1b1b27'; ctx.beginPath(); ctx.arc(It,Dt,30,0,Math.PI*2); ctx.fill(); ctx.strokeStyle='rgba(255,255,255,.18)'; ctx.lineWidth=1.5; ctx.stroke();
-    ctx.drawImage(spriteCanvases[cur], (It-18)*DPR, (Dt-18)*DPR, 36*DPR, 36*DPR, It-18, Dt-18, 36, 36);
+    for(let r=0;r<Q;r++) for(let c=0;c<B;c++){ let col=grid[r][c]; if(col==null) continue; let {x,y}=Oe(r,c); ctx.drawImage(spriteCanvases[col], x-WE/2, y-WE/2); }
+    if(ghost &&!shooting &&!isLite){ ctx.globalAlpha=0.35; ctx.drawImage(spriteCanvases[cur], ghost.x-WE/2, ghost.y-WE/2); ctx.globalAlpha=1; }
+    if(shooting){ ctx.drawImage(spriteCanvases[shooting.col], shooting.x-WE/2, shooting.y-WE/2); }
+    ctx.fillStyle='#1b1b27'; ctx.beginPath(); ctx.arc(It,Dt,28,0,Math.PI*2); ctx.fill(); ctx.strokeStyle='rgba(255,255,255,.15)'; ctx.stroke();
+    ctx.drawImage(spriteCanvases[cur], It-16, Dt-16, 32,32);
   }
   function scheduleDraw(){ if(rafId) return; rafId=requestAnimationFrame((t)=>{ if(isLite && t-lastFrame < 32){ rafId=null; scheduleDraw(); return; } lastFrame=t; rafId=null; if(dirty || shooting){ drawBoard(); dirty=false; } if(shooting) scheduleDraw(); }); }
 
