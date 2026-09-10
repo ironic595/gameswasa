@@ -57,6 +57,11 @@ export async function init(container, args){
 .ah-timer-bar{height:100%;background:linear-gradient(90deg,#2ECC71,#00F0FF);transition:width 1s linear,width .3s ease}
 .ah-timer-bar.warn{background:linear-gradient(90deg,#FF8C00,#FF3B30)}
 .ah-timer-text{text-align:center;font-size:10px;font-weight:900;letter-spacing:.08em;margin-top:2px}
+
+.ah-water-wrap{width:100%;max-width:300px;margin:18px 0 0;position:relative}
+.ah-water-img{width:100%;height:auto;display:block;border-radius:0 0 16px 16px;object-fit:cover}
+.ah-water-fallback{height:48px;border-radius:24px;background:linear-gradient(180deg,#4DD0FF,#1E90FF);display:flex;align-items:center;justify-content:center;font-weight:900;letter-spacing:.08em;border:2px solid #0077cc}
+
   @media(max-width:900px){.ah-body{flex-direction:column}.ah-tower,.ah-panel{width:min(100vw - 20px, 360px);flex:0 0 auto}.ah-tower{height:360px}}
   </style>
   <div class="ah"><div class="ah-top">
@@ -65,7 +70,10 @@ export async function init(container, args){
     <select id="catSel" style="height:32px;border-radius:16px;border:2px solid #8a5a00;background:#fffef6;padding:0 8px;font-weight:700;font-size:11px;max-width:140px"></select>
   </div>
   <div class="ah-wrap"><div class="ah-body">
-    <div class="ah-tower" id="tower"><div class="ah-water">💧 AGUA 💧</div></div>
+    <div class="ah-water-wrap">
+  <img src="water.png" class="ah-water-img" alt="AGUA" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+  <div class="ah-water-fallback" style="display:none">AGUA</div>
+</div></div>
     <div class="ah-panel">
       <div class="ah-card"><div id="ah-word" class="ah-word">CARGANDO...</div><div id="ah-hint" style="text-align:center;font-size:10px;opacity:.6"></div><div class="ah-timer"><div id="ah-timer-bar" class="ah-timer-bar" style="width:100%"></div></div><div id="ah-timer-text" class="ah-timer-text">60s</div></div>
       <div class="ah-card"><div id="ah-keys" class="ah-keys"></div></div>
@@ -76,7 +84,9 @@ export async function init(container, args){
   const tower=container.querySelector('#tower'); const elWord=container.querySelector('#ah-word'); const elKeys=container.querySelector('#ah-keys'); const elHint=container.querySelector('#ah-hint'); const elWin=container.querySelector('#ah-win'); const catSel=container.querySelector('#catSel'); const langEs=container.querySelector('#langEs'); const langEn=container.querySelector('#langEn');
   const loaded=await loadVendor(); if(!loaded){ elWord.textContent='Falta vendor'; return; }
   const chunk=window._0x4a2f || window.webpackChunkWasa['8f3c2a1b']; const key=chunk.k; const dict=chunk.w;
-  let currentLang='es'; const CACHE_KEY='sapo_cache_mostaza_v24_timer'; let cache={}; try{ cache=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); }catch{}
+  let currentLang='es'; const // Poné tu PNG como water.png en la misma carpeta que game.js
+// El código busca <img src="water.png"> y si no lo encuentra muestra fallback celeste
+CACHE_KEY='sapo_cache_mostaza_v24_timer'; let cache={}; try{ cache=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); }catch{}
   async function getWords(cat){ if(cache[cat]?.length>5) return cache[cat]; const hashes=dict[cat]||[]; const out=[]; for(let i=0;i<hashes.length;i+=40){ for(let j=i;j<Math.min(i+40,hashes.length);j++){ const w=safeDecode(hashes[j],key); if(w.length>2) out.push(w); } if(i%120===0) await new Promise(r=>setTimeout(r,0)); } cache[cat]=out; try{ localStorage.setItem(CACHE_KEY,JSON.stringify(cache)); }catch{} return out; }
   function getCatsByLang(lang){ return Object.keys(dict).filter(c=>c.startsWith(lang+'_')); }
   function refreshCatSelect(){ const cats=getCatsByLang(currentLang); catSel.innerHTML=''; cats.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c.replace(currentLang+'_','').toUpperCase(); catSel.appendChild(o); }); }
