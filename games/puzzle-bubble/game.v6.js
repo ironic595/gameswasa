@@ -1,4 +1,4 @@
-// game v8 - CENTRADO REAL + FIX COLOR + SIN WASA DUPLICADO
+// game v9 - CENTRADO + MOBILE PLAYABLE + FIX COLOR
 export function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javimsites.workers.dev/';
   const getDeviceId = ()=> window.getDeviceId?window.getDeviceId():(()=>{let id=localStorage.getItem('wasa_device_id'); if(!id){id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id;})();
@@ -7,7 +7,7 @@ export function init(container, args){
   const Oe=(r,c)=>({x:c*WE+(r%2?HALF:0)+HALF+1,y:r*UU+HALF+8});
   const mm=(x,y)=>{let r=Math.round((y-HALF-8)/UU),off=r%2?HALF:0,c=Math.round((x-HALF-1-off)/WE);return{r,c}};
   const ru=(r,c)=>r%2===0?[[r-1,c-1],[r-1,c],[r,c-1],[r,c+1],[r+1,c-1],[r+1,c]]:[[r-1,c],[r-1,c+1],[r,c-1],[r,c+1],[r+1,c],[r+1,c+1]];
-  const tu=e=>e.map(n=>[...n]); const Vo=e=>{let n=0;for(let t=0;t<e.length;t++)for(let r=0;r<B;r++)if(e[t][r]!==null)n++;return n};
+  const tu=e=>e.map(n=>[...n]); const Vo=e=>{let n=0;for(let r=0;r<Q;r++)for(let c=0;c<B;c++)if(e[r][c]!==null)n++;return n};
   function vm(e,r,c){let col=e[r]?.[c];if(col==null)return[];let seen=new Set(),q=[[r,c]];seen.add(`${r},${c}`);let out=[];while(q.length){let [rr,cc]=q.shift();if(e[rr]?.[cc]!==col)continue;out.push([rr,cc]);for(let [nr,nc] of ru(rr,cc)){if(nr<0||nr>=Q||nc<0||nc>=B)continue;let k=`${nr},${nc}`;if(seen.has(k))continue;if(e[nr][nc]===col)seen.add(k),q.push([nr,nc])}}return out}
   function hm(e){let seen=new Set(),qq=[];for(let c=0;c<B;c++)if(e[0][c]!==null)qq.push([0,c]),seen.add(`0,${c}`);while(qq.length){let [r,c]=qq.shift();for(let [nr,nc] of ru(r,c)){if(nr<0||nr>=Q||nc<0||nc>=B)continue;let k=`${nr},${nc}`;if(seen.has(k))continue;if(e[nr][nc]!==null)seen.add(k),qq.push([nr,nc])}}let floating=[];for(let r=0;r<Q;r++)for(let c=0;c<B;c++)if(e[r][c]!==null&&!seen.has(`${r},${c}`))floating.push([r,c]);return floating}
   function isConnectedTop(grid,r,c){ if(r===0) return true; let seen=new Set(),qq=[[r,c]];seen.add(`${r},${c}`);while(qq.length){let [rr,cc]=qq.shift();if(rr===0) return true; for(let [nr,nc] of ru(rr,cc)){if(nr<0||nr>=Q||nc<0||nc>=B)continue;if(grid[nr][nc]===null)continue;let k=`${nr},${nc}`;if(seen.has(k))continue;seen.add(k);qq.push([nr,nc]);}} return false; }
@@ -19,34 +19,58 @@ export function init(container, args){
   <style>
 .pb6{width:100%;height:100%;background:#08080d;color:#fff;font-family:'Space Grotesk',system-ui;display:flex;flex-direction:column;overflow:hidden}
 .pb6-top{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(15,15,23,.9);border-bottom:1px solid rgba(255,255,255,.1)}
-.pb6-wrap{flex:1;width:100%;display:flex;justify-content:center;align-items:flex-start;padding:20px;overflow:auto}
-.pb6-body{display:flex;gap:16px;align-items:flex-start;justify-content:center;margin:0 auto}
+.pb6-wrap{flex:1;width:100%;display:flex;justify-content:center;align-items:flex-start;padding:16px;overflow:auto}
+.pb6-body{display:flex;gap:16px;justify-content:center;align-items:flex-start;margin:0 auto}
 .pb6-left{flex:0 0 ${RN}px;width:${RN}px;background:#0f0f17;border:1px solid rgba(255,255,255,.1);border-radius:20px;overflow:hidden}
-.pb6-board{position:relative;width:${RN}px;height:${NU}px;touch-action:none;background:#0f0f17}
+.pb6-board{position:relative;width:${RN}px;height:${NU}px;touch-action:none;background:#0f0f17;transform-origin:top center}
 .pb6-right{flex:0 0 340px;width:340px;display:flex;flex-direction:column;gap:10px}
 .pb6-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .pb6-st{background:rgba(21,21,29,.9);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px}.pb6-st b{font-family:monospace;font-size:16px;display:block}.pb6-st span{font-size:9px;opacity:.5;text-transform:uppercase}
 .bubble{box-shadow:inset -3px -4px 8px rgba(0,0,0,.6), inset 3px 3px 6px rgba(255,255,255,.9), 0 2px 8px rgba(0,0,0,.5);border-radius:50%;position:absolute}
 .pb6-win{position:absolute;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(8px);display:grid;place-items:center;z-index:50;padding:16px}
 .pb6-card{background:linear-gradient(180deg,#15151f,#0f0f17);border:1px solid rgba(255,255,255,.12);border-radius:24px;padding:22px;text-align:center;width:min(360px,92vw)}
-  @media(max-width:900px){.pb6-body{flex-direction:column;align-items:center}.pb6-right{width:min(100vw - 24px, ${RN}px);flex:0 0 auto}}
+@media(max-width:900px){
+ .pb6-wrap{padding:10px;align-items:center}
+ .pb6-body{flex-direction:column;align-items:center;gap:10px;width:100%}
+ .pb6-left{width:100%;max-width:${RN}px;flex:0 0 auto}
+ .pb6-right{width:100%;max-width:${RN}px;flex:0 0 auto}
+ .pb6-board{width:100%!important;max-width:${RN}px}
+}
   </style>
   <div class="pb6" id="pb6">
-    <div class="pb6-top"><div style="font-weight:900;font-size:11px;letter-spacing:.18em;color:#00F0FF">PUZZLE BUBBLE • v8 CENTRADO REAL • FIX COLOR</div><div style="background:#1b1b27;border-radius:20px;padding:6px 10px;font-size:10px;font-weight:800" id="pb6lvl">LVL 1</div></div>
+    <div class="pb6-top"><div style="font-weight:900;font-size:11px;letter-spacing:.18em;color:#00F0FF">PUZZLE BUBBLE • v9 CENTRADO + MOBILE FIX</div><div style="background:#1b1b27;border-radius:20px;padding:6px 10px;font-size:10px;font-weight:800" id="pb6lvl">LVL 1</div></div>
     <div class="pb6-wrap"><div class="pb6-body">
       <div class="pb6-left"><div class="pb6-board" id="pb6board"></div><div style="height:4px;background:rgba(0,0,0,.5)"><div id="pb6bar" style="height:100%;background:linear-gradient(90deg,#00F0FF,#FF00D4);width:0%;transition:width.4s"></div></div><div style="display:flex;justify-content:space-between;padding:6px 10px;font-size:9px;opacity:.5;font-family:monospace"><span>▼ TECHO ▼</span><span id="pb6ceil">45s</span><span>▼ TECHO ▼</span></div></div>
       <div class="pb6-right">
-        <div class="pb6-stats"><div class="pb6-st"><b id="pb6obj">0/30</b><span>OBJETIVO POPS</span></div><div class="pb6-st"><b id="pb6tm">45s / 12 tiros</b><span>TECHO EN</span></div><div class="pb6-st"><b id="pb6sc">0</b><span>SCORE</span></div><div class="pb6-st"><b id="pb6next" style="width:22px;height:22px;border-radius:50%"></b><span>SIGUIENTE</span></div></div>
-        <div style="background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;font-size:11px;font-family:monospace"><div style="display:flex;justify-content:space-between;opacity:.6;margin-bottom:6px"><span>PROGRESIÓN v8</span><span id="pb6prog">LVL1 45s→10s</span></div><div>Target: <b id="pb6tgt">30</b> pops • Shots: <b id="pb6sht">12</b> → techo</div></div>
+        <div class="pb6-stats"><div class="pb6-st"><b id="pb6obj">0/30</b><span>OBJETIVO POPS</span></div><div class="pb6-st"><b id="pb6tm">45s / 12 tiros</b><span>TECHO EN</span></div><div class="pb6-st"><b id="pb6sc">0</b><span>SCORE</span></div><div class="pb6-st"><div id="pb6next" style="width:22px;height:22px;border-radius:50%"></div><span>SIGUIENTE</span></div></div>
       </div>
     </div></div>
     <div id="pb6ui"></div>
   </div>`;
 
-  const board=container.querySelector('#pb6board'), ui=container.querySelector('#pb6ui');
+  const board=container.querySelector('#pb6board'), ui=container.querySelector('#pb6ui'), wrap=container.querySelector('.pb6-wrap');
   let level=parseInt(localStorage.getItem('pb_level')||'1'), target=()=>Math.min(80,30+(level-1)*5), need=()=>Math.max(5,12-Math.floor((level-1)/4)), maxT=()=>Math.max(10,45-(level-1)*0.5);
-  let grid=[], score=0, popped=0, cur=0, nxt=0, angle=-90, ghost=null, traj=[], parts=[], shooting=null, shot=0, ceilT=maxT(), ceilIv=null, total=0, sess=null, pend=null, claiming=false;
+  let grid=[], score=0, popped=0, cur=0, nxt=0, angle=-90, ghost=null, traj=[], parts=[], shooting=null, shot=0, ceilT=maxT(), ceilIv=null, sess=null, pend=null, claiming=false;
   let colors=()=>Math.min(5,3+Math.floor(level/2)), It=RN/2, Dt=NU-22;
+
+  function applyMobileScale(){
+    const isMobile = window.innerWidth < 900;
+    if(isMobile){
+      const avail = Math.min(window.innerWidth - 24, RN);
+      const s = avail / RN;
+      board.style.transform = `scale(${s})`;
+      board.style.width = RN + 'px';
+      board.style.height = NU + 'px';
+      board.parentElement.style.height = (NU * s + 20) + 'px';
+      board.parentElement.style.width = avail + 'px';
+    } else {
+      board.style.transform = 'none';
+      board.parentElement.style.height = 'auto';
+      board.parentElement.style.width = RN + 'px';
+    }
+  }
+  window.addEventListener('resize', applyMobileScale);
+  applyMobileScale();
 
   async function startSess(){ try{ const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'start_game_session',email,wallet,device_id,game_slug:'puzzle-bubble',level})}); const j=await r.json(); if(j.ok) sess=j.session_id; }catch(e){} }
   async function claim(isDouble, ad){ if(claiming) return {ok:false}; if(!sess) await startSess(); if(!sess) return {ok:false}; claiming=true; try{ const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward',session_id:sess,email,wallet,device_id,game_slug:'puzzle-bubble',level,ad_watched:ad,double_reward:isDouble,time_taken:30})}); const j=await r.json(); if(j.ok){ const bal=j.wasa_balance??j.guest_balance??0; if(j.is_guest){ localStorage.setItem('wasa_coins_guest',bal); localStorage.setItem('wasa_coins','0'); } else localStorage.setItem('wasa_coins',bal); if(window.setCoinsUI) window.setCoinsUI(bal); sess=null; claiming=false; return j; } claiming=false; return {ok:false}; }catch(e){ claiming=false; return {ok:false}; } }
@@ -59,14 +83,12 @@ export function init(container, args){
   }
   function startCeil(){ if(ceilIv) clearInterval(ceilIv); ceilIv=setInterval(()=>{ ceilT--; updateUI(); if(ceilT<=0){ pushCeil(); ceilT=maxT(); } },1000); }
   function pushCeil(){
-    // FIX COLOR: guardamos copia del grid ORIGINAL antes de mover
     const old = tu(grid);
     let ng=Array.from({length:Q},()=>Array(B).fill(null));
-    for(let r=Q-1;r>0;r--){ ng[r]=[...old[r-1]]; } // preserva color exacto
+    for(let r=Q-1;r>0;r--){ ng[r]=[...old[r-1]]; }
     let nr=Array(B).fill(null);
     for(let c=0;c<B;c++) if(Math.random()>0.15) nr[c]=Math.floor(Math.random()*colors());
     ng[0]=nr;
-    // si queda flotando, que caiga, no que cambie color
     let floating=hm(ng); floating.forEach(([rr,cc])=> ng[rr][cc]=null );
     if(ng[Q-1].some(v=>v!==null)){ lose(); return; }
     grid=ng; shot=0; draw();
@@ -78,9 +100,6 @@ export function init(container, args){
     container.querySelector('#pb6sc').textContent=score;
     container.querySelector('#pb6bar').style.width=Math.min(100,popped/target()*100)+'%';
     container.querySelector('#pb6ceil').textContent=ceilT+'s • LVL'+level;
-    container.querySelector('#pb6tgt').textContent=target();
-    container.querySelector('#pb6sht').textContent=need();
-    container.querySelector('#pb6prog').textContent='LVL'+level+' '+maxT().toFixed(1)+'s→10s';
     container.querySelector('#pb6next').style.background=XE[nxt].grad;
   }
   function draw(){
@@ -115,11 +134,11 @@ export function init(container, args){
   }
   function lose(){ if(ceilIv) clearInterval(ceilIv); ui.innerHTML=`<div class="pb6-win"><div class="pb6-card" style="background:#1a1012;border-color:rgba(255,43,43,.3)"><div style="width:64px;height:64px;margin:0 auto;border-radius:50%;background:#FF2B2B;display:grid;place-items:center;font-size:28px">✕</div><h2 style="font-size:20px;font-weight:900;margin-top:10px">TECHO ALCANZADO</h2><div style="display:flex;gap:8px;margin-top:16px"><button id="bAg" style="flex:1;height:44px;border-radius:24px;background:#fff;color:#000;font-weight:800">REINTENTAR LVL ${level}</button><button id="bR" style="flex:1;height:44px;border-radius:24px;background:#222;color:#fff;border:1px solid rgba(255,255,255,.15)">RESET</button></div></div></div>`; ui.querySelector('#bAg').onclick=()=>{ ui.innerHTML=''; initGrid(); }; ui.querySelector('#bR').onclick=()=>{ level=1; localStorage.setItem('pb_level',1); ui.innerHTML=''; initGrid(); }; }
   function shoot(){ if(shooting) return; let rad=angle*Math.PI/180; shooting={x:It,y:Dt,dirX:Math.cos(rad),dirY:Math.sin(rad),col:cur}; let step=()=>{ if(!shooting) return; shooting.x+=shooting.dirX*12; shooting.y+=shooting.dirY*12; if(shooting.x<=HALF+2||shooting.x>=RN-HALF-2){ shooting.dirX*=-1; shooting.x=Math.max(HALF+2,Math.min(RN-HALF-2,shooting.x)); } if(shooting.y<=HALF+10){ let p=lu(shooting.x,shooting.y,grid); if(p) place(p.r,p.c,shooting.col); else lose(); shooting=null; draw(); return; } for(let r=0;r<Q;r++)for(let c=0;c<B;c++) if(grid[r][c]!==null){ let g=Oe(r,c); if(Math.hypot(g.x-shooting.x,g.y-shooting.y)<WE*0.9){ let p=lu(shooting.x,shooting.y,grid); if(p) place(p.r,p.c,shooting.col); else lose(); shooting=null; draw(); return; } } draw(); requestAnimationFrame(step); }; requestAnimationFrame(step); }
-  board.addEventListener('pointermove', e=>{ if(shooting) return; let rect=board.getBoundingClientRect(), scaleX=RN/rect.width, scaleY=NU/rect.height, x=(e.clientX-rect.left)*scaleX, y=(e.clientY-rect.top)*scaleY; let ang=Math.atan2(y-Dt,x-It)*180/Math.PI; if(ang>-15) ang=-15; if(ang<-165) ang=-165; angle=ang; let g=ym(angle,grid,It,Dt); ghost=g?{x:g.x,y:g.y}:null; traj=gm(angle,grid,It,Dt); draw(); });
-  board.addEventListener('pointerdown', e=>{ e.preventDefault(); let rect=board.getBoundingClientRect(), scaleX=RN/rect.width, scaleY=NU/rect.height, x=(e.clientX-rect.left)*scaleX, y=(e.clientY-rect.top)*scaleY; let ang=Math.atan2(y-Dt,x-It)*180/Math.PI; if(ang>-15) ang=-15; if(ang<-165) ang=-165; angle=ang; shoot(); }, {passive:false});
+  board.addEventListener('pointermove', e=>{ if(shooting) return; let rect=board.getBoundingClientRect(), scale=RN/rect.width, x=(e.clientX-rect.left)*scale, y=(e.clientY-rect.top)*scale; let ang=Math.atan2(y-Dt,x-It)*180/Math.PI; if(ang>-15) ang=-15; if(ang<-165) ang=-165; angle=ang; let g=ym(angle,grid,It,Dt); ghost=g?{x:g.x,y:g.y}:null; traj=gm(angle,grid,It,Dt); draw(); });
+  board.addEventListener('pointerdown', e=>{ e.preventDefault(); let rect=board.getBoundingClientRect(), scale=RN/rect.width, scaleY=NU/rect.height, x=(e.clientX-rect.left)*scale, y=(e.clientY-rect.top)*scaleY; let ang=Math.atan2(y-Dt,x-It)*180/Math.PI; if(ang>-15) ang=-15; if(ang<-165) ang=-165; angle=ang; shoot(); }, {passive:false});
   window.addEventListener('keydown', e=>{ if(e.code==='ArrowLeft') angle=Math.max(-165,angle-4); if(e.code==='ArrowRight') angle=Math.min(-15,angle+4); if(e.code==='Space'||e.code==='ArrowUp'){ e.preventDefault(); shoot(); } let g=ym(angle,grid,It,Dt); ghost=g?{x:g.x,y:g.y}:null; traj=gm(angle,grid,It,Dt); draw(); });
   let partIv=setInterval(()=>{ parts=parts.map(p=>({...p,x:p.x+p.vx,y:p.y+p.vy,vy:p.vy+0.25,life:p.life-0.02})).filter(p=>p.life>0); draw(); },16);
   let adIv=setInterval(async()=>{ if(window.vrAd===4 && pend){ let t=pend; pend=null; window.vrAd=0; window.vrAdType=null; window._gm_shown=false; let r=await claim(true,true); if(r.ok){ level++; localStorage.setItem('pb_level',level); ui.innerHTML=`<div class="pb6-win"><div class="pb6-card"><div style="font-size:32px">✅</div><div style="font-weight:900;margin:8px 0">X2 ACREDITADO</div><button id="ok2" style="margin-top:12px;width:100%;height:48px;border-radius:24px;background:#fff;color:#000;font-weight:900">SIGUIENTE LVL${level}</button></div></div>`; ui.querySelector('#ok2').onclick=()=>{ ui.innerHTML=''; initGrid(); }; } } },300);
   initGrid();
-  container._cleanup=()=>{ clearInterval(ceilIv); clearInterval(partIv); clearInterval(adIv); window.vrAd=0; };
+  container._cleanup=()=>{ clearInterval(ceilIv); clearInterval(partIv); clearInterval(adIv); window.removeEventListener('resize', applyMobileScale); window.vrAd=0; };
 }
