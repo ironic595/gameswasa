@@ -96,8 +96,32 @@ export async function init(container, args){
   const PLANK_POS=[10,70,130,190,250,310];
   let planks=[], frogEl, word, guessed, errors, maxErrors=6, sess=null, claiming=false;
 
+  // --- LOGICA NEGOCIO ANUNCIOS ---
+  const FORCED_KEY='sapo_games_without_ad';
+  let gamesWithoutAd = parseInt(localStorage.getItem(FORCED_KEY)||'0');
+
+  function resetForced(){ gamesWithoutAd=0; localStorage.setItem(FORCED_KEY,'0'); }
+  function incForced(){ gamesWithoutAd++; localStorage.setItem(FORCED_KEY, String(gamesWithoutAd)); }
+
   async function startSess(){ try{ const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'start_game_session',email,wallet,device_id,game_slug:'ahorcado'})}); const j=await r.json(); if(j.ok) sess=j.session_id; }catch{} }
   async function claim(isDouble,ad){ if(claiming) return false; if(!sess) await startSess(); if(!sess) return false; claiming=true; try{ const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward',session_id:sess,email,wallet,device_id,game_slug:'ahorcado',ad_watched:ad,double_reward:isDouble})}); const j=await r.json(); if(j.ok){ const bal=j.wasa_balance??j.guest_balance??0; if(j.is_guest) localStorage.setItem('wasa_coins_guest',bal); else localStorage.setItem('wasa_coins',bal); if(window.setCoinsUI) window.setCoinsUI(bal); sess=null; claiming=false; return true;} }catch{} claiming=false; return false; }
+
+  function showForcedAd(next){
+    // popup intersticial obligatorio
+    elWin.innerHTML=`
+    <div class="ah-win"><div class="ah-win-card">
+      <div style="font-size:32px">📺</div>
+      <h3 style="margin:8px 0;font-weight:900">ANUNCIO RAPIDO</h3>
+      <div style="font-size:12px;opacity:.7;margin-bottom:12px">Para seguir jugando gratis, mirá este anuncio</div>
+      <button id="btnForced" style="width:100%;height:48px;border-radius:24px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0">VER ANUNCIO Y CONTINUAR</button>
+    </div></div>`;
+    elWin.querySelector('#btnForced').onclick=()=>{
+      window.vrAd=1; window.vrAdType='interstitial'; window._sapoForcedPending=true;
+      elWin.querySelector('#btnForced').textContent='CARGANDO ANUNCIO...';
+    };
+    // el next se ejecuta en el listener de vrAd
+    window._forcedNext = next;
+  }
 
   function buildTower(){
     tower.querySelectorAll('.ah-plank,.ah-frog').forEach(e=>e.remove());
@@ -117,7 +141,7 @@ export async function init(container, args){
     const words=await getWords(cat);
     word=words[Math.floor(Math.random()*words.length)];
     guessed=new Set(); errors=0; elWin.innerHTML=''; sess=null; startSess();
-    elHint.textContent=`${cat.toUpperCase()} • ${words.length} palabras • ${word.length} letras`;
+    elHint.textContent=`${cat.toUpperCase()} • ${words.length} palabras • ${word.length} letras • SIN AD: ${gamesWithoutAd}/2`;
     buildTower(); buildKeys(); update();
   }
 
@@ -157,8 +181,17 @@ export async function init(container, args){
       elWin.querySelector('#btnClaim').onclick=async(e)=>{
         e.target.textContent='VALIDANDO...'; e.target.disabled=true;
         const ok=await claim(false,false);
-        if(ok){ e.target.textContent='✅ +0.01 ACREDITADO'; setTimeout(()=>newRound(),700); }
-        else{ e.target.textContent='ERROR - REINTENTAR'; e.target.disabled=false; }
+        if(ok){
+          incForced();
+          e.target.textContent='✅ +0.01 ACREDITADO';
+          setTimeout(()=>{
+            if(gamesWithoutAd>=2){
+              showForcedAd(()=>{ resetForced(); newRound(); });
+            }else{
+              newRound();
+            }
+          },700);
+        }else{ e.target.textContent='ERROR - REINTENTAR'; e.target.disabled=false; }
       };
       elWin.querySelector('#btnX2').onclick=()=>{
         window.vrAd=1; window.vrAdType='double'; window._sapoPending=true;
@@ -172,20 +205,36 @@ export async function init(container, args){
         <div style="font-size:14px;margin:6px 0">Era: <b>${word}</b></div>
         <button id="btnRetry" style="width:100%;height:50px;margin-top:12px;border-radius:24px;background:#2b1a0a;color:#fff;font-weight:900;border:0;cursor:pointer">REINTENTAR</button>
       </div></div>`;
-      elWin.querySelector('#btnRetry').onclick=()=>newRound();
+      elWin.querySelector('#btnRetry').onclick=()=>{
+        incForced();
+        if(gamesWithoutAd>=2){
+          showForcedAd(()=>{ resetForced(); newRound(); });
+        }else{
+          newRound();
+        }
+      };
     }
   }
 
   const adIv=setInterval(async()=>{
+    // X2 recompensado
     if(window.vrAd===4 && window.vrAdType==='double' && window._sapoPending){
       window.vrAd=0; window.vrAdType=null; window._sapoPending=false;
       const ok=await claim(true,true);
       if(ok){
+        resetForced(); // vió ad recompensado, resetea contador
         elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card"><div style="font-size:48px">✅</div><h2>¡X2 ACREDITADO!</h2><div style="margin:10px 0;font-weight:900">+0.02 WASA</div><button id="btnNext" style="width:100%;height:44px;border-radius:22px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0">SIGUIENTE</button></div></div>`;
         elWin.querySelector('#btnNext').onclick=()=>newRound();
       }else{
         const b=elWin.querySelector('#btnX2'); if(b) b.textContent='ERROR - REINTENTAR';
       }
+    }
+    // Intersticial forzado cada 2 partidas
+    if(window.vrAd===4 && window.vrAdType==='interstitial' && window._sapoForcedPending){
+      window.vrAd=0; window.vrAdType=null; window._sapoForcedPending=false;
+      resetForced();
+      if(window._forcedNext){ const fn=window._forcedNext; window._forcedNext=null; fn(); }
+      else newRound();
     }
   },500);
 
