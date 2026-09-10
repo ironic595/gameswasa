@@ -1,4 +1,4 @@
-// game.v6.js - FIX CENTRADO
+// game v7 - CENTRADO REAL + FIX BOLAS FLOTANDO EN EL AIRE
 export function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javimsites.workers.dev/';
   const getDeviceId = ()=> window.getDeviceId?window.getDeviceId():(()=>{let id=localStorage.getItem('wasa_device_id'); if(!id){id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id;})();
@@ -12,6 +12,7 @@ export function init(container, args){
   const tu=e=>e.map(n=>[...n]); const Vo=e=>{let n=0;for(let t=0;t<e.length;t++)for(let r=0;r<B;r++)if(e[t][r]!==null)n++;return n};
   function vm(e,r,c){let col=e[r]?.[c];if(col==null)return[];let seen=new Set(),q=[[r,c]];seen.add(`${r},${c}`);let out=[];while(q.length){let [rr,cc]=q.shift();if(e[rr]?.[cc]!==col)continue;out.push([rr,cc]);for(let [nr,nc] of ru(rr,cc)){if(nr<0||nr>=Q||nc<0||nc>=B)continue;let k=`${nr},${nc}`;if(seen.has(k))continue;if(e[nr][nc]===col)seen.add(k),q.push([nr,nc])}}return out}
   function hm(e){let seen=new Set(),qq=[];for(let c=0;c<B;c++)if(e[0][c]!==null)qq.push([0,c]),seen.add(`0,${c}`);while(qq.length){let [r,c]=qq.shift();for(let [nr,nc] of ru(r,c)){if(nr<0||nr>=Q||nc<0||nc>=B)continue;let k=`${nr},${nc}`;if(seen.has(k))continue;if(e[nr][nc]!==null)seen.add(k),qq.push([nr,nc])}}let floating=[];for(let r=0;r<Q;r++)for(let c=0;c<B;c++)if(e[r][c]!==null&&!seen.has(`${r},${c}`))floating.push([r,c]);return floating}
+  function isConnectedTop(grid,r,c){ if(r===0) return true; let seen=new Set(),qq=[[r,c]];seen.add(`${r},${c}`);while(qq.length){let [rr,cc]=qq.shift();if(rr===0) return true; for(let [nr,nc] of ru(rr,cc)){if(nr<0||nr>=Q||nc<0||nc>=B)continue;if(grid[nr][nc]===null)continue;let k=`${nr},${nc}`;if(seen.has(k))continue;seen.add(k);qq.push([nr,nc]);}} return false; }
   function lu(x,y,grid){let {r,c}=mm(x,y),best=[];for(let dr=-3;dr<=3;dr++)for(let dc=-3;dc<=3;dc++){let nr=r+dr,nc=c+dc;if(nr<0||nr>=Q||nc<0||nc>=B)continue;if(grid[nr][nc]!==null)continue;if(!(nr===0||ru(nr,nc).some(([rr,cc])=>rr>=0&&rr<Q&&cc>=0&&cc<B&&grid[rr][cc]!==null)))continue;let p=Oe(nr,nc),d=Math.hypot(p.x-x,p.y-y);best.push({r:nr,c:nc,d})}if(best.length===0){for(let rr=0;rr<Q;rr++)for(let cc=0;cc<B;cc++)if(grid[rr][cc]===null){if(!(rr===0||ru(rr,cc).some(([a,b])=>a>=0&&a<Q&&b>=0&&b<B&&grid[a][b]!==null)))continue;let p=Oe(rr,cc);best.push({r:rr,c:cc,d:Math.hypot(p.x-x,p.y-y)})}}if(best.length===0)return null;best.sort((a,b)=>a.d-b.d);return best[0]}
   function ym(angle,grid,ox,oy){let rad=angle*Math.PI/180,dx=Math.cos(rad),dy=Math.sin(rad),x=ox,y=oy;for(let i=0;i<600;i++){x+=dx*6;y+=dy*6;if(x<=HALF+2){x=HALF+2;dx*=-1}if(x>=RN-HALF-2){x=RN-HALF-2;dx*=-1}if(y<=HALF+10){let p=lu(x,y,grid);if(p){let v=Oe(p.r,p.c);return{place:p,x:v.x,y:v.y}}return null}for(let r=0;r<Q;r++)for(let c=0;c<B;c++){if(grid[r][c]===null)continue;let g=Oe(r,c);if(Math.hypot(g.x-x,g.y-y)<WE*0.88){let pp=lu(x,y,grid);if(pp){let vv=Oe(pp.r,pp.c);return{place:pp,x:vv.x,y:vv.y}}return null}}}return null}
   function gm(angle,grid,ox,oy,l=3){let rad=angle*Math.PI/180,dx=Math.cos(rad),dy=Math.sin(rad),x=ox,y=oy,p=[{x,y}],bounces=0;for(let i=0;i<400;i++){x+=dx*8;y+=dy*8;if(x<=HALF+2||x>=RN-HALF-2){dx*=-1;x=Math.max(HALF+2,Math.min(RN-HALF-2,x));p.push({x,y});bounces++;if(bounces>=l)break}if(y<=HALF+12){p.push({x,y});break}for(let r=0;r<Q;r++)for(let c=0;c<B;c++)if(grid[r][c]!==null){let H=Oe(r,c);if(Math.hypot(H.x-x,H.y-y)<WE*0.9){p.push({x,y});return p}}}return p}
@@ -20,8 +21,8 @@ export function init(container, args){
   <style>
 .pb6{width:100%;height:100%;background:#08080d;color:#fff;font-family:'Space Grotesk',system-ui;display:flex;flex-direction:column;overflow:hidden}
 .pb6-top{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(15,15,23,.9);border-bottom:1px solid rgba(255,255,255,.1)}
-.pb6-wrap{flex:1;display:flex;justify-content:center;align-items:flex-start;padding:12px;overflow:auto}
-.pb6-body{display:flex;gap:14px;align-items:flex-start;justify-content:center}
+.pb6-wrap{flex:1;width:100%;display:grid;place-items:center;padding:14px;overflow:auto}
+.pb6-body{display:flex;gap:14px;align-items:flex-start;justify-content:center;width:fit-content;margin:0 auto}
 .pb6-left{flex:0 0 ${RN}px;width:${RN}px;background:#0f0f17;border:1px solid rgba(255,255,255,.1);border-radius:20px;overflow:hidden}
 .pb6-board{position:relative;width:${RN}px;height:${NU}px;touch-action:none;background:#0f0f17}
 .pb6-right{flex:0 0 340px;width:340px;display:flex;flex-direction:column;gap:10px}
@@ -33,12 +34,12 @@ export function init(container, args){
   @media(max-width:900px){.pb6-body{flex-direction:column;align-items:center}.pb6-right{width:min(100vw - 24px, ${RN}px);flex:0 0 auto}}
   </style>
   <div class="pb6" id="pb6">
-    <div class="pb6-top"><div style="font-weight:900;font-size:11px;letter-spacing:.18em;color:#00F0FF">PUZZLE BUBBLE • v6 PROGRESIVO • CENTRADO</div><div style="display:flex;gap:6px"><div style="background:#1b1b27;border-radius:20px;padding:6px 10px;font-size:10px;font-weight:800" id="pb6lvl">LVL 1</div><div style="background:linear-gradient(135deg,#FFE600,#FF6B2B);color:#000;border-radius:20px;padding:6px 10px;font-size:10px;font-weight:900" id="pb6w">0 WASA</div></div></div>
+    <div class="pb6-top"><div style="font-weight:900;font-size:11px;letter-spacing:.18em;color:#00F0FF">PUZZLE BUBBLE • v7 CENTRADO + FIX FLOTANTES</div><div style="display:flex;gap:6px"><div style="background:#1b1b27;border-radius:20px;padding:6px 10px;font-size:10px;font-weight:800" id="pb6lvl">LVL 1</div><div style="background:linear-gradient(135deg,#FFE600,#FF6B2B);color:#000;border-radius:20px;padding:6px 10px;font-size:10px;font-weight:900" id="pb6w">0 WASA</div></div></div>
     <div class="pb6-wrap"><div class="pb6-body">
       <div class="pb6-left"><div class="pb6-board" id="pb6board"></div><div style="height:4px;background:rgba(0,0,0,.5)"><div id="pb6bar" style="height:100%;background:linear-gradient(90deg,#00F0FF,#FF00D4);width:0%;transition:width.4s"></div></div><div style="display:flex;justify-content:space-between;padding:6px 10px;font-size:9px;opacity:.5;font-family:monospace"><span>▼ TECHO ▼</span><span id="pb6ceil">45s</span><span>▼ TECHO ▼</span></div></div>
       <div class="pb6-right">
         <div class="pb6-stats"><div class="pb6-st"><b id="pb6obj">0/30</b><span>OBJETIVO POPS</span></div><div class="pb6-st"><b id="pb6tm">45s / 12 tiros</b><span>TECHO EN</span></div><div class="pb6-st"><b id="pb6sc">0</b><span>SCORE</span></div><div class="pb6-st"><b id="pb6rw">+0.000000</b><span>WASA</span></div></div>
-        <div style="background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;font-size:11px;font-family:monospace"><div style="display:flex;justify-content:space-between;opacity:.6;margin-bottom:6px"><span>PROGRESIÓN v6</span><span id="pb6prog">LVL1 45s→10s</span></div><div>Target: <b id="pb6tgt">30</b> pops • Shots: <b id="pb6sht">12</b> → techo</div><div style="margin-top:6px;opacity:.5">🖱 MOVER / TOCAR / ←→ + ESPACIO • GHOST + TRAYECTORIA</div></div>
+        <div style="background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;font-size:11px;font-family:monospace"><div style="display:flex;justify-content:space-between;opacity:.6;margin-bottom:6px"><span>PROGRESIÓN v7</span><span id="pb6prog">LVL1 45s→10s</span></div><div>Target: <b id="pb6tgt">30</b> pops • Shots: <b id="pb6sht">12</b> → techo</div><div style="margin-top:6px;opacity:.5">🖱 MOVER / TOCAR / ←→ + ESPACIO • GHOST + TRAYECTORIA</div></div>
         <div style="background:#11111a;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px;display:flex;align-items:center;gap:8px"><span style="font-size:10px;opacity:.5">SIGUIENTE:</span><div id="pb6next" style="width:22px;height:22px;border-radius:50%"></div><span style="font-size:10px;opacity:.5;margin-left:auto">Cañón abajo • apuntá y soltá</span></div>
       </div>
     </div></div>
@@ -60,7 +61,9 @@ export function init(container, args){
     popped=0; shot=0; ceilT=maxT(); cur=Math.floor(Math.random()*colors()); nxt=Math.floor(Math.random()*colors()); angle=-90; shooting=null; ghost=null; traj=[]; parts=[]; score=0; startSess(); updateUI(); startCeil(); draw();
   }
   function startCeil(){ if(ceilIv) clearInterval(ceilIv); ceilIv=setInterval(()=>{ ceilT--; updateUI(); if(ceilT<=0){ pushCeil(); ceilT=maxT(); } },1000); }
-  function pushCeil(){ let ng=tu(grid); for(let r=Q-1;r>0;r--) ng[r]=[...ng[r-1]]; let nr=Array(B).fill(null); for(let c=0;c<B;c++) if(Math.random()>0.15) nr[c]=Math.floor(Math.random()*colors()); ng[0]=nr; if(ng[Q-1].some(v=>v!==null)){ lose(); return; } grid=ng; shot=0; if(navigator.vibrate) navigator.vibrate(30); draw(); }
+  function pushCeil(){ let ng=tu(grid); for(let r=Q-1;r>0;r--) ng[r]=[...ng[r-1]]; let nr=Array(B).fill(null); for(let c=0;c<B;c++) if(Math.random()>0.15) nr[c]=Math.floor(Math.random()*colors()); ng[0]=nr; // FIX: si queda flotando despues de bajar techo, que caiga
+    let floating=hm(ng); if(floating.length){ floating.forEach(([rr,cc])=>{ ng[rr][cc]=null; }); }
+    if(ng[Q-1].some(v=>v!==null)){ lose(); return; } grid=ng; shot=0; draw(); }
   function updateUI(){
     container.querySelector('#pb6lvl').textContent='LVL '+level;
     container.querySelector('#pb6obj').textContent=popped+'/'+target();
@@ -79,7 +82,6 @@ export function init(container, args){
     board.innerHTML='';
     let svg=document.createElementNS('http://www.w3.org/2000/svg','svg'); svg.setAttribute('width',RN); svg.setAttribute('height',NU); svg.style.position='absolute'; svg.style.inset='0'; svg.style.pointerEvents='none';
     let poly=document.createElementNS('http://www.w3.org/2000/svg','polyline'); poly.setAttribute('points',traj.map(p=>`${p.x},${p.y}`).join(' ')); poly.setAttribute('fill','none'); poly.setAttribute('stroke','white'); poly.setAttribute('stroke-opacity','0.25'); poly.setAttribute('stroke-width','1.5'); poly.setAttribute('stroke-dasharray','6 6'); svg.appendChild(poly);
-    traj.forEach((p,i)=>{ if(i===0) return; let c=document.createElementNS('http://www.w3.org/2000/svg','circle'); c.setAttribute('cx',p.x); c.setAttribute('cy',p.y); c.setAttribute('r',i===traj.length-1?3:1.5); c.setAttribute('fill',i===traj.length-1?'#00F0FF':'white'); c.setAttribute('opacity','0.6'); svg.appendChild(c); });
     board.appendChild(svg);
     grid.forEach((row,r)=>row.forEach((col,c)=>{ if(col===null) return; let {x,y}=Oe(r,c); let d=document.createElement('div'); d.className='bubble'; d.style.left=(x-HALF)+'px'; d.style.top=(y-HALF)+'px'; d.style.width=(WE-2)+'px'; d.style.height=(WE-2)+'px'; d.style.background=XE[col].grad; board.appendChild(d); }));
     if(ghost &&!shooting){ let gd=document.createElement('div'); gd.style.position='absolute'; gd.style.left=(ghost.x-HALF)+'px'; gd.style.top=(ghost.y-HALF)+'px'; gd.style.width=(WE-2)+'px'; gd.style.height=(WE-2)+'px'; gd.style.borderRadius='50%'; gd.style.border='2px dashed rgba(255,255,255,.4)'; gd.style.background=XE[cur].hex+'22'; board.appendChild(gd); }
@@ -88,8 +90,23 @@ export function init(container, args){
     let cannon=document.createElement('div'); cannon.style.position='absolute'; cannon.style.left=(It-29)+'px'; cannon.style.top=(Dt-6)+'px'; cannon.style.width='58px'; cannon.style.height='58px'; cannon.style.borderRadius='50%'; cannon.style.background='#1b1b27'; cannon.style.border='2px solid rgba(255,255,255,.15)'; cannon.style.display='grid'; cannon.style.placeItems='center'; cannon.innerHTML=`<div class="bubble" style="width:40px;height:40px;background:${XE[cur].grad}"></div>`; board.appendChild(cannon);
   }
   function place(r,c,col){
-    let ng=tu(grid); ng[r][c]=col; let conn=vm(ng,r,c);
-    if(conn.length>=3){ conn.forEach(([rr,cc])=>{ let p=Oe(rr,cc); parts.push({x:p.x,y:p.y,vx:(Math.random()-0.5)*8,vy:(Math.random()-0.5)*8-2,col:ng[rr][cc],life:1}); ng[rr][cc]=null; }); let floating=hm(ng); floating.forEach(([rr,cc])=>{ let p=Oe(rr,cc); parts.push({x:p.x,y:p.y,vx:(Math.random()-0.5)*6,vy:(Math.random()-0.5)*6-2,col:ng[rr][cc],life:1}); ng[rr][cc]=null; }); popped+=conn.length+floating.length; score+=conn.length*15+floating.length*8; grid=ng; updateUI(); if(popped>=target()||Vo(grid)===0){ win(); return; } } else { grid=ng; }
+    // Si ya existe algo ahí, buscar otro lugar
+    if(grid[r][c]!==null){ let alt=lu(Oe(r,c).x,Oe(r,c).y,grid); if(!alt){ shooting=null; draw(); return; } r=alt.r; c=alt.c; }
+    let ng=tu(grid); ng[r][c]=col;
+    // FIX PRINCIPAL: si la bola que acabás de poner no está conectada al techo, que se caiga, no que quede flotando
+    if(!isConnectedTop(ng,r,c)){
+      parts.push({x:Oe(r,c).x,y:Oe(r,c).y,vx:(Math.random()-0.5)*4,vy:-2,col,life:1});
+      // no la dejamos en el grid, rebota
+      cur=nxt; nxt=Math.floor(Math.random()*colors()); shooting=null; shot++; updateUI(); draw(); return;
+    }
+    let conn=vm(ng,r,c);
+    if(conn.length>=3){
+      conn.forEach(([rr,cc])=>{ let p=Oe(rr,cc); parts.push({x:p.x,y:p.y,vx:(Math.random()-0.5)*8,vy:(Math.random()-0.5)*8-2,col:ng[rr][cc],life:1}); ng[rr][cc]=null; });
+      let floating=hm(ng);
+      floating.forEach(([rr,cc])=>{ let p=Oe(rr,cc); parts.push({x:p.x,y:p.y,vx:(Math.random()-0.5)*6,vy:(Math.random()-0.5)*6-2,col:ng[rr][cc],life:1}); ng[rr][cc]=null; });
+      popped+=conn.length+floating.length; score+=conn.length*15+floating.length*8;
+      grid=ng; updateUI(); if(popped>=target()||Vo(grid)===0){ win(); return; }
+    } else { grid=ng; }
     shot++; if(shot>=need()){ pushCeil(); ceilT=maxT(); shot=0; } cur=nxt; nxt=Math.floor(Math.random()*colors()); shooting=null; updateUI(); draw(); if(grid[Q-1].some(v=>v!==null)) lose();
   }
   function win(){
@@ -104,7 +121,7 @@ export function init(container, args){
   board.addEventListener('pointerdown', e=>{ e.preventDefault(); let rect=board.getBoundingClientRect(), scaleX=RN/rect.width, scaleY=NU/rect.height, x=(e.clientX-rect.left)*scaleX, y=(e.clientY-rect.top)*scaleY; let ang=Math.atan2(y-Dt,x-It)*180/Math.PI; if(ang>-15) ang=-15; if(ang<-165) ang=-165; angle=ang; shoot(); }, {passive:false});
   window.addEventListener('keydown', e=>{ if(e.code==='ArrowLeft') angle=Math.max(-165,angle-4); if(e.code==='ArrowRight') angle=Math.min(-15,angle+4); if(e.code==='Space'||e.code==='ArrowUp'){ e.preventDefault(); shoot(); } let g=ym(angle,grid,It,Dt); ghost=g?{x:g.x,y:g.y}:null; traj=gm(angle,grid,It,Dt); draw(); });
   let partIv=setInterval(()=>{ parts=parts.map(p=>({...p,x:p.x+p.vx,y:p.y+p.vy,vy:p.vy+0.25,life:p.life-0.02})).filter(p=>p.life>0); draw(); },16);
-  let adIv=setInterval(async()=>{ if(window.vrAd===4 && pend){ let t=pend; pend=null; window.vrAd=0; window.vrAdType=null; window._gm_shown=false; ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.75);display:grid;place-items:center;z-index:60;color:#fff">Validando X2...</div>`; let r=await claim(true,true); if(r.ok){ total+=0.02; updateUI(); level++; localStorage.setItem('pb_level',level); ui.innerHTML=`<div class="pb6-win"><div class="pb6-card"><div style="font-size:32px">✅</div><div style="font-weight:900;margin:8px 0">X2 ACREDITADO v6</div><button id="ok2" style="margin-top:12px;width:100%;height:48px;border-radius:24px;background:#fff;color:#000;font-weight:900">SIGUIENTE LVL${level}</button></div></div>`; ui.querySelector('#ok2').onclick=()=>{ ui.innerHTML=''; initGrid(); }; } } },300);
+  let adIv=setInterval(async()=>{ if(window.vrAd===4 && pend){ let t=pend; pend=null; window.vrAd=0; window.vrAdType=null; window._gm_shown=false; ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.75);display:grid;place-items:center;z-index:60;color:#fff">Validando X2...</div>`; let r=await claim(true,true); if(r.ok){ total+=0.02; updateUI(); level++; localStorage.setItem('pb_level',level); ui.innerHTML=`<div class="pb6-win"><div class="pb6-card"><div style="font-size:32px">✅</div><div style="font-weight:900;margin:8px 0">X2 ACREDITADO v7</div><button id="ok2" style="margin-top:12px;width:100%;height:48px;border-radius:24px;background:#fff;color:#000;font-weight:900">SIGUIENTE LVL${level}</button></div></div>`; ui.querySelector('#ok2').onclick=()=>{ ui.innerHTML=''; initGrid(); }; } } },300);
   initGrid();
   container._cleanup=()=>{ clearInterval(ceilIv); clearInterval(partIv); clearInterval(adIv); window.vrAd=0; };
 }
