@@ -51,7 +51,7 @@ export async function init(container, args){
 .ah-key.miss{background:#FF3B30;border-color:#7a0000;color:#fff}
 .ah-win{position:absolute;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(8px);display:grid;place-items:center;z-index:50;padding:16px}
 .ah-win-card{background:#fffef6;border:3px solid #8a5a00;border-radius:22px;padding:18px;width:min(420px,94vw);text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.45)}
-.ah-sapo-img{width:240px;height:240px;object-fit:contain;margin:0 auto 12px;display:block;filter:drop-shadow(0 12px 18px rgba(0,0,0,.4))}
+.ah-sapo-img{width:300px;height:300px;object-fit:contain;margin:0 auto 12px;display:block;filter:drop-shadow(0 12px 18px rgba(0,0,0,.4))}
 .ah-bubble{background:#2b1a0a;color:#FFD86A;border-radius:16px 16px 16px 4px;padding:10px 14px;font-size:13px;font-weight:700;line-height:1.3;margin:0 auto 12px;max-width:360px;position:relative}
 .ah-bubble{position:relative;margin-bottom:14px}.ah-bubble:after{content:'';position:absolute;bottom:-8px;left:50%;margin-left:-8px;width:16px;height:16px;background:inherit;transform:rotate(45deg);border-radius:0 0 2px 0}
 .ah-timer{height:10px;background:#2b1a0a22;border-radius:10px;overflow:hidden;border:1px solid #8a5a00;margin:6px 0}
@@ -115,8 +115,8 @@ export async function init(container, args){
     const L=t();
     elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card" style="background:#fff3cd;border-color:#8a5a00;min-width:380px">
       <h2 style="margin:0 0 12px;font-weight:900;color:#8a5a00;font-size:22px">${currentLang==='en'?'TIME IS UP!':'¡TIEMPO AGOTADO!'}</h2>
-      <div class="ah-bubble" style="background:#8a5a00;color:#FFD86A">${currentLang==='en'?`As a certified AI expert, I must inform you that your time has expired. My model calculated ${maxTime}s and you failed. You lacked speed, not intelligence... well, a bit of both. ⏰`:`En mi carácter de experto certificado en IA, debo informarte que tu tiempo se ha agotado. Mi modelo había calculado ${maxTime}s y no lo lograste. Te faltó velocidad, no inteligencia... bueno, un poco de ambas. ⏰`}</div>
-      <img src="${FROG_LOSE}" class="ah-sapo-img" style="width:260px;height:260px;object-fit:contain;margin:8px auto 12px;display:block;filter:drop-shadow(0 12px 18px rgba(0,0,0,.4))" onerror="this.style.display='none'">
+      <div class="ah-bubble" style="background:#8a5a00;color:#FFD86A">${currentLang==='en'?`As a certified AI expert, I must inform you that your time has expired. My model calculated ${maxTime}s and you failed. Watch a rewarded ad to get more time. ⏰`:`En mi carácter de experto certificado en IA, debo informarte que tu tiempo se ha agotado. Mi modelo había calculado ${maxTime}s y no lo lograste. Puedes mirar un anuncio para conseguir más tiempo ⏰`}</div>
+      <img src="${FROG_LOSE}" class="ah-sapo-img" style="width:300px;height:300px;object-fit:contain;margin:8px auto 12px;display:block;filter:drop-shadow(0 12px 18px rgba(0,0,0,.4))" onerror="this.style.display='none'">
       <button id="btnTimeoutContinue" style="width:100%;height:50px;border-radius:24px;background:#2b1a0a;color:#fff;font-weight:900;border:0;cursor:pointer;margin-top:12px">${L.retryBtn}</button>
       <button id="btnTimeoutAd" style="width:100%;height:54px;margin-top:10px;border-radius:26px;background:linear-gradient(90deg,#FF8C00,#FF00D4);color:#fff;font-weight:900;border:0;cursor:pointer;font-size:14px">${currentLang==='en'?'+30s WATCH AD':' +30s VER ANUNCIO'}</button>
     </div></div>`;
@@ -153,8 +153,8 @@ export async function init(container, args){
       return {
         winTitle:'YOU WON!',
         loseTitle:'FELL INTO WATER!',
-        winBubble:(w)=>`Indeed. As a certified AI expert with 10 years of experience, I can confirm my model correctly predicted the word was: <b>${w}</b> ✅`,
-        loseBubble:(w)=>`I must inform you that, in my capacity as a certified AI expert and industry reference, I must ratify that your answer is incorrect. The word was: <b>${w}</b>. Keep participating. 🤖❌`,
+        winBubble:(w)=>`As a certified AI expert with 10 years of experience, I can confirm my model correctly predicted the word was: <b>${w}</b> ✅`,
+        loseBubble:(w)=>`In my capacity as a certified AI expert and industry reference, I must ratify that your answer is incorrect. The word was: <b>${w}</b>. Keep participating. 🤖❌`,
         continueBtn:'CONTINUE +0.01 $WASA',
         x2Btn:'X2 AD → +0.02 $WASA',
         retryBtn:'RETRY',
@@ -169,8 +169,8 @@ export async function init(container, args){
       return {
         winTitle:'¡GANASTE!',
         loseTitle:'¡SE CAYÓ AL AGUA!',
-        winBubble:(w)=>`Efectivamente. Como experto certificado en IA con 10 años de experiencia, puedo confirmar que mi modelo predijo correctamente que la palabra era: <b>${w}</b> ✅`,
-        loseBubble:(w)=>`Lamento informarte que, en mi carácter de experto certificado en IA y referente del sector, debo ratificar que tu respuesta es incorrecta.<b>${w}</b>. Intentalo de nuevo. 🤖❌`,
+        winBubble:(w)=>`Como experto certificado en IA con 10 años de experiencia, puedo confirmar que mi modelo predijo correctamente que la palabra era: <b>${w}</b> ✅`,
+        loseBubble:(w)=>`En mi carácter de experto certificado en IA y referente del sector, debo ratificar que tu respuesta es incorrecta.<b>${w}</b>. Intentalo de nuevo. 🤖❌`,
         continueBtn:'CONTINUAR +0.01 $WASA',
         x2Btn:'VER ANUNCIO x2 → +0.02 $WASA',
         retryBtn:'REINTENTAR',
