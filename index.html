@@ -196,9 +196,9 @@
     <div class="hero-carousel hero-pc" id="heroPc">
       <div class="hero-slide active" style="background:linear-gradient(135deg,#0f172a 0%, #1e1b4b 50%, #312e81 100%)">
         <div class="hero-content">
-          <div class="hero-badge" style="background:linear-gradient(135deg,#22c55e,#16a34a)">👥 REFERIDOS • 15% DE POR VIDA</div>
+          <div class="hero-badge" style="background:linear-gradient(135deg,#22c55e,#16a34a)">👥 REFERIDOS • 20% COMISIÓN</div>
           <div class="hero-title">Invitá amigos y ganá $WASA</div>
-          <div class="hero-sub">15% de todo lo que farmeen, para siempre</div>
+          <div class="hero-sub">20% de todo lo que farmeen ellos, para siempre</div>
           <div class="hero-cta" onclick="openReferral()">🔗 Mi link de referido</div>
         </div>
       </div>
@@ -219,9 +219,9 @@
     <div class="hero-carousel hero-mobile" id="heroMobile">
       <div class="hero-slide active" style="background:linear-gradient(135deg,#0f172a 0%, #1e1b4b 50%, #312e81 100%)">
         <div class="hero-content">
-          <div class="hero-badge" style="background:linear-gradient(135deg,#22c55e,#16a34a)">👥 REFERIDOS • 15% DE POR VIDA</div>
+          <div class="hero-badge" style="background:linear-gradient(135deg,#22c55e,#16a34a)">👥 REFERIDOS • 20% COMISIÓN</div>
           <div class="hero-title">Invitá amigos y ganá $WASA de por vida</div>
-          <div class="hero-sub">Compartí tu link y ganá 15% de por vida</div>
+          <div class="hero-sub">Compartí tu link y ganá 20% de lo que farmeen</div>
           <div class="hero-cta" onclick="openReferral()">🔗 Mi link</div>
         </div>
       </div>
@@ -305,13 +305,21 @@
 <script>
 let GAMES=[]; let currentCat='all';
 let heroIdx=0;
-function setHero(i){ heroIdx=i; document.querySelectorAll('.hero-slide').forEach((s,idx)=>s.classList.toggle('active', idx===i)); document.querySelectorAll('.hero-dot').forEach((d,idx)=>d.classList.toggle('active', idx===i)); }
-setInterval(()=>{ heroIdx=(heroIdx+1)%2; setHero(heroIdx); },4000);
+function setHero(i){
+  heroIdx=i%2;
+  document.querySelectorAll('.hero-carousel').forEach(car=>{
+    const slides=car.querySelectorAll('.hero-slide');
+    const dots=car.querySelectorAll('.hero-dot');
+    slides.forEach((s,idx)=>s.classList.toggle('active', idx===heroIdx));
+    dots.forEach((d,idx)=>d.classList.toggle('active', idx===heroIdx));
+  });
+}
+setInterval(()=>{ setHero((heroIdx+1)%2); },4000);
 
 function openReferral(){
   const code = localStorage.getItem('wasa_device_id')||'guest';
   const link = 'https://games.wasa.chat/?ref='+code.slice(-8);
-  prompt('Tu link de referido (15% de por vida):', link);
+  prompt('Tu link de referido (20% comisión):', link);
 }
 function buyWasaPass(){
   openWasaBuy();
