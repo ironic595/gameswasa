@@ -9,6 +9,48 @@ export function init(container, args){
   const B=8,Q=12,WE=32,UU=WE*0.865,RN=B*WE+WE/2+2,NU=Q*UU+80;
   const PAL=["#00D4FF","#FF3BB0","#FFD400","#2AFF8A","#FF7A2E"];
 
+  // COLOR PROGRESSION BY LEVEL - 10 niveles por color, se oscurece levemente
+  const COLOR_STAGES = [
+    {name:'VIOLETA', light:'#f3e8ff', dark:'#7c3aed'}, // 1-10 violeta clarito -> oscuro
+    {name:'VERDE',   light:'#dcfce7', dark:'#16a34a'}, // 11-20 verde
+    {name:'CELESTE', light:'#e0f2fe', dark:'#0284c7'}, // 21-30 azul celeston
+    {name:'SALMON',  light:'#ffe4e6', dark:'#f43f5e'}, // 31-40 salmon/rosa
+    {name:'AMARILLO',light:'#fef9c3', dark:'#ca8a04'}, // 41-50 amarillo
+    {name:'NARANJA', light:'#ffedd5', dark:'#ea580c'}, // 51-60 naranja
+    {name:'TURQUESA',light:'#ccfbf1', dark:'#0d9488'}, // 61-70 turquesa
+    {name:'ROSA',    light:'#fce7f3', dark:'#db2777'}, // 71-80 rosa
+  ];
+  function hexToRgb(h){ h=h.replace('#',''); if(h.length===3) h=h.split('').map(c=>c+c).join(''); let r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16); return {r,g,b}; }
+  function rgbToHex(r,g,b){ return '#'+[r,g,b].map(x=>{ let h=Math.round(x).toString(16); return h.length===1?'0'+h:h; }).join(''); }
+  function lerpColor(a,b,t){ let ca=hexToRgb(a), cb=hexToRgb(b); return rgbToHex(ca.r+(cb.r-ca.r)*t, ca.g+(cb.g-ca.g)*t, ca.b+(cb.b-ca.b)*t); }
+  function getLevelColors(lvl){
+    let stageIdx = Math.floor((lvl-1)/10) % COLOR_STAGES.length;
+    let stage = COLOR_STAGES[stageIdx];
+    let progress = ((lvl-1)%10)/9; // 0 to 1 dentro del bloque de 10
+    let bg = lerpColor(stage.light, stage.dark, progress);
+    // background del juego oscuro basado en ese color pero muy oscurecido para no quemar ojos
+    // mezclamos el color con #08080d
+    let darkBg = lerpColor(bg, '#08080d', 0.85 - progress*0.15); // se va oscureciendo
+    let accent = lerpColor(stage.light, stage.dark, 0.5+progress*0.3);
+    return {stage, progress, bg, darkBg, accent, stageName: stage.name, levelInStage: ((lvl-1)%10)+1 };
+  }
+  function applyLevelTheme(lvl){
+    let {darkBg, accent, stageName, levelInStage} = getLevelColors(lvl);
+    // cambiar fondo principal
+    let pb6 = container.querySelector('.pb6');
+    if(pb6){ pb6.style.background = `radial-gradient(ellipse at 30% 20%, ${accent}22, transparent 60%), ${darkBg}`; }
+    // top bar accent
+    let top = container.querySelector('#pb6title');
+    if(top){ top.style.color = accent; }
+    // dino card border
+    let dinoCard = container.querySelector('.dino-card');
+    if(dinoCard){ dinoCard.style.borderColor = accent+'55'; }
+    // barra de progreso
+    let bar = container.querySelector('#pb6bar');
+    if(bar){ bar.style.background = `linear-gradient(90deg, ${accent}, ${accent}aa)`; }
+  }
+
+
   const Oe=(r,c)=>({x:c*WE+(r%2?WE/2:0)+WE/2+1,y:r*UU+WE/2+8});
   const mm=(x,y)=>{let r=Math.round((y-WE/2-8)/UU),off=r%2?WE/2:0,c=Math.round((x-WE/2-1-off)/WE);return{r,c}};
   const ru=(r,c)=>r%2===0?[[r-1,c-1],[r-1,c],[r,c-1],[r,c+1],[r+1,c-1],[r+1,c]]:[[r-1,c],[r-1,c+1],[r,c-1],[r,c+1],[r+1,c],[r+1,c+1]];
@@ -44,7 +86,7 @@ export function init(container, args){
 @media(max-width:900px){.pb6-wrap{padding:8px}.pb6-body{flex-direction:column;align-items:center;width:100%}.pb6-left{width:min(100vw - 16px, ${RN}px);flex:0 0 auto}.pb6-right{width:min(100vw - 16px, 300px);flex:0 0 auto}.pb6-canvas{width:100%!important;height:auto!important;aspect-ratio:${RN}/${NU}}}
   </style>
   <div class="pb6">
-    <div class="pb6-top"><div style="font-weight:900;font-size:11px;letter-spacing:.15em;color:#2AFF8A">RUZZLE BUBBLE • DINO PUNK</div><div id="pb6lvl" style="background:#1b1b27;border-radius:16px;padding:4px 10px;font-size:10px;font-weight:800">LVL 1</div></div>
+    <div class="pb6-top"><div id="pb6title" style="font-weight:900;font-size:11px;letter-spacing:.15em;color:#2AFF8A">RUZZLE BUBBLE • DINO PUNK</div><div id="pb6lvl" style="background:#1b1b27;border-radius:16px;padding:4px 10px;font-size:10px;font-weight:800">LVL 1</div></div>
     <div class="pb6-wrap"><div class="pb6-body">
       <div class="pb6-left"><canvas id="pb6cv" class="pb6-canvas" width="${RN}" height="${NU}"></canvas><div style="height:3px;background:#000"><div id="pb6bar" style="height:100%;background:linear-gradient(90deg,#2AFF8A,#00D4FF,#FF3BB0);width:0%"></div></div><div style="display:flex;justify-content:space-between;padding:4px 8px;font-size:8px;opacity:.4;font-family:monospace"><span>▼</span><span id="pb6ceil">45s</span><span>▼</span></div></div>
       <div class="pb6-right">
@@ -85,7 +127,7 @@ export function init(container, args){
   let level=parseInt(localStorage.getItem('pb_level')||'1'), target=()=>Math.min(80,30+(level-1)*5), need=()=>Math.max(5,12-Math.floor((level-1)/4)), maxT=()=>Math.max(10,45-(level-1)*0.5);
   let grid=[], score=0, popped=0, cur=0, nxt=0, angle=-90, ghost=null, traj=[], shooting=null, shot=0, ceilT=maxT(), ceilIv=null, sess=null, pend=null, claiming=false;
   let colors=()=>Math.min(5,3+Math.floor(level/2)), It=RN/2, Dt=NU-22;
-  let rafId=null, isShooting=false, shotsSinceAd=0; const SHOTS_PER_AD=30;
+  let rafId=null, isShooting=false, shotsSinceAd=0; const SHOTS_PER_AD=45; // cada 45 tiros
   let popTexts=[], combo=0, lastPopTime=0;
   const COMBO_WORDS=["Nice!","Good!","Great!","Very Good!","Excellent!","Amazing!","Incredible!","LEGENDARY!"];
   function addPopAnim(r,c,colIndex,count,isFloating){
@@ -107,7 +149,7 @@ export function init(container, args){
     let rows=Math.min(7,5+Math.floor(level/3)); grid=Array.from({length:Q},()=>Array(B).fill(null));
     for(let r=0;r<rows;r++){ let cols=r%2===1?B-1:B; for(let c=0;c<cols;c++){ if(level===1&&Math.random()<0.12) continue; grid[r][c]=Math.floor(Math.random()*colors()); } }
     for(let r=0;r<Q;r++) if(r%2===1) grid[r][B-1]=null;
-    popped=0; shot=0; ceilT=maxT(); cur=Math.floor(Math.random()*colors()); nxt=Math.floor(Math.random()*colors()); angle=-90; shooting=null; isShooting=false; ghost=null; traj=[]; score=0; startSess(); updateUI(); startCeil(); drawBoard();
+    popped=0; shot=0; ceilT=maxT(); cur=Math.floor(Math.random()*colors()); nxt=Math.floor(Math.random()*colors()); angle=-90; shooting=null; isShooting=false; ghost=null; traj=[]; score=0; applyLevelTheme(level); startSess(); updateUI(); startCeil(); drawBoard();
   }
   function showReadyGo(){
     const ov=container.querySelector('#readyOverlay'); const txt=container.querySelector('#readyText'); const dinoB=container.querySelector('#dinoBubble'); const lvlEl=container.querySelector('#dinoLvl'); if(lvlEl) lvlEl.textContent=level; if(!ov){ doInitGrid(); return; }
@@ -124,7 +166,7 @@ export function init(container, args){
     let floating=hm(ng); if(floating.length>0){ floating.forEach(([rr,cc])=> ng[rr][cc]=null ); popped+=floating.length; score+=floating.length*5; if(floating.length>=2) addPopAnim(ng.length-2,2,2,floating.length,true); }
     if(ng[Q-1].some(v=>v!==null)){ lose(); return; } grid=ng; shot=0; updateUI(); drawBoard();
   }
-  function updateUI(){ container.querySelector('#pb6lvl').textContent='LVL '+level; const dl=container.querySelector('#dinoLvl'); if(dl) dl.textContent=level; container.querySelector('#pb6obj').textContent=popped+'/'+target(); container.querySelector('#pb6tm').textContent=ceilT+'s / '+need(); container.querySelector('#pb6sc').textContent=score; container.querySelector('#pb6bar').style.width=Math.min(100,popped/target()*100)+'%'; container.querySelector('#pb6ceil').textContent=ceilT+'s'; const nxtEl=container.querySelector('#pb6nxt'); if(nxtEl) nxtEl.style.background=PAL[nxt]; }
+  function updateUI(){ let {stageName, levelInStage, accent} = getLevelColors(level); container.querySelector('#pb6lvl').textContent=`LVL ${level} • ${stageName} ${levelInStage}/10`; const dl=container.querySelector('#dinoLvl'); if(dl) dl.textContent=level; let titleEl=container.querySelector('#pb6title'); if(titleEl){ titleEl.innerHTML=`RUZZLE BUBBLE • <span style='color:${accent}'>${stageName}</span> • ${levelInStage}/10`; } container.querySelector('#pb6obj').textContent=popped+'/'+target(); container.querySelector('#pb6tm').textContent=ceilT+'s / '+need(); container.querySelector('#pb6sc').textContent=score; container.querySelector('#pb6bar').style.width=Math.min(100,popped/target()*100)+'%'; container.querySelector('#pb6ceil').textContent=ceilT+'s'; const nxtEl=container.querySelector('#pb6nxt'); if(nxtEl) nxtEl.style.background=PAL[nxt]; }
   function drawBoard(){
     ctx.fillStyle='#0f0f17'; ctx.fillRect(0,0,RN,NU);
     if(traj.length>1){ ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=1; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.moveTo(traj[0].x,traj[0].y); for(let i=1;i<traj.length;i++) ctx.lineTo(traj[i].x,traj[i].y); ctx.stroke(); ctx.setLineDash([]); }
