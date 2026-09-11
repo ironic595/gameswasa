@@ -2,7 +2,9 @@
 // Uso: window.RUZZLE_DINO_URL = 'https://tu-cdn.com/ruzzle_dino_final_green.png'
 // Si no pones nada, usa el verde por defecto
 export function init(container, args){
-  const DINO_URL = args?.dinoUrl || window.RUZZLE_DINO_URL || 'ruzzle_dino_final_green.png';
+  const DINO_URL_IDLE = args?.dinoUrlIdle || window.RUZZLE_DINO_IDLE || 'dino_manos_cintura.png';
+  const DINO_URL_WIN = args?.dinoUrlWin || window.RUZZLE_DINO_WIN || 'dino_festejando.png';
+  const DINO_URL = DINO_URL_IDLE;
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javimsites.workers.dev/';
   const getDeviceId = ()=> window.getDeviceId?window.getDeviceId():(()=>{let id=localStorage.getItem('wasa_device_id'); if(!id){id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id;})();
 
@@ -92,8 +94,8 @@ export function init(container, args){
       <div class="pb6-right">
         <div class="dino-card">
           <div class="dino-img-bg"><img id="dinoImg" src="${DINO_URL}" style="width:160px;height:160px;object-fit:contain;display:block;margin:0 auto;" onerror="this.style.display='none'"/></div>
-          <div style="font-weight:900;font-size:13px;letter-spacing:.12em;color:#2AFF8A;margin-top:6px">RUZZLE BUBBLE</div>
-          <div style="font-size:9px;opacity:.5;letter-spacing:.1em">LEVEL <span id="dinoLvl">1</span></div>
+          <div style="font-weight:900;font-size:13px;letter-spacing:.12em;color:#2AFF8A;margin-top:6px">RUZZLE</div>
+          <div style="font-size:9px;opacity:.5;letter-spacing:.1em">DINO PUNK VERDE • LVL <span id="dinoLvl">1</span></div>
           <div id="dinoBubble" style="margin-top:8px;background:#0e0e14;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:8px 10px;font-size:12px;font-weight:700;min-height:36px;display:grid;place-items:center;line-height:1.2">READY?</div>
         </div>
         <div class="pb6-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div class="pb6-st"><b id="pb6obj">0/30</b><br><span>OBJETIVO</span></div><div class="pb6-st"><b id="pb6tm">45s / 12</b><br><span>TECHO</span></div><div class="pb6-st"><b id="pb6sc">0</b><br><span>SCORE</span></div><div class="pb6-st"><b id="pb6nxt" style="display:inline-block;width:16px;height:16px;border-radius:50%"></b><br><span>SIGUIENTE</span></div></div>
@@ -149,7 +151,7 @@ export function init(container, args){
     let rows=Math.min(7,5+Math.floor(level/3)); grid=Array.from({length:Q},()=>Array(B).fill(null));
     for(let r=0;r<rows;r++){ let cols=r%2===1?B-1:B; for(let c=0;c<cols;c++){ if(level===1&&Math.random()<0.12) continue; grid[r][c]=Math.floor(Math.random()*colors()); } }
     for(let r=0;r<Q;r++) if(r%2===1) grid[r][B-1]=null;
-    popped=0; shot=0; ceilT=maxT(); cur=Math.floor(Math.random()*colors()); nxt=Math.floor(Math.random()*colors()); angle=-90; shooting=null; isShooting=false; ghost=null; traj=[]; score=0; applyLevelTheme(level); startSess(); updateUI(); startCeil(); drawBoard();
+    popped=0; shot=0; ceilT=maxT(); cur=Math.floor(Math.random()*colors()); nxt=Math.floor(Math.random()*colors()); angle=-90; shooting=null; isShooting=false; ghost=null; traj=[]; score=0; applyLevelTheme(level); const _di=container.querySelector('#dinoImg'); if(_di) _di.src=DINO_URL_IDLE; startSess(); updateUI(); startCeil(); drawBoard();
   }
   function showReadyGo(){
     const ov=container.querySelector('#readyOverlay'); const txt=container.querySelector('#readyText'); const dinoB=container.querySelector('#dinoBubble'); const lvlEl=container.querySelector('#dinoLvl'); if(lvlEl) lvlEl.textContent=level; if(!ov){ doInitGrid(); return; }
