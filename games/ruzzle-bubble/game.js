@@ -2,8 +2,8 @@
 // Uso: window.RUZZLE_DINO_URL = 'https://tu-cdn.com/ruzzle_dino_final_green.png'
 // Si no pones nada, usa el verde por defecto
 export function init(container, args){
-  const DINO_URL_IDLE = args?.dinoUrlIdle || window.RUZZLE_DINO_IDLE || '/games/puzzle-bubble/dino_manos_cintura.png';
-  const DINO_URL_WIN = args?.dinoUrlWin || window.RUZZLE_DINO_WIN || '/games/puzzle-bubble/dino_festejando.png';
+  const DINO_URL_IDLE = args?.dinoUrlIdle || window.RUZZLE_DINO_IDLE || '/games/ruzzle-bubble/dino_manos_cintura.png';
+  const DINO_URL_WIN = args?.dinoUrlWin || window.RUZZLE_DINO_WIN || '/games/ruzzle-bubble/dino_festejando.png';
   const DINO_URL = DINO_URL_IDLE;
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javimsites.workers.dev/';
   const getDeviceId = ()=> window.getDeviceId?window.getDeviceId():(()=>{let id=localStorage.getItem('wasa_device_id'); if(!id){id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id;})();
