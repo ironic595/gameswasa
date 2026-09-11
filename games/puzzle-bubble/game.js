@@ -2,8 +2,8 @@
 // Uso: window.RUZZLE_DINO_URL = 'https://tu-cdn.com/ruzzle_dino_final_green.png'
 // Si no pones nada, usa el verde por defecto
 export function init(container, args){
-  const DINO_URL_IDLE = args?.dinoUrlIdle || window.RUZZLE_DINO_IDLE || 'dino_manos_cintura.png';
-  const DINO_URL_WIN = args?.dinoUrlWin || window.RUZZLE_DINO_WIN || 'dino_festejando.png';
+  const DINO_URL_IDLE = args?.dinoUrlIdle || window.RUZZLE_DINO_IDLE || '/games/puzzle-bubble/dino_manos_cintura.png';
+  const DINO_URL_WIN = args?.dinoUrlWin || window.RUZZLE_DINO_WIN || '/games/puzzle-bubble/dino_festejando.png';
   const DINO_URL = DINO_URL_IDLE;
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javimsites.workers.dev/';
   const getDeviceId = ()=> window.getDeviceId?window.getDeviceId():(()=>{let id=localStorage.getItem('wasa_device_id'); if(!id){id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id;})();
@@ -93,7 +93,7 @@ export function init(container, args){
       <div class="pb6-left"><canvas id="pb6cv" class="pb6-canvas" width="${RN}" height="${NU}"></canvas><div style="height:3px;background:#000"><div id="pb6bar" style="height:100%;background:linear-gradient(90deg,#2AFF8A,#00D4FF,#FF3BB0);width:0%"></div></div><div style="display:flex;justify-content:space-between;padding:4px 8px;font-size:8px;opacity:.4;font-family:monospace"><span>▼</span><span id="pb6ceil">45s</span><span>▼</span></div></div>
       <div class="pb6-right">
         <div class="dino-card">
-          <div class="dino-img-bg"><img id="dinoImg" src="${DINO_URL}" style="width:160px;height:160px;object-fit:contain;display:block;margin:0 auto;" onerror="this.style.display='none'"/></div>
+          <div class="dino-img-bg"><img id="dinoImg" src="${DINO_URL}" style="width:160px;height:160px;object-fit:contain;display:block;margin:0 auto;" onerror="console.error('DINO FAIL', this.src); this.style.border='2px solid red'"/></div>
           <div style="font-weight:900;font-size:13px;letter-spacing:.12em;color:#2AFF8A;margin-top:6px">RUZZLE</div>
           <div style="font-size:9px;opacity:.5;letter-spacing:.1em">DINO PUNK VERDE • LVL <span id="dinoLvl">1</span></div>
           <div id="dinoBubble" style="margin-top:8px;background:#0e0e14;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:8px 10px;font-size:12px;font-weight:700;min-height:36px;display:grid;place-items:center;line-height:1.2">READY?</div>
