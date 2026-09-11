@@ -2,5 +2,5 @@
   {"slug": "banatron", "title": "BANATRON REVELATION", "cat": "arcade", "live": true },
   {"slug":"ahorcado", "title": "AHORCADO","cat":"puzzle word","live": true },
   {"slug":"2048","title":"2048 GAME","cat":"puzzle","live":true},
-  {"slug":"puzzle-bubble","title":"PUZZLE BUBBLE","cat":"puzzle arcade","live":true}
+  {"slug":"ruzzle-bubble","title":"RUZZLE BUBBLE","cat":"puzzle arcade","live":true}
 ]
