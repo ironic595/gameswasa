@@ -192,21 +192,22 @@
       </div>
     </div>
     <!-- HERO PC - ABAJO DEL MENU LATERAL -->
+        <!-- HERO PC - ABAJO DEL MENU LATERAL -->
     <div class="hero-carousel hero-pc" id="heroPc">
-      <div class="hero-slide active" style="background-image:url('/img/banatron.png')">
+      <div class="hero-slide active" style="background:linear-gradient(135deg,#0f172a 0%, #1e1b4b 50%, #312e81 100%)">
         <div class="hero-content">
-          <div class="hero-badge">NUEVO • ONCHAIN</div>
-          <div class="hero-title">Farmea $WASA jugando</div>
-          <div class="hero-sub">4 juegos live. 100% gratis en tu browser</div>
-          <div class="hero-cta">▶ Play Now</div>
+          <div class="hero-badge" style="background:linear-gradient(135deg,#22c55e,#16a34a)">👥 REFERIDOS • 20% COMISIÓN</div>
+          <div class="hero-title">Invitá amigos y ganá $WASA</div>
+          <div class="hero-sub">20% de todo lo que farmeen ellos, para siempre</div>
+          <div class="hero-cta" onclick="openReferral()">🔗 Mi link de referido</div>
         </div>
       </div>
-      <div class="hero-slide" style="background-image:url('/img/ahorcado.png')">
+      <div class="hero-slide" style="background:linear-gradient(135deg,#422006 0%, #7c2d12 40%, #f59e0b 100%)">
         <div class="hero-content">
-          <div class="hero-badge" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">PUZZLE • +0.01 WASA</div>
-          <div class="hero-title">Guess the Word: AI Expert</div>
-          <div class="hero-sub">El sapo más picante te desafía</div>
-          <div class="hero-cta">🧠 Jugar ahora</div>
+          <div class="hero-badge" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000">🔥 WASA PASS • x3 GANANCIAS</div>
+          <div class="hero-title">WASA PASS x3</div>
+          <div class="hero-sub">De 0.01 → 0.03 $WASA por partida. 3 USDT</div>
+          <div class="hero-cta" style="background:#fff;color:#000" onclick="buyWasaPass()">💎 Comprar por 3 USDT</div>
         </div>
       </div>
       <div class="hero-dots"><div class="hero-dot active" onclick="setHero(0)"></div><div class="hero-dot" onclick="setHero(1)"></div></div>
@@ -214,21 +215,22 @@
   </aside>
   <main>
     <!-- HERO MOBILE - ARRIBA DE TODO ABAJO DEL MENU -->
+        <!-- HERO MOBILE - ARRIBA DE TODO ABAJO DEL MENU -->
     <div class="hero-carousel hero-mobile" id="heroMobile">
-      <div class="hero-slide active" style="background-image:url('/img/banatron.png')">
+      <div class="hero-slide active" style="background:linear-gradient(135deg,#0f172a 0%, #1e1b4b 50%, #312e81 100%)">
         <div class="hero-content">
-          <div class="hero-badge">NUEVO • ONCHAIN</div>
-          <div class="hero-title">Farmea $WASA jugando gratis</div>
-          <div class="hero-sub">Arcade onchain en tu browser, sin descargar</div>
-          <div class="hero-cta">▶ Play Now</div>
+          <div class="hero-badge" style="background:linear-gradient(135deg,#22c55e,#16a34a)">👥 REFERIDOS • 20% COMISIÓN</div>
+          <div class="hero-title">Invitá amigos y ganá $WASA de por vida</div>
+          <div class="hero-sub">Compartí tu link y ganá 20% de lo que farmeen</div>
+          <div class="hero-cta" onclick="openReferral()">🔗 Mi link</div>
         </div>
       </div>
-      <div class="hero-slide" style="background-image:url('/img/ruzzle_bubble.png')">
+      <div class="hero-slide" style="background:linear-gradient(135deg,#422006 0%, #7c2d12 40%, #f59e0b 100%)">
         <div class="hero-content">
-          <div class="hero-badge" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">NUEVO • PUZZLE</div>
-          <div class="hero-title">Ruzzle Bubble con dino punk</div>
-          <div class="hero-sub">45 tiros con ads y tema progresivo</div>
-          <div class="hero-cta">🫧 Jugar</div>
+          <div class="hero-badge" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000">🔥 WASA PASS • x3 MULTIPLIER</div>
+          <div class="hero-title">WASA PASS x3 — 3 USDT</div>
+          <div class="hero-sub">Triplica tus ganancias en todos los juegos</div>
+          <div class="hero-cta" style="background:#fff;color:#000" onclick="buyWasaPass()">💎 Comprar PASS</div>
         </div>
       </div>
       <div class="hero-dots"><div class="hero-dot active" onclick="setHero(0)"></div><div class="hero-dot" onclick="setHero(1)"></div></div>
@@ -305,6 +307,19 @@ let GAMES=[]; let currentCat='all';
 let heroIdx=0;
 function setHero(i){ heroIdx=i; document.querySelectorAll('.hero-slide').forEach((s,idx)=>s.classList.toggle('active', idx===i)); document.querySelectorAll('.hero-dot').forEach((d,idx)=>d.classList.toggle('active', idx===i)); }
 setInterval(()=>{ heroIdx=(heroIdx+1)%2; setHero(heroIdx); },4000);
+
+function openReferral(){
+  const code = localStorage.getItem('wasa_device_id')||'guest';
+  const link = 'https://games.wasa.chat/?ref='+code.slice(-8);
+  prompt('Tu link de referido (20% comisión):', link);
+}
+function buyWasaPass(){
+  openWasaBuy();
+  document.getElementById('buyStatus').style.display='block';
+  document.getElementById('buyStatus').className='status-box status-info';
+  document.getElementById('buyStatus').innerHTML='💎 WASA PASS x3 = 3 USDT (BSC). Triplica de 0.01 a 0.03 $WASA por partida.';
+}
+
 function fmtWASA(n){ const v=parseFloat(n)||0; if(v===0) return '0'; if(v<0.001) return v.toFixed(6).replace(/0+$/,'').replace(/\.$/,''); if(v<1) return (Math.round(v*1000000)/1000000).toString(); return (Math.round(v*1000)/1000).toString(); }
 function getCoins(){ return window.getCoins? window.getCoins() : parseFloat(localStorage.getItem('wasa_coins')||'0'); }
 function setCoins(n){ return window.setCoins? window.setCoins(n) : localStorage.setItem('wasa_coins',n); }
