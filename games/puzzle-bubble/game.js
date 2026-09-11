@@ -92,8 +92,8 @@ export function init(container, args){
       <div class="pb6-right">
         <div class="dino-card">
           <div class="dino-img-bg"><img id="dinoImg" src="${DINO_URL}" style="width:160px;height:160px;object-fit:contain;display:block;margin:0 auto;" onerror="this.style.display='none'"/></div>
-          <div style="font-weight:900;font-size:13px;letter-spacing:.12em;color:#2AFF8A;margin-top:6px">RUZZLE</div>
-          <div style="font-size:9px;opacity:.5;letter-spacing:.1em">DINO PUNK VERDE • LVL <span id="dinoLvl">1</span></div>
+          <div style="font-weight:900;font-size:13px;letter-spacing:.12em;color:#2AFF8A;margin-top:6px">RUZZLE BUBBLE</div>
+          <div style="font-size:9px;opacity:.5;letter-spacing:.1em">LEVEL <span id="dinoLvl">1</span></div>
           <div id="dinoBubble" style="margin-top:8px;background:#0e0e14;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:8px 10px;font-size:12px;font-weight:700;min-height:36px;display:grid;place-items:center;line-height:1.2">READY?</div>
         </div>
         <div class="pb6-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div class="pb6-st"><b id="pb6obj">0/30</b><br><span>OBJETIVO</span></div><div class="pb6-st"><b id="pb6tm">45s / 12</b><br><span>TECHO</span></div><div class="pb6-st"><b id="pb6sc">0</b><br><span>SCORE</span></div><div class="pb6-st"><b id="pb6nxt" style="display:inline-block;width:16px;height:16px;border-radius:50%"></b><br><span>SIGUIENTE</span></div></div>
