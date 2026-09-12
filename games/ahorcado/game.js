@@ -1,4 +1,4 @@
-// /games/ahorcado/game.js - v26.1 FINAL - FIX TIMER PAUSADO EN ANUNCIOS + MOBILE FIX
+// /games/ahorcado/game.js - v26.2 - SAPO PARADO ARRIBA DE TABLA + LANG SOLO MENU
 export async function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javimsites.workers.dev/';
   const getDeviceId = ()=> window.getDeviceId?window.getDeviceId():(()=>{let id=localStorage.getItem('wasa_device_id'); if(!id){id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id;})();
@@ -19,20 +19,16 @@ export async function init(container, args){
   container.innerHTML=`
   <style>
 .ah{background:#D4A12C;color:#2b1a0a;width:100%;height:100%;display:flex;flex-direction:column;font-family:'Space Grotesk',system-ui;overflow:hidden;position:relative}
-.ah-controls{position:absolute;top:8px;right:8px;z-index:20;display:flex;gap:8px}
-.ah-lang{display:flex;gap:4px;background:rgba(0,0,0,.25);border-radius:20px;padding:3px;backdrop-filter:blur(4px)}
-.ah-lang button{padding:5px 12px;border-radius:16px;border:0;font-weight:800;font-size:11px;cursor:pointer;background:transparent;color:#fff}
-.ah-lang button.active{background:#2b1a0a;color:#FFD86A}
-.ah-wrap{flex:1;display:flex;justify-content:center;align-items:center;padding:52px 12px 12px 12px;overflow:hidden;background:radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.25) 0%, transparent 60%), #D4A12C;min-height:0}
-.ah-body{display:flex;gap:20px;align-items:stretch;justify-content:center;width:100%;max-width:860px;height:100%;max-height:520px;margin:auto;min-height:0}
-.ah-tower{flex:0 0 300px;width:300px;height:440px;position:relative;overflow:hidden;background:rgba(0,0,0,.06);border-radius:18px;border:1px solid rgba(0,0,0,.08);flex-shrink:0;box-sizing:border-box}
+.ah-wrap{flex:1;display:flex;justify-content:center;align-items:center;padding:12px;overflow:hidden;background:radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.25) 0%, transparent 60%), #D4A12C;min-height:0}
+.ah-body{display:flex;gap:24px;align-items:center;justify-content:center;width:100%;max-width:860px;height:100%;max-height:520px;margin:auto;min-height:0}
+.ah-tower{flex:0 0 320px;width:320px;height:460px;position:relative;overflow:hidden;background:rgba(0,0,0,.06);border-radius:18px;border:1px solid rgba(0,0,0,.08);flex-shrink:0;box-sizing:border-box}
 .ah-plank{position:absolute;left:12px;right:12px;height:22px;background:linear-gradient(180deg,#FF8C1A,#CC5A00);border:2px solid #7a2e00;border-radius:10px;box-shadow:0 3px 0 rgba(0,0,0,.25);transition:transform.6s cubic-bezier(.6,-0.28,.74,.05), opacity.4s;z-index:3}
 .ah-plank.broken{transform:translateY(600px) rotate(35deg);opacity:0}
-.ah-frog{position:absolute;width:88px;height:88px;left:50%;transform:translateX(-50%);transition:top.45s cubic-bezier(.34,1.56,.64,1), transform.5s ease;z-index:6;object-fit:contain;filter:drop-shadow(0 6px 8px rgba(0,0,0,.35))}
-.ah-frog.fall{top:380px!important;transform:translateX(-50%) rotate(25deg) scale(.8)}
+.ah-frog{position:absolute;width:92px;height:92px;left:50%;transform:translateX(-50%);transition:top.45s cubic-bezier(.34,1.56,.64,1), transform.5s ease;z-index:6;object-fit:contain;filter:drop-shadow(0 8px 12px rgba(0,0,0,.4));pointer-events:none}
+.ah-frog.fall{top:400px!important;transform:translateX(-50%) rotate(25deg) scale(.8)}
 .ah-water{position:absolute;bottom:0;left:0;right:0;height:48px;background:linear-gradient(180deg,#7BE8FF,#2EC4E0);border-top:3px solid #0a4a55;display:flex;align-items:center;justify-content:center;font-weight:900;color:#0a4a55;z-index:5;font-size:13px}
 .ah-panel{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px;min-height:0;max-width:400px;justify-content:center}
-.ah-word-card{background:#fffef6;border:2px solid #8a5a00;border-radius:14px;padding:10px;box-shadow:0 6px 18px rgba(0,0,0,.15);flex-shrink:0}
+.ah-word-card{background:#fffef6;border:2px solid #8a5a00;border-radius:14px;padding:10px;box-shadow:0 6px 18px rgba(0,0,0,.15)}
 .ah-word{font-size:26px;letter-spacing:5px;font-weight:900;text-align:center;font-family:monospace;min-height:34px;color:#2b1a0a;word-break:break-all}
 .ah-hint{text-align:center;font-size:11px;opacity:.7;margin-top:4px;font-weight:700}
 .ah-timer{height:10px;background:#2b1a0a22;border-radius:10px;overflow:hidden;border:1px solid #8a5a00;margin-top:6px}
@@ -47,7 +43,7 @@ export async function init(container, args){
 .ah-key.hit{background:#2ECC71;border-color:#1a7a42;color:#fff}
 .ah-key.miss{background:#FF3B30;border-color:#7a0000;color:#fff}
 .ah-win{position:absolute;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(8px);display:grid;place-items:center;z-index:50;padding:16px}
-.ah-win-card{background:#fffef6;border:3px solid #8a5a00;border-radius:22px;padding:18px;width:min(440px,94vw);text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.45)}
+.ah-win-card{background:#fffef6;border:3px solid #8a5a00;border-radius:22px;padding:18px;width:min(440px,94vw);text-align:center}
 .ah-sapo-img{width:220px;height:220px;object-fit:contain;margin:0 auto 12px;display:block}
 .ah-bubble{background:#2b1a0a;color:#FFD86A;border-radius:18px 18px 18px 4px;padding:16px 18px;font-size:15px;font-weight:700;line-height:1.35;margin:0 auto 14px;max-width:400px;position:relative}
 .ah-bubble b{color:#fff}
@@ -60,18 +56,17 @@ export async function init(container, args){
 .ah-stat span{font-size:11px;opacity:.7;font-weight:700}
 .ah-mode-btn{width:min(520px,92vw);height:64px;border-radius:18px;border:0;font-weight:900;font-size:14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
 @media(max-width:700px){
-.ah-wrap{padding:48px 8px 8px 8px;align-items:flex-start;overflow:auto}
+.ah-wrap{padding:8px;align-items:flex-start;overflow:auto}
 .ah-body{flex-direction:column;gap:10px;align-items:center;justify-content:flex-start;width:100%;max-width:400px;height:auto;max-height:none;margin:0 auto}
 .ah-tower{flex:0 0 210px;width:100%;max-width:360px;height:210px;min-height:210px;max-height:210px;overflow:hidden}
 .ah-plank{height:13px;left:10px;right:10px}
-.ah-frog{width:50px;height:50px}
+.ah-frog{width:56px;height:56px}
 .ah-panel{flex:0 0 auto;width:100%;max-width:360px;gap:8px}
-.ah-word{font-size:20px;letter-spacing:3px;min-height:26px}
+.ah-word{font-size:20px;letter-spacing:3px}
 .ah-bubble{font-size:14px;padding:12px 14px}
 }
   </style>
   <div class="ah">
-    <div class="ah-controls"><div class="ah-lang"><button id="langEs" class="active">ES</button><button id="langEn">EN</button></div></div>
     <div class="ah-wrap"><div class="ah-body">
       <div class="ah-tower" id="tower"><div class="ah-water">💧 AGUA 💧</div></div>
       <div class="ah-panel">
@@ -89,7 +84,7 @@ export async function init(container, args){
     <div id="ah-menu"></div>
   </div>`;
 
-  const tower=container.querySelector('#tower'); const elWord=container.querySelector('#ah-word'); const elKeys=container.querySelector('#ah-keys'); const elHint=container.querySelector('#ah-hint'); const elWin=container.querySelector('#ah-win'); const elMenu=container.querySelector('#ah-menu'); const elRallyInfo=container.querySelector('#ah-rally-info'); const langEs=container.querySelector('#langEs'); const langEn=container.querySelector('#langEn');
+  const tower=container.querySelector('#tower'); const elWord=container.querySelector('#ah-word'); const elKeys=container.querySelector('#ah-keys'); const elHint=container.querySelector('#ah-hint'); const elWin=container.querySelector('#ah-win'); const elMenu=container.querySelector('#ah-menu'); const elRallyInfo=container.querySelector('#ah-rally-info');
   const loaded=await loadVendor(); if(!loaded){ elWord.textContent='Falta vendor'; return; }
   const chunk=window._0x4a2f || window.webpackChunkWasa['8f3c2a1b']; const key=chunk.k; const dict=chunk.w;
   let currentLang='es'; const CACHE_KEY='sapo_cache_mostaza_v27_waterPNG';
@@ -98,20 +93,14 @@ export async function init(container, args){
   function getCatsByLang(lang){ return Object.keys(dict).filter(c=>c.startsWith(lang+'_')); }
   function getRandomCat(){ const cats=getCatsByLang(currentLang); return cats[Math.floor(Math.random()*cats.length)]; }
 
-  const POS_DESKTOP=[45,105,165,225,285,345];
-  const POS_MOBILE=[12,44,76,108,140,172];
+  const POS_DESKTOP=[65,130,195,260,325,390];
+  const POS_MOBILE=[14,48,82,116,150,184];
 
   let timerIv=null, timeLeft=30, maxTime=30, isPaused=false;
   const timerBar=container.querySelector('#ah-timer-bar'); const timerText=container.querySelector('#ah-timer-text');
   function startTimer(){ clearInterval(timerIv); timeLeft=maxTime=30; updateTimerUI(); timerIv=setInterval(()=>{ if(isPaused) return; timeLeft--; updateTimerUI(); if(timeLeft<=0){ clearInterval(timerIv); S.lose(); showTimeOut(); } },1000); }
   function updateTimerUI(){ const pct=Math.max(0,(timeLeft/maxTime)*100); if(timerBar){ timerBar.style.width=pct+'%'; timerBar.classList.toggle('warn', timeLeft<=15); } if(timerText){ timerText.textContent=timeLeft+'s'; timerText.style.color=timeLeft<=10?'#FF3B30':'#2b1a0a'; } }
-  function showTimeOut(){
-    isPaused=true;
-    const L=t();
-    elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card" style="background:#fff3cd;border-color:#8a5a00"><h2 style="margin:0 0 8px;font-weight:900;color:#8a5a00;font-size:18px">${currentLang==='en'?'TIME IS UP!':'¡TIEMPO AGOTADO!'}</h2><div class="ah-bubble">${currentLang==='en'?`Time is up! Watch ad for +30s ⏰`:`¡Tiempo agotado! Mirá anuncio para +30s ⏰`}</div><img src="${FROG_LOSE}" class="ah-sapo-img" onerror="this.style.display='none'"><button id="btnTimeoutContinue" style="width:100%;height:46px;border-radius:22px;background:#2b1a0a;color:#fff;font-weight:900;border:0;cursor:pointer;margin-top:8px;font-size:13px">${L.retryBtn}</button><button id="btnTimeoutAd" style="width:100%;height:48px;margin-top:8px;border-radius:22px;background:linear-gradient(90deg,#FF8C00,#FF00D4);color:#fff;font-weight:900;border:0;cursor:pointer;font-size:13px">${currentLang==='en'?'+30s WATCH AD':'+30s VER ANUNCIO'}</button></div></div>`;
-    elWin.querySelector('#btnTimeoutContinue').onclick=()=>{ isPaused=false; if(gameMode==='rally'){ showMenu(); } else { newRound(false); } };
-    elWin.querySelector('#btnTimeoutAd').onclick=()=>{ isPaused=true; window.vrAd=1; window.vrAdType='extra_time'; window._sapoExtraTimePending=true; elWin.querySelector('#btnTimeoutAd').textContent=t().loadingAd; };
-  }
+  function showTimeOut(){ isPaused=true; const L=t(); elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card" style="background:#fff3cd;border-color:#8a5a00"><h2 style="margin:0 0 8px;font-weight:900;color:#8a5a00;font-size:18px">${currentLang==='en'?'TIME IS UP!':'¡TIEMPO AGOTADO!'}</h2><div class="ah-bubble">${currentLang==='en'?`Time is up! Watch ad for +30s ⏰`:`¡Tiempo agotado! Mirá anuncio para +30s ⏰`}</div><img src="${FROG_LOSE}" class="ah-sapo-img"><button id="btnTimeoutContinue" style="width:100%;height:46px;border-radius:22px;background:#2b1a0a;color:#fff;font-weight:900;border:0;cursor:pointer;margin-top:8px;font-size:13px">${L.retryBtn}</button><button id="btnTimeoutAd" style="width:100%;height:48px;margin-top:8px;border-radius:22px;background:linear-gradient(90deg,#FF8C00,#FF00D4);color:#fff;font-weight:900;border:0;cursor:pointer;font-size:13px">${currentLang==='en'?'+30s WATCH AD':'+30s VER ANUNCIO'}</button></div></div>`; elWin.querySelector('#btnTimeoutContinue').onclick=()=>{ isPaused=false; if(gameMode==='rally'){ showMenu(); } else { newRound(false); } }; elWin.querySelector('#btnTimeoutAd').onclick=()=>{ isPaused=true; window.vrAd=1; window.vrAdType='extra_time'; window._sapoExtraTimePending=true; elWin.querySelector('#btnTimeoutAd').textContent=t().loadingAd; }; }
 
   let planks=[], frogEl, word, guessed, errors, maxErrors=6, sess=null, claiming=false, gameMode='normal', rallyScore=0, currentCat='';
   const BEST_KEY='ahorcado_rally_best'; const TOTAL_KEY='ahorcado_total_wins';
@@ -121,7 +110,6 @@ export async function init(container, args){
   function incTotal(){ localStorage.setItem(TOTAL_KEY,String(getTotalWins()+1)); }
   async function startSess(){ try{ const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'start_game_session',email,wallet,device_id,game_slug:'ahorcado', level:1})}); const j=await r.json(); if(j.ok) sess=j.session_id; }catch{} }
   async function claim(isDouble,ad,customReward){ if(claiming) return false; claiming=true; try{ const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward',session_id:sess,email,wallet,device_id,game_slug:'ahorcado',ad_watched:ad,double_reward:isDouble, time_taken: 10, custom_reward: customReward, rally_score: rallyScore})}); const j=await r.json(); if(j.ok){ const bal=j.wasa_balance??j.guest_balance??0; if(j.is_guest) localStorage.setItem('wasa_coins_guest',bal); else localStorage.setItem('wasa_coins',bal); if(window.setCoinsUI) window.setCoinsUI(bal); sess=null; claiming=false; return j; } }catch{} claiming=false; return false; }
-  function showForcedAd(next){ isPaused=true; elWin.innerHTML=''; window._forcedNext=next; window._sapoForcedPending=true; window.vrAdType='interstitial'; window.vrAd=1; }
 
   function buildTower(){
     tower.querySelectorAll('.ah-plank,.ah-frog').forEach(e=>e.remove());
@@ -136,13 +124,15 @@ export async function init(container, args){
       planks.push(p);
     });
     frogEl=document.createElement('img'); frogEl.className='ah-frog'; frogEl.src=FROG_URL;
-    frogEl.style.top=(pos[0]-46)+'px';
+    const offset = isMobile? 52 : 78;
+    frogEl.style.top=(pos[0]-offset)+'px';
     tower.insertBefore(frogEl, water);
   }
   function moveFrog(){
     const isMobile = window.innerWidth <= 700;
     const pos = isMobile? POS_MOBILE : POS_DESKTOP;
-    if(errors<maxErrors && frogEl){ frogEl.style.top=(pos[errors]-46)+'px'; }
+    const offset = isMobile? 52 : 78;
+    if(errors<maxErrors && frogEl){ frogEl.style.top=(pos[errors]-offset)+'px'; }
   }
   async function newRound(isRallyContinue=false){
     if(!isRallyContinue){ rallyScore=0; errors=0; currentCat=getRandomCat(); buildTower(); }
@@ -218,36 +208,17 @@ export async function init(container, args){
     elMenu.innerHTML=`<div class="ah-menu"><div class="ah-menu-top"><img src="${FROG_URL}" style="width:110px;height:110px" onerror="this.style.display='none'"><h1 style="margin:0;font-weight:900;font-size:26px">AHORCADO SAPO</h1><p style="margin:0;opacity:.7;font-weight:700;font-size:13px">Adivina antes de caer al agua</p><div class="ah-stat-box"><div class="ah-stat"><b>🏆 ${best}</b><span>RÉCORD RALLY</span></div><div class="ah-stat"><b>🎯 ${total}</b><span>PALABRAS</span></div><div class="ah-stat"><b>💧 6</b><span>VIDAS</span></div></div><button id="btnNormal" class="ah-mode-btn" style="background:#2b1a0a;color:#FFD86A">🎯 MODO NORMAL<br><span style="font-size:11px;opacity:.8">0.0001 WASA por palabra</span></button><button id="btnRally" class="ah-mode-btn" style="background:linear-gradient(90deg,#FF8C00,#FF00D4);color:#fff">🔥 MODO RALLY<br><span style="font-size:11px">Récord: ${best} • Vidas compartidas</span></button><div style="margin-top:12px;display:flex;gap:8px"><button id="langEsM" style="padding:8px 18px;border-radius:20px;border:2px solid #8a5a00;font-weight:900;cursor:pointer;background:${currentLang==='es'?'#2b1a0a;color:#FFD86A':'#fffef6'}">ES</button><button id="langEnM" style="padding:8px 18px;border-radius:20px;border:2px solid #8a5a00;font-weight:900;cursor:pointer;background:${currentLang==='en'?'#2b1a0a;color:#FFD86A':'#fffef6'}">EN</button></div></div></div>`;
     elMenu.querySelector('#btnNormal').onclick=()=>{ gameMode='normal'; elMenu.innerHTML=''; rallyScore=0; elRallyInfo.style.display='none'; newRound(false); };
     elMenu.querySelector('#btnRally').onclick=()=>{ gameMode='rally'; elMenu.innerHTML=''; rallyScore=0; newRound(false); };
-    elMenu.querySelector('#langEsM').onclick=()=>{ currentLang='es'; langEs.classList.add('active'); langEn.classList.remove('active'); showMenu(); };
-    elMenu.querySelector('#langEnM').onclick=()=>{ currentLang='en'; langEn.classList.add('active'); langEs.classList.remove('active'); showMenu(); };
+    elMenu.querySelector('#langEsM').onclick=()=>{ currentLang='es'; showMenu(); };
+    elMenu.querySelector('#langEnM').onclick=()=>{ currentLang='en'; showMenu(); };
   }
 
   const adIv=setInterval(async()=>{
-    if(window.vrAd && window.vrAd!==0 && window.vrAd!==4){
-      isPaused=true;
-    }
-    if(window.vrAd===4 && window.vrAdType==='double' && window._sapoPending){
-      window.vrAd=0; window.vrAdType=null; window._sapoPending=false; isPaused=false;
-      const ok=await claim(true,true); if(ok){ S.coin(); showMenu(); }
-    }
-    if(window.vrAd===4 && window.vrAdType==='double_rally' && window._sapoPendingRally){
-      window.vrAd=0; window.vrAdType=null; window._sapoPendingRally=false; isPaused=false;
-      const total=rallyScore*0.0001*2; const res=await claim(true,true,total); if(res){ S.coin(); showMenu(); }
-    }
-    if(window.vrAd===4 && window.vrAdType==='extra_time' && window._sapoExtraTimePending){
-      window.vrAd=0; window.vrAdType=null; window._sapoExtraTimePending=false;
-      timeLeft=30; maxTime=30; isPaused=false; elWin.innerHTML=''; updateTimerUI();
-      clearInterval(timerIv);
-      timerIv=setInterval(()=>{ if(isPaused) return; timeLeft--; updateTimerUI(); if(timeLeft<=0){ clearInterval(timerIv); S.lose(); showTimeOut(); } },1000); S.coin();
-    }
-    if(window.vrAd===4 && window.vrAdType==='interstitial' && window._sapoForcedPending){
-      window.vrAd=0; window.vrAdType=null; window._sapoForcedPending=false; isPaused=false;
-      const fn=window._forcedNext; window._forcedNext=null; if(fn) fn(); else newRound(false);
-    }
+    if(window.vrAd && window.vrAd!==0 && window.vrAd!==4){ isPaused=true; }
+    if(window.vrAd===4 && window.vrAdType==='double' && window._sapoPending){ window.vrAd=0; window.vrAdType=null; window._sapoPending=false; isPaused=false; const ok=await claim(true,true); if(ok){ S.coin(); showMenu(); } }
+    if(window.vrAd===4 && window.vrAdType==='double_rally' && window._sapoPendingRally){ window.vrAd=0; window.vrAdType=null; window._sapoPendingRally=false; isPaused=false; const total=rallyScore*0.0001*2; const res=await claim(true,true,total); if(res){ S.coin(); showMenu(); } }
+    if(window.vrAd===4 && window.vrAdType==='extra_time' && window._sapoExtraTimePending){ window.vrAd=0; window.vrAdType=null; window._sapoExtraTimePending=false; timeLeft=30; maxTime=30; isPaused=false; elWin.innerHTML=''; updateTimerUI(); clearInterval(timerIv); timerIv=setInterval(()=>{ if(isPaused) return; timeLeft--; updateTimerUI(); if(timeLeft<=0){ clearInterval(timerIv); S.lose(); showTimeOut(); } },1000); S.coin(); }
   },400);
 
-  langEs.onclick=()=>{ currentLang='es'; langEs.classList.add('active'); langEn.classList.remove('active'); if(elMenu.innerHTML) showMenu(); else { currentCat=getRandomCat(); newRound(false); } };
-  langEn.onclick=()=>{ currentLang='en'; langEn.classList.add('active'); langEs.classList.remove('active'); if(elMenu.innerHTML) showMenu(); else { currentCat=getRandomCat(); newRound(false); } };
   showMenu();
   container._cleanup=()=>{ clearInterval(adIv); clearInterval(timerIv); try{ actx&&actx.close(); }catch{} };
 }
