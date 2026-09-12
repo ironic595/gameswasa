@@ -1,4 +1,4 @@
-// games/2048-madera/game.js - v4 FINAL ECONOMY - 20 merges = 0,001 base + X2 ad = 0,002 - SECURE like banatron
+// games/2048-madera/game.js - v4 FINAL ECONOMY - 20 merges = 0,001 base + X2 ad = 0,002 - FIXED no w-top
 export function init(container, args){
   const getCoins = args.getCoins||(()=>parseFloat(localStorage.getItem('wasa_coins')||'0'));
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javimsites.workers.dev/';
@@ -7,7 +7,6 @@ export function init(container, args){
 
   container.innerHTML=`<style>
 .w2048{width:100%;height:100%;min-height:100%;display:flex;flex-direction:column;font-family:Inter,system-ui;background:radial-gradient(ellipse at 20% 10%,rgba(139,90,43,.18),transparent 60%),linear-gradient(180deg,#d2b48c 0%,#bc9a6a 30%,#8b5a2b 100%);color:#3e2723;overflow:hidden;position:relative}
-.w-top{flex-shrink:0;display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(62,39,35,.88);border-bottom:2px solid #5c4033;gap:8px;flex-wrap:wrap;color:#f5deb3;z-index:5}
 .w-pill{border:1px solid rgba(245,222,179,.25);border-radius:20px;padding:5px 10px;font-size:10px;background:rgba(92,64,51,.6);cursor:pointer;font-weight:700;color:#f5deb3}
 .w-pill.yellow{background:#f5deb3;color:#3e2723;border-color:#3e2723;font-weight:800}
 .w-body{flex:1;display:flex;align-items:center;justify-content:center;gap:28px;padding:20px;overflow:auto;width:100%;max-width:1100px;margin:0 auto}
@@ -29,7 +28,7 @@ export function init(container, args){
 .w-win-card{background:linear-gradient(180deg,#fef9c3,#fde68a);border:2px solid #5c4033;border-radius:20px;padding:24px;text-align:center;width:min(360px,92vw)}
 .w-win-amount{display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);border-radius:12px;padding:10px;margin:12px 0;font-weight:800;color:#14532d}
 .w-win-btn{width:100%;padding:12px;border-radius:12px;font-weight:800;font-size:11px;text-transform:uppercase;cursor:pointer;border:2px solid #5c4033;margin-top:8px}.w-win-btn.x2{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000}.w-win-btn.secondary{background:#3e2723;color:#f5deb3}.w-win-btn.ghost{background:#f5deb3;color:#3e2723}
-  </style><div class="w2048" id="wRoot"><div class="w-body"><div class="w-left"><div class="w-board-wrap"><div class="w-grid" id="wGrid"></div><div class="w-tiles" id="wTiles"></div></div><div style="background:rgba(245,222,179,.7);border:1px solid #5c4033;border-radius:12px;padding:10px"><div style="display:flex;justify-content:space-between;font-size:10px;font-weight:800;margin-bottom:6px"><span>PROGRESO AD (20 merges = 0,001 + X2)</span><span id="wProgText">0/20</span></div><div class="w-progress"><div class="w-progress-bar" id="wProgBar"></div></div></div></div><div class="w-right"><div class="w-stats"><div class="w-stat"><b id="wScore">0</b><span>SCORE</span></div><div class="w-stat"><b id="wBest">0</b><span>BEST</span></div><div class="w-stat"><b id="wReward">+0.000000</b><span>WASA TOTAL</span></div><div class="w-stat"><b id="wCount">0</b><span>MERGES</span></div></div><div class="w-controls"><button class="w-btn" id="wUp">↑</button><button class="w-btn" id="wUp2">↑</button><button class="w-btn" id="wDown">↓</button><button class="w-btn" id="wLeft">←</button><button class="w-btn" id="wReset">RESET</button><button class="w-btn" id="wRight">→</button></div></b></div></div><div id="wUI"></div></div>`;
+  </style><div class="w2048" id="wRoot"><div class="w-body"><div class="w-left"><div class="w-board-wrap"><div class="w-grid" id="wGrid"></div><div class="w-tiles" id="wTiles"></div></div><div style="background:rgba(245,222,179,.7);border:1px solid #5c4033;border-radius:12px;padding:10px"><div style="display:flex;justify-content:space-between;font-size:10px;font-weight:800;margin-bottom:6px"><span>PROGRESO AD (20 merges = 0,001 + X2)</span><span id="wProgText">0/20</span></div><div class="w-progress"><div class="w-progress-bar" id="wProgBar"></div></div></div></div><div class="w-right"><div class="w-stats"><div class="w-stat"><b id="wScore">0</b><span>SCORE</span></div><div class="w-stat"><b id="wBest">0</b><span>BEST</span></div><div class="w-stat"><b id="wReward">+0.000000</b><span>WASA TOTAL</span></div><div class="w-stat"><b id="wCount">0</b><span>MERGES</span></div></div><div class="w-controls"><button class="w-btn" id="wUp">↑</button><button class="w-btn" id="wUp2">↑</button><button class="w-btn" id="wDown">↓</button><button class="w-btn" id="wLeft">←</button><button class="w-btn" id="wReset">RESET</button><button class="w-btn" id="wRight">→</button></div></div></div><div id="wUI"></div></div>`;
 
   const root=container.querySelector('#wRoot'); const ui=root.querySelector('#wUI');
   let best=parseInt(localStorage.getItem('w2048_best')||'0'); let score=0, grid=[], totalReward=0, mergeCount=0;
@@ -46,14 +45,22 @@ export function init(container, args){
     }catch(e){ isClaiming=false; return {ok:false}; }
   }
 
-  function openAd(type){ if(window.vrAd!==0) return; _rewardPending=type; window.vrAdType=type; window.vrAd=1; ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.6);display:grid;place-items:center;z-index:20;color:white">Cargando ad para ${fmt(BASE_REWARD)} WASA... vrAd=${window.vrAd}</div>`; }
+  function openAd(type){ if(window.vrAd!==0 && window.vrAd!==undefined) return; _rewardPending=type; window.vrAdType=type; window.vrAd=1; ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.6);display:grid;place-items:center;z-index:20;color:white">Cargando ad para ${fmt(BASE_REWARD)} WASA... vrAd=${window.vrAd}</div>`; }
 
   function initGrid(){ grid=Array(4).fill(0).map(()=>Array(4).fill(0)); const gEl=root.querySelector('#wGrid'); gEl.innerHTML=''; for(let i=0;i<16;i++){ const c=document.createElement('div'); c.className='w-cell'; gEl.appendChild(c);} addRandom(); addRandom(); score=0; mergeCount=0; totalReward=0; startSession(); render(); ui.innerHTML=''; }
   function addRandom(){ const empties=[]; for(let r=0;r<4;r++) for(let c=0;c<4;c++) if(grid[r][c]===0) empties.push([r,c]); if(empties.length===0) return; const [r,c]=empties[Math.floor(Math.random()*empties.length)]; grid[r][c]=Math.random()<0.9?2:4; }
   function render(){
-    const tilesEl=root.querySelector('#wTiles'); tilesEl.innerHTML=''; let max=2;
+    const tilesEl=root.querySelector('#wTiles'); if(!tilesEl) return;
+    tilesEl.innerHTML=''; let max=2;
     for(let r=0;r<4;r++) for(let c=0;c<4;c++){ const v=grid[r][c]; if(v===0) continue; max=Math.max(max,v); const t=document.createElement('div'); t.className='w-tile t-'+(v>2048?'super':v>1024?1024:v); t.textContent=v; t.style.left='calc('+c+' * (25% + 2.5px))'; t.style.top='calc('+r+' * (25% + 2.5px))'; t.style.width='calc(25% - 7.5px)'; t.style.height='calc(25% - 7.5px)'; tilesEl.appendChild(t); }
-    root.querySelector('#wScore').textContent=score; root.querySelector('#wBest').textContent=Math.max(best,score); root.querySelector('#wReward').textContent='+'+(Math.round(totalReward*1000000)/1000000).toFixed(6); root.querySelector('#wCount').textContent=mergeCount; root.querySelector('#wProgText').textContent=mergeCount+'/'+MERGES_FOR_AD; root.querySelector('#wProgBar').style.width=(mergeCount/MERGES_FOR_AD*100)+'%'; root.querySelector('#wStats').textContent='BEST '+Math.max(best,score)+' • '+fmt(getCoins())+' WASA'; if(score>best){ best=score; localStorage.setItem('w2048_best',best); }
+    const set = (id, val) => { const el = root.querySelector('#'+id); if(el) el.textContent = val; };
+    set('wScore', score);
+    set('wBest', Math.max(best,score));
+    set('wReward', '+'+(Math.round(totalReward*1000000)/1000000).toFixed(6));
+    set('wCount', mergeCount);
+    set('wProgText', mergeCount+'/'+MERGES_FOR_AD);
+    const bar = root.querySelector('#wProgBar'); if(bar) bar.style.width=(mergeCount/MERGES_FOR_AD*100)+'%';
+    if(score>best){ best=score; localStorage.setItem('w2048_best',best); }
   }
 
   function showRewardModal(){
@@ -61,10 +68,11 @@ export function init(container, args){
     ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(62,39,35,.88);backdrop-filter:blur(16px);display:grid;place-items:center;z-index:20"><div style="background:linear-gradient(180deg,#fef9c3,#fde68a);border:2px solid #5c4033;border-radius:20px;padding:24px;text-align:center;width:min(360px,92vw)"><div style="font-size:32px">🪵🎉</div><div style="font-weight:900;margin:8px 0">¡20 COMBINACIONES!</div><div class="w-win-amount">💰 +${fmt(BASE_REWARD)} $WASA ganados</div><div style="font-size:10px;opacity:.7;margin-bottom:12px">¿Querés duplicar viendo un anuncio?</div><button class="w-win-btn x2" id="btnDouble">📺 X2 VIENDO AD (+${fmt(BASE_REWARD)} = ${fmt(BASE_REWARD*2)} WASA)</button><button class="w-win-btn secondary" id="btnClaim">COBRAR ${fmt(BASE_REWARD)} WASA</button></div></div>`;
     ui.querySelector('#btnDouble').onclick=()=> openAd('double');
     ui.querySelector('#btnClaim').onclick=async()=>{
-      ui.querySelector('#btnClaim').textContent='⏳ VALIDANDO SERVER...'; ui.querySelector('#btnClaim').disabled=true;
+      const btn = ui.querySelector('#btnClaim');
+      if(btn){ btn.textContent='⏳ VALIDANDO SERVER...'; btn.disabled=true; }
       const res=await claimSession(false,false);
       if(res.ok){ totalReward+=BASE_REWARD; mergeCount=0; startSession(); render(); ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.75);display:grid;place-items:center;z-index:20"><div style="background:#fef9c3;border:2px solid #22c55e;border-radius:12px;padding:12px;text-align:center;width:min(320px,92vw)"><div style="color:#22c55e;font-weight:900">¡+${fmt(BASE_REWARD)} WASA acreditado!</div><div style="font-size:10px">Total: ${fmt(totalReward)} WASA</div><button id="ok" style="margin-top:8px;width:100%;background:#22c55e;color:black;font-weight:900;padding:10px;border-radius:999px">OK</button></div></div>`; ui.querySelector('#ok').onclick=()=>{ ui.innerHTML=''; render(); }; }
-      else{ ui.querySelector('#btnClaim').textContent='REINTENTAR COBRO'; ui.querySelector('#btnClaim').disabled=false; }
+      else{ if(btn){ btn.textContent='REINTENTAR COBRO'; btn.disabled=false; } }
     };
   }
 
@@ -93,10 +101,20 @@ export function init(container, args){
       })();
     } },150);
 
-  root.querySelector('#wNew').onclick=initGrid; root.querySelector('#wReset').onclick=initGrid;
-  root.querySelector('#wUp').onclick=()=>move('up'); root.querySelector('#wDown').onclick=()=>move('down'); root.querySelector('#wLeft').onclick=()=>move('left'); root.querySelector('#wRight').onclick=()=>move('right'); root.querySelector('#wUp2').onclick=()=>move('up');
-  addEventListener('keydown',e=>{ if(e.key==='ArrowUp'||e.key==='w') move('up'); if(e.key==='ArrowDown'||e.key==='s') move('down'); if(e.key==='ArrowLeft'||e.key==='a') move('left'); if(e.key==='ArrowRight'||e.key==='d') move('right'); });
-  let sx=0,sy=0; root.addEventListener('touchstart',e=>{ sx=e.touches[0].clientX; sy=e.touches[0].clientY; },{passive:true});
+  root.querySelector('#wReset')?.addEventListener('click', initGrid);
+  root.querySelector('#wUp')?.addEventListener('click', ()=>move('up'));
+  root.querySelector('#wDown')?.addEventListener('click', ()=>move('down'));
+  root.querySelector('#wLeft')?.addEventListener('click', ()=>move('left'));
+  root.querySelector('#wRight')?.addEventListener('click', ()=>move('right'));
+  root.querySelector('#wUp2')?.addEventListener('click', ()=>move('up'));
+
+  const keyHandler = e=>{ if(e.key==='ArrowUp'||e.key==='w'||e.key==='W') move('up'); if(e.key==='ArrowDown'||e.key==='s'||e.key==='S') move('down'); if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A') move('left'); if(e.key==='ArrowRight'||e.key==='d'||e.key==='D') move('right'); };
+  window.addEventListener('keydown', keyHandler);
+
+  let sx=0,sy=0;
+  root.addEventListener('touchstart',e=>{ sx=e.touches[0].clientX; sy=e.touches[0].clientY; },{passive:true});
   root.addEventListener('touchend',e=>{ if(!sx) return; const dx=e.changedTouches[0].clientX-sx; const dy=e.changedTouches[0].clientY-sy; if(Math.abs(dx)>Math.abs(dy)){ if(Math.abs(dx)>30) move(dx>0?'right':'left'); } else{ if(Math.abs(dy)>30) move(dy>0?'down':'up'); } sx=0; sy=0; },{passive:true});
-  initGrid(); container._cleanup=()=>{ clearInterval(watcher); window.vrAd=0; };
+
+  initGrid();
+  container._cleanup=()=>{ clearInterval(watcher); window.removeEventListener('keydown', keyHandler); window.vrAd=0; };
 }
