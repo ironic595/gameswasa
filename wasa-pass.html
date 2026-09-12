@@ -45,32 +45,26 @@ header{width:100%;height:52px;background:rgba(5,8,20,0.75);backdrop-filter:blur(
 
   letter-spacing: 5px;
     text-transform: uppercase;
-    color: #f5d76e; /* Color dorado base */
+   color: #e6b87d; /* Color base tostado/dorado */
     
-    /* La clave: Múltiples sombras para crear el bisel metálico */
+    /* LA CLAVE: Relieve interno simulado con sombras direccionales */
     text-shadow: 
-      /* Brillo superior (bisel superior) */
-      0px -2px 0px #fff8d6,
+      /* 1. Borde exterior claro (el "stroke" sutil) */
+      -1px -1px 0 #fff5e6,
+       1px -1px 0 #fff5e6,
+      -1px  1px 0 #fff5e6,
+       1px  1px 0 #fff5e6,
       
-      /* Sombra interior (bisel inferior) */
-      0px 3px 0px #8a6d1f,
+      /* 2. Luz superior e izquierda (Bisel iluminado) */
+      -2px -2px 0 #ffddb0,
+      -3px -3px 0 #ffcc99,
       
-      /* Contorno oscuro exterior */
-      2px 2px 0px #3a2e0a,
-      -2px -2px 0px #3a2e0a,
-      2px -2px 0px #3a2e0a,
-      -2px 2px 0px #3a2e0a,
-      
-      /* Sombra de proyección */
-      4px 4px 8px rgba(0,0,0,0.8);
-      
-    /* Opcional: un ligero gradiente en el texto para dar volumen metálico */
-    background: linear-gradient(to bottom, #fff8d6 0%, #f5d76e 50%, #b8860b 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    
-    /* Forzamos el color si el gradiente no funciona en algún navegador */
-    color: #f5d76e;}
+      /* 3. Sombra inferior y derecha (Bisel oscuro) */
+       2px  2px 0 #8a5a2b,
+       3px  3px 0 #5a3a1a,
+       
+      /* 4. Un toque de sombra extra para profundidad */
+       4px  4px 0 #3a2210;}
   
 .btn{height:40px;border-radius:10px;border:1px solid rgba(103,232,249,0.15);background:rgba(255,255,255,0.03);color:white;width:100%;cursor:pointer;font-weight:700}
 .btn-gold{background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#000;border:0;font-weight:900}
