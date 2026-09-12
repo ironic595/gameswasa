@@ -41,30 +41,36 @@ header{width:100%;height:52px;background:rgba(5,8,20,0.75);backdrop-filter:blur(
   bottom:10%; /* Y: mover arriba/abajo - este es donde iba PEPERTRULS */
   font-family:Fixedsys;
   font-size:23px;
-  font-weight: 200;
-
-  letter-spacing: 5px;
+    font-weight: 200; /* El peso que usa el JS */
+    letter-spacing: 4px; /* El letterSpacing del JS */
     text-transform: uppercase;
-   color: #e6b87d; /* Color base tostado/dorado */
+    color: #d99152; /* El color base final del JS */
     
-    /* LA CLAVE: Relieve interno simulado con sombras direccionales */
+    letter-spacing: 4px; /* El letterSpacing del JS */
+    text-transform: uppercase;
+    
+    /* LA CLAVE: Replicamos exactamente el array de shadows del JS */
+    /* El orden es importante: las sombras se apilan de la última a la primera */
     text-shadow: 
-      /* 1. Borde exterior claro (el "stroke" sutil) */
-      -1px -1px 0 #fff5e6,
-       1px -1px 0 #fff5e6,
-      -1px  1px 0 #fff5e6,
-       1px  1px 0 #fff5e6,
+      /* 1. Sombra más lejana (dx:3, dy:3) - azul muy oscuro */
+      3px 3px 0 #091721,
       
-      /* 2. Luz superior e izquierda (Bisel iluminado) */
-      -2px -2px 0 #ffddb0,
-      -3px -3px 0 #ffcc99,
+      /* 2. Segunda sombra (dx:2, dy:2) - marrón muy oscuro */
+      2px 2px 0 #210d02,
       
-      /* 3. Sombra inferior y derecha (Bisel oscuro) */
-       2px  2px 0 #8a5a2b,
-       3px  3px 0 #5a3a1a,
-       
-      /* 4. Un toque de sombra extra para profundidad */
-       4px  4px 0 #3a2210;}
+      /* 3. Tercera sombra (dx:1, dy:1) - marrón oscuro */
+      1px 1px 0 #5e2a09,
+      
+      /* 4. Sombra derecha-abajo (dx:-1, dy:1) - naranja oscuro */
+      -1px 1px 0 #944d1a,
+      
+      /* 5. Sombra izquierda-arriba (dx:1, dy:-1) - naranja oscuro */
+      1px -1px 0 #944d1a,
+      
+      /* 6. Luz superior-izquierda (dx:-1, dy:-1) - crema claro */
+      -1px -1px 0 #ffcc99;
+
+}
   
 .btn{height:40px;border-radius:10px;border:1px solid rgba(103,232,249,0.15);background:rgba(255,255,255,0.03);color:white;width:100%;cursor:pointer;font-weight:700}
 .btn-gold{background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#000;border:0;font-weight:900}
