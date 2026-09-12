@@ -1,4 +1,4 @@
-// /games/ahorcado/game.js - v22 - LAYOUT FIX: SAPO NO CORTADO, TABLAS CENTRADAS, AGUA VISIBLE
+// /games/ahorcado/game.js - v23.1 - FIX: sin header duplicado + valores 0.0001 + sapo no cortado
 export async function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javimsites.workers.dev/';
   const getDeviceId = ()=> window.getDeviceId?window.getDeviceId():(()=>{let id=localStorage.getItem('wasa_device_id'); if(!id){id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id;})();
@@ -27,34 +27,31 @@ export async function init(container, args){
 
   container.innerHTML=`
   <style>
-.ah{background:#D4A12C;color:#2b1a0a;width:100%;height:100dvh;height:100vh;display:flex;flex-direction:column;font-family:'Space Grotesk',system-ui;overflow:hidden;position:relative}
-.ah-top{height:42px;min-height:42px;display:flex;justify-content:space-between;align-items:center;padding:0 12px;background:#B88518;border-bottom:2px solid rgba(0,0,0,.15);flex-shrink:0;gap:8px}
-.ah-top-title{font-weight:900;font-size:11px;letter-spacing:.12em;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ah-lang{display:flex;gap:4px;background:#fff3;border-radius:20px;padding:2px;flex-shrink:0}
-.ah-lang button{padding:5px 12px;border-radius:16px;border:0;font-weight:800;font-size:11px;cursor:pointer;background:transparent;color:#5a3a00}
+.ah{background:#D4A12C;color:#2b1a0a;width:100%;height:100%;display:flex;flex-direction:column;font-family:'Space Grotesk',system-ui;overflow:hidden;position:relative}
+.ah-top{display:none!important}
+.ah-controls{position:absolute;top:8px;right:8px;left:8px;z-index:20;display:flex;justify-content:flex-end;gap:8px;pointer-events:none}
+.ah-controls.ah-lang,.ah-controls #catSel{pointer-events:auto}
+.ah-lang{display:flex;gap:4px;background:rgba(0,0,0,.25);border-radius:20px;padding:3px;backdrop-filter:blur(4px)}
+.ah-lang button{padding:5px 12px;border-radius:16px;border:0;font-weight:800;font-size:11px;cursor:pointer;background:transparent;color:#fff}
 .ah-lang button.active{background:#2b1a0a;color:#FFD86A}
-#catSel{height:32px;border-radius:16px;border:2px solid #8a5a00;background:#fffef6;padding:0 8px;font-weight:700;font-size:11px;max-width:140px;flex-shrink:0}
-.ah-wrap{flex:1;display:flex;justify-content:center;align-items:center;padding:12px;overflow:hidden;background:radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.25) 0%, transparent 60%), #D4A12C;min-height:0}
-.ah-body{display:flex;gap:24px;align-items:stretch;justify-content:center;width:100%;max-width:860px;height:100%;max-height:520px;margin:auto;min-height:0}
-
-/* TORRE FIX - NO SE CORTA EL SAPO */
-.ah-tower{flex:0 0 320px;width:320px;height:480px;position:relative;overflow:visible;background:linear-gradient(180deg, rgba(0,0,0,.06), rgba(0,0,0,.12));border-radius:20px;border:2px solid rgba(0,0,0,.12);flex-shrink:0;padding-top:28px;box-sizing:border-box}
-.ah-water-img{position:absolute;bottom:0;left:0;width:100%;height:90px;object-fit:cover;border-radius:0 0 18px 18px;z-index:1;display:block;pointer-events:none}
-.ah-water{position:absolute;bottom:6px;left:8px;right:8px;height:34px;background:#5DE0F5;border:2px solid #1aa3b8;border-radius:16px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#0a4a55;z-index:2}
-.ah-plank{position:absolute;left:16px;right:16px;height:24px;background:linear-gradient(180deg,#FF9C2A,#E05A00);border:2px solid #7a2e00;border-radius:12px;box-shadow:0 4px 0 rgba(0,0,0,.3), inset 0 2px 0 rgba(255,255,255,.4);transition:transform.6s cubic-bezier(.6,-0.28,.74,.05), opacity.4s;z-index:3}
+#catSel{height:32px;border-radius:16px;border:2px solid #8a5a00;background:#fffef6;padding:0 8px;font-weight:700;font-size:11px;max-width:140px}
+.ah-wrap{flex:1;display:flex;justify-content:center;align-items:center;padding:52px 10px 10px 10px;overflow:hidden;background:radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.25) 0%, transparent 60%), #D4A12C;min-height:0}
+.ah-body{display:flex;gap:20px;align-items:stretch;justify-content:center;width:100%;max-width:800px;height:100%;max-height:520px;margin:auto;min-height:0}
+.ah-tower{flex:0 0 300px;width:300px;height:440px;position:relative;overflow:visible;background:rgba(0,0,0,.06);border-radius:18px;border:1px solid rgba(0,0,0,.08);flex-shrink:0;padding-top:30px;box-sizing:border-box}
+.ah-water-img{position:absolute;bottom:0;left:0;width:100%;height:80px;object-fit:cover;border-radius:0 0 18px 18px;z-index:2;display:block}
+.ah-water{position:absolute;bottom:0;left:8px;right:8px;height:32px;background:#5DE0F5;border:2px solid #1aa3b8;border-radius:16px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#0a4a55;z-index:2}
+.ah-plank{position:absolute;left:12px;right:12px;height:22px;background:linear-gradient(180deg,#FF8C1A,#CC5A00);border:2px solid #7a2e00;border-radius:10px;box-shadow:0 3px 0 rgba(0,0,0,.25);transition:transform.6s cubic-bezier(.6,-0.28,.74,.05), opacity.4s;z-index:3}
 .ah-plank.broken{transform:translateY(600px) rotate(35deg);opacity:0}
-.ah-frog{position:absolute;width:90px;height:90px;left:50%;transform:translateX(-50%);transition:top.45s cubic-bezier(.34,1.56,.64,1), transform.5s ease;z-index:10;object-fit:contain;filter:drop-shadow(0 8px 10px rgba(0,0,0,.4))}
-.ah-frog.fall{top:430px!important;transform:translateX(-50%) rotate(25deg) scale(.85)}
-
-.ah-panel{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px;min-height:0;max-width:400px;justify-content:center}
-.ah-word-card{background:#fffef6;border:2px solid #8a5a00;border-radius:14px;padding:12px;box-shadow:0 6px 18px rgba(0,0,0,.15);flex-shrink:0}
+.ah-frog{position:absolute;width:88px;height:88px;left:50%;transform:translateX(-50%);transition:top.45s cubic-bezier(.34,1.56,.64,1), transform.5s ease;z-index:6;object-fit:contain;filter:drop-shadow(0 6px 8px rgba(0,0,0,.35))}
+.ah-frog.fall{top:400px!important;transform:translateX(-50%) rotate(25deg) scale(.8)}
+.ah-panel{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px;min-height:0;max-width:400px;justify-content:center}
+.ah-word-card{background:#fffef6;border:2px solid #8a5a00;border-radius:14px;padding:10px;box-shadow:0 6px 18px rgba(0,0,0,.15);flex-shrink:0}
 .ah-word{font-size:26px;letter-spacing:5px;font-weight:900;text-align:center;font-family:monospace;min-height:34px;color:#2b1a0a;word-break:break-all}
-.ah-hint{text-align:center;font-size:10px;opacity:.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:4px}
-.ah-timer{height:10px;background:#2b1a0a22;border-radius:10px;overflow:hidden;border:1px solid #8a5a00;margin-top:8px}
+.ah-hint{text-align:center;font-size:10px;opacity:.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.ah-timer{height:10px;background:#2b1a0a22;border-radius:10px;overflow:hidden;border:1px solid #8a5a00;margin-top:6px}
 .ah-timer-bar{height:100%;background:linear-gradient(90deg,#2ECC71,#00F0FF);transition:width 1s linear}
 .ah-timer-bar.warn{background:linear-gradient(90deg,#FF8C00,#FF3B30)}
-.ah-timer-text{text-align:center;font-size:10px;font-weight:900;margin-top:3px}
-
+.ah-timer-text{text-align:center;font-size:10px;font-weight:900;margin-top:2px}
 .ah-keys-wrap{background:#fffef6;border:2px solid #8a5a00;border-radius:14px;padding:10px 8px;box-shadow:0 6px 18px rgba(0,0,0,.15)}
 .ah-keys-qwerty{display:flex;flex-direction:column;gap:6px;align-items:center;width:100%}
 .qrow{display:flex;gap:5px;justify-content:center;width:100%}
@@ -62,49 +59,48 @@ export async function init(container, args){
 .ah-key.used{opacity:.3;pointer-events:none}
 .ah-key.hit{background:#2ECC71;border-color:#1a7a42;color:#fff}
 .ah-key.miss{background:#FF3B30;border-color:#7a0000;color:#fff}
-
 .ah-win{position:absolute;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(8px);display:grid;place-items:center;z-index:50;padding:16px}
 .ah-win-card{background:#fffef6;border:3px solid #8a5a00;border-radius:22px;padding:18px;width:min(420px,94vw);text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.45)}
 .ah-sapo-img{width:260px;height:260px;object-fit:contain;margin:0 auto 12px;display:block;filter:drop-shadow(0 12px 18px rgba(0,0,0,.4))}
 .ah-bubble{background:#2b1a0a;color:#FFD86A;border-radius:16px 16px 16px 4px;padding:10px 14px;font-size:13px;font-weight:700;line-height:1.3;margin:0 auto 12px;max-width:360px;position:relative}
 .ah-bubble:after{content:'';position:absolute;bottom:-8px;left:50%;margin-left:-8px;width:16px;height:16px;background:inherit;transform:rotate(45deg)}
-
 @media(max-width:700px){
- .ah-wrap{padding:8px;align-items:stretch}
- .ah-body{flex-direction:column;gap:10px;align-items:center;justify-content:flex-start;max-width:380px;height:100%;max-height:calc(100dvh - 42px - 16px)}
- .ah-tower{flex:0 0 42%;width:100%;max-width:340px;height:auto;min-height:200px;max-height:260px;aspect-ratio:340/280;padding-top:18px}
- .ah-plank{height:18px;left:10%;right:10%}
- .ah-frog{width:70px;height:70px}
- .ah-panel{flex:1;width:100%;max-width:360px;gap:8px;min-height:0;justify-content:flex-start}
+ .ah-wrap{padding:44px 5px 5px 5px;align-items:stretch}
+ .ah-body{flex-direction:column;gap:6px;align-items:center;justify-content:flex-start;max-width:380px;height:100%;max-height:calc(100dvh - 10px)}
+ .ah-tower{flex:0 0 44%;width:100%;max-width:340px;height:auto;min-height:170px;max-height:260px;aspect-ratio:340/260}
+ .ah-plank{height:16px;left:8px;right:8px}
+ .ah-frog{width:68px;height:68px}
+ .ah-panel{flex:1;width:100%;max-width:360px;gap:6px;min-height:0;justify-content:flex-start}
  .ah-word{font-size:20px;letter-spacing:3px;min-height:26px}
- .ah-word-card{padding:8px}
+ .ah-word-card{padding:6px 8px}
  .ah-keys-wrap{padding:6px;flex:1;display:flex;flex-direction:column;justify-content:center}
- .ah-key{height:38px;font-size:13px;max-width:none}
+ .ah-key{height:36px;font-size:13px;max-width:none}
  .qrow{gap:4px}
 }
   </style>
 
-  <div class="ah"><div class="ah-top">
-    <div class="ah-top-title">Guess the word: AI Expert Toad</div>
-    <div class="ah-lang"><button id="langEs" class="active">ES</button><button id="langEn">EN</button></div>
-    <select id="catSel"></select>
-  </div>
-  <div class="ah-wrap"><div class="ah-body">
-    <div class="ah-tower" id="tower">
-      <img src="water.png" id="ah-water-img" class="ah-water-img" alt="AGUA" onerror="this.style.display='none'; document.getElementById('ah-water-fallback').style.display='flex'">
-      <div id="ah-water-fallback" class="ah-water" style="display:none">💧 AGUA 💧</div>
+  <div class="ah">
+    <div class="ah-controls">
+      <div class="ah-lang"><button id="langEs" class="active">ES</button><button id="langEn">EN</button></div>
+      <select id="catSel"></select>
     </div>
-    <div class="ah-panel">
-      <div class="ah-word-card">
-        <div id="ah-word" class="ah-word">CARGANDO...</div>
-        <div id="ah-hint" class="ah-hint"></div>
-        <div class="ah-timer"><div id="ah-timer-bar" class="ah-timer-bar" style="width:100%"></div></div>
-        <div id="ah-timer-text" class="ah-timer-text">30s</div>
+    <div class="ah-wrap"><div class="ah-body">
+      <div class="ah-tower" id="tower">
+        <img src="water.png" id="ah-water-img" class="ah-water-img" alt="AGUA" onerror="this.style.display='none'; document.getElementById('ah-water-fallback').style.display='flex'">
+        <div id="ah-water-fallback" class="ah-water" style="display:none">💧 AGUA 💧</div>
       </div>
-      <div class="ah-keys-wrap"><div id="ah-keys" class="ah-keys-qwerty"></div></div>
-    </div>
-  </div></div>
-  <div id="ah-win"></div></div>`;
+      <div class="ah-panel">
+        <div class="ah-word-card">
+          <div id="ah-word" class="ah-word">CARGANDO...</div>
+          <div id="ah-hint" class="ah-hint"></div>
+          <div class="ah-timer"><div id="ah-timer-bar" class="ah-timer-bar" style="width:100%"></div></div>
+          <div id="ah-timer-text" class="ah-timer-text">30s</div>
+        </div>
+        <div class="ah-keys-wrap"><div id="ah-keys" class="ah-keys-qwerty"></div></div>
+      </div>
+    </div></div>
+    <div id="ah-win"></div>
+  </div>`;
 
   const tower=container.querySelector('#tower'); const elWord=container.querySelector('#ah-word'); const elKeys=container.querySelector('#ah-keys'); const elHint=container.querySelector('#ah-hint'); const elWin=container.querySelector('#ah-win'); const catSel=container.querySelector('#catSel'); const langEs=container.querySelector('#langEs'); const langEn=container.querySelector('#langEn');
   const loaded=await loadVendor(); if(!loaded){ elWord.textContent='Falta vendor'; return; }
@@ -117,11 +113,31 @@ export async function init(container, args){
   const PLANK_PCT=[70,135,200,265,330,395];
 
   let timerIv=null, timeLeft=30, maxTime=30, isPaused=false;
-  const timerBar=container.querySelector('#ah-timer-bar'); const timerText=container.querySelector('#ah-timer-text');
-  function startTimer(){ clearInterval(timerIv); timeLeft=maxTime=30; updateTimerUI(); timerIv=setInterval(()=>{ if(isPaused) return; timeLeft--; updateTimerUI(); if(timeLeft<=0){ clearInterval(timerIv); S.lose(); showTimeOut(); } },1000); }
-  function updateTimerUI(){ const pct=Math.max(0,(timeLeft/maxTime)*100); if(timerBar){ timerBar.style.width=pct+'%'; timerBar.classList.toggle('warn', timeLeft<=15); } if(timerText){ timerText.textContent=timeLeft+'s'; timerText.style.color=timeLeft<=10?'#FF3B30':'#2b1a0a'; } }
+  const timerBar=container.querySelector('#ah-timer-bar');
+  const timerText=container.querySelector('#ah-timer-text');
+  function startTimer(){
+    clearInterval(timerIv);
+    timeLeft=maxTime; maxTime=30;
+    updateTimerUI();
+    timerIv=setInterval(()=>{
+      if(isPaused) return;
+      timeLeft--;
+      updateTimerUI();
+      if(timeLeft<=0){
+        clearInterval(timerIv);
+        S.lose();
+        showTimeOut();
+      }
+    },1000);
+  }
+  function updateTimerUI(){
+    const pct=Math.max(0,(timeLeft/maxTime)*100);
+    if(timerBar){ timerBar.style.width=pct+'%'; timerBar.classList.toggle('warn', timeLeft<=15); }
+    if(timerText){ timerText.textContent=timeLeft+'s'; timerText.style.color=timeLeft<=10?'#FF3B30':'#2b1a0a'; }
+  }
   function showTimeOut(){
-    isPaused=true; const L=t();
+    isPaused=true;
+    const L=t();
     elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card" style="background:#fff3cd;border-color:#8a5a00">
       <h2 style="margin:0 0 8px;font-weight:900;color:#8a5a00;font-size:18px">${currentLang==='en'?'TIME IS UP!':'¡TIEMPO AGOTADO!'}</h2>
       <div class="ah-bubble" style="background:#8a5a00;color:#FFD86A;font-size:11px">${currentLang==='en'?`As a certified AI expert, I must inform you that your time has expired. My model calculated ${maxTime}s and you failed. Watch a rewarded ad to get more time. ⏰`:`En mi carácter de experto certificado en IA, debo informarte que tu tiempo se ha agotado. Mi modelo había calculado ${maxTime}s y no lo lograste. Puedes mirar un anuncio para conseguir más tiempo ⏰`}</div>
@@ -138,23 +154,24 @@ export async function init(container, args){
   function resetForced(){ gamesWithoutAd=0; localStorage.setItem(FORCED_KEY,'0'); }
   function incForced(){ gamesWithoutAd++; localStorage.setItem(FORCED_KEY,String(gamesWithoutAd)); }
   async function startSess(){ try{ const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'start_game_session',email,wallet,device_id,game_slug:'ahorcado', level:1})}); const j=await r.json(); if(j.ok) sess=j.session_id; }catch{} }
-  async function claim(isDouble,ad){ if(claiming) return false; if(!sess) await startSess(); if(!sess) return false; claiming=true; try{ const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward',session_id:sess,email,wallet,device_id,game_slug:'ahorcado',ad_watched:ad,double_reward:isDouble})}); const j=await r.json(); if(j.ok){ const bal=j.wasa_balance??j.guest_balance??0; if(j.is_guest) localStorage.setItem('wasa_coins_guest',bal); else localStorage.setItem('wasa_coins',bal); if(window.setCoinsUI) window.setCoinsUI(bal); sess=null; claiming=false; return true; } }catch{} claiming=false; return false; }
+  async function claim(isDouble,ad){ if(claiming) return false; if(!sess) await startSess(); if(!sess) return false; claiming=true; try{ const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward',session_id:sess,email,wallet,device_id,game_slug:'ahorcado',ad_watched:ad,double_reward:isDouble, time_taken: 10})}); const j=await r.json(); if(j.ok){ const bal=j.wasa_balance??j.guest_balance??0; if(j.is_guest) localStorage.setItem('wasa_coins_guest',bal); else localStorage.setItem('wasa_coins',bal); if(window.setCoinsUI) window.setCoinsUI(bal); sess=null; claiming=false; return true; } }catch{} claiming=false; return false; }
   function showForcedAd(next){ elWin.innerHTML=''; window._forcedNext=next; window._sapoForcedPending=true; window.vrAdType='interstitial'; window.vrAd=1; }
-
   function buildTower(){
     tower.querySelectorAll('.ah-plank,.ah-frog').forEach(e=>e.remove());
     planks=[];
-    const isMobile = window.innerWidth <= 700;
+    const isMobile = window.innerWidth <= 700 || tower.clientHeight < 320;
     PLANK_PCT.forEach((y,i)=>{
       const p=document.createElement('div');
       p.className='ah-plank';
       if(isMobile){
-        const pct = [12,26,40,54,68,82][i];
+        const pct = [6,21,36,51,66,81][i];
         p.style.top=pct+'%';
-        p.style.width='84%';
-        p.style.left='8%';
+        p.style.width=(92 - i*3)+'%';
+        p.style.left=(4 + i*1.5)+'%';
       } else {
         p.style.top=y+'px';
+        p.style.width=(276 - i*12)+'px';
+        p.style.left=(12 + i*6)+'px';
       }
       tower.appendChild(p);
       planks.push(p);
@@ -164,11 +181,10 @@ export async function init(container, args){
     frogEl.src=FROG_URL;
     frogEl.alt='🐸';
     frogEl.onerror=()=>{ frogEl.outerHTML=`<div class="ah-frog" style="font-size:48px;display:grid;place-items:center">🐸</div>`; frogEl=tower.querySelector('.ah-frog'); };
-    const firstY = isMobile? tower.clientHeight * 0.12 : PLANK_PCT[0];
-    frogEl.style.top=(firstY - 68)+'px';
+    frogEl.style.top=(PLANK_PCT[0]-68)+'px';
+    if(isMobile) frogEl.style.top='0%';
     tower.appendChild(frogEl);
   }
-
   async function newRound(){
     const cat=catSel.value||getCatsByLang(currentLang)[0];
     const words=await getWords(cat);
@@ -177,7 +193,6 @@ export async function init(container, args){
     elHint.textContent=`${cat.toUpperCase()} • ${words.length} palabras`;
     buildTower(); buildKeys(); update(); startTimer();
   }
-
   function buildKeys(){
     elKeys.innerHTML='';
     const rows = ['QWERTYUIOP','ASDFGHJKL','ZXCVBNM'];
@@ -193,10 +208,10 @@ export async function init(container, args){
             if(plankToBreak) plankToBreak.classList.add('broken');
             errors++; b.classList.add('miss'); S.miss();
             if(errors<maxErrors){
-              const isMob = window.innerWidth <= 700;
+              const isMob = window.innerWidth <= 700 || tower.clientHeight < 320;
               if(isMob){
-                const pct = [12,26,40,54,68,82][errors];
-                frogEl.style.top=(tower.clientHeight * (pct/100) - 62)+'px';
+                const pct = [6,21,36,51,66,81][errors];
+                frogEl.style.top=(pct-1)+'%';
               } else {
                 frogEl.style.top=(PLANK_PCT[errors]-68)+'px';
               }
@@ -210,12 +225,39 @@ export async function init(container, args){
       elKeys.appendChild(row);
     });
   }
-
   function t(){
     if(currentLang==='en'){
-      return { winTitle:'YOU WON!', loseTitle:'FELL INTO WATER!', winBubble:(w)=>`As a certified AI expert with 10 years of experience, I can confirm my model correctly predicted the word was: <b>${w}</b> ✅`, loseBubble:(w)=>`In my capacity as a certified AI expert and industry reference, I must ratify that your answer is incorrect. The word was: <b>${w}</b>. Keep participating. 🤖❌`, continueBtn:'CONTINUE +0.01 $WASA', x2Btn:'X2 AD → +0.02 $WASA', retryBtn:'RETRY', x2credited:'X2 CREDITED!', x2bubble:'Validated by my certified AI model! +0.02 WASA credited. As an expert, I confirm. 🚀', validating:'VALIDATING...', accredited:'✅ +0.01 CREDITED', loadingAd:'LOADING AD...', errorRetry:'ERROR - RETRY' };
+      return {
+        winTitle:'YOU WON!',
+        loseTitle:'FELL INTO WATER!',
+        winBubble:(w)=>`As a certified AI expert with 10 years of experience, I can confirm my model correctly predicted the word was: <b>${w}</b> ✅`,
+        loseBubble:(w)=>`In my capacity as a certified AI expert and industry reference, I must ratify that your answer is incorrect. The word was: <b>${w}</b>. Keep participating. 🤖❌`,
+        continueBtn:'CONTINUE +0.0001 $WASA',
+        x2Btn:'X2 AD → +0.0002 $WASA',
+        retryBtn:'RETRY',
+        x2credited:'X2 CREDITED!',
+        x2bubble:'Validated by my certified AI model! +0.0002 WASA credited. As an expert, I confirm. 🚀',
+        validating:'VALIDATING...',
+        accredited:'✅ +0.0001 CREDITED',
+        loadingAd:'LOADING AD...',
+        errorRetry:'ERROR - RETRY'
+      };
     }else{
-      return { winTitle:'¡GANASTE!', loseTitle:'¡SE CAYÓ AL AGUA!', winBubble:(w)=>`Como experto certificado en IA con 10 años de experiencia, puedo confirmar que mi modelo predijo correctamente que la palabra era: <b>${w}</b> ✅`, loseBubble:(w)=>`En mi carácter de experto certificado en IA y referente del sector, debo ratificar que tu respuesta es incorrecta.<b>${w}</b>. Intentalo de nuevo. 🤖❌`, continueBtn:'CONTINUAR +0.01 $WASA', x2Btn:'VER ANUNCIO x2 → +0.02 $WASA', retryBtn:'REINTENTAR', x2credited:'¡X2 ACREDITADO!', x2bubble:'¡Validado por mi modelo certificado de IA! +0.02 WASA acreditados. Como experto, lo confirmo. 🚀', validating:'VALIDANDO...', accredited:'✅ +0.01 ACREDITADO', loadingAd:'CARGANDO...', errorRetry:'ERROR - REINTENTAR' };
+      return {
+        winTitle:'¡GANASTE!',
+        loseTitle:'¡SE CAYÓ AL AGUA!',
+        winBubble:(w)=>`Como experto certificado en IA con 10 años de experiencia, puedo confirmar que mi modelo predijo correctamente que la palabra era: <b>${w}</b> ✅`,
+        loseBubble:(w)=>`En mi carácter de experto certificado en IA y referente del sector, debo ratificar que tu respuesta es incorrecta.<b>${w}</b>. Intentalo de nuevo. 🤖❌`,
+        continueBtn:'CONTINUAR +0.0001 $WASA',
+        x2Btn:'VER ANUNCIO x2 → +0.0002 $WASA',
+        retryBtn:'REINTENTAR',
+        x2credited:'¡X2 ACREDITADO!',
+        x2bubble:'¡Validado por mi modelo certificado de IA! +0.0002 WASA acreditados. Como experto, lo confirmo. 🚀',
+        validating:'VALIDANDO...',
+        accredited:'✅ +0.0001 ACREDITADO',
+        loadingAd:'CARGANDO...',
+        errorRetry:'ERROR - REINTENTAR'
+      };
     }
   }
 
@@ -223,7 +265,8 @@ export async function init(container, args){
     const display=word.split('').map(ch=>guessed.has(ch)?ch:'_').join(' ');
     elWord.textContent=display; const win=!display.includes('_'); const lose=errors>=maxErrors;
     const L=t();
-    if(win){ clearInterval(timerIv); try{ ctx().resume(); }catch{} S.win();
+    if(win){ clearInterval(timerIv);
+      try{ ctx().resume(); }catch{} S.win();
       elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card">
         <h2 style="margin:0 0 8px;font-weight:900;color:#2b1a0a;font-size:18px">${L.winTitle}</h2>
         <div class="ah-bubble" style="font-size:11px">${L.winBubble(word)}</div>
@@ -233,7 +276,8 @@ export async function init(container, args){
       </div></div>`;
       elWin.querySelector('#btnClaim').onclick=async(e)=>{ e.target.textContent=L.validating; e.target.disabled=true; const ok=await claim(false,false); if(ok){ S.coin(); incForced(); e.target.textContent=L.accredited; setTimeout(()=>{ if(gamesWithoutAd>=2){ showForcedAd(()=>{ resetForced(); newRound(); }); } else { newRound(); } },600); } else{ e.target.textContent=L.errorRetry; e.target.disabled=false; } };
       elWin.querySelector('#btnX2').onclick=()=>{ window.vrAd=1; window.vrAdType='double'; window._sapoPending=true; elWin.querySelector('#btnX2').textContent=L.loadingAd; };
-    }else if(lose){ clearInterval(timerIv); try{ ctx().resume(); }catch{} S.lose();
+    }else if(lose){ clearInterval(timerIv);
+      try{ ctx().resume(); }catch{} S.lose();
       elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card" style="background:#ffe9e9;border-color:#7a0000">
         <h2 style="margin:0 0 8px;font-weight:900;color:#7a0000;font-size:18px">${L.loseTitle}</h2>
         <div class="ah-bubble" style="background:#7a0000;color:#fff;font-size:11px">${L.loseBubble(word)}</div>
@@ -251,8 +295,20 @@ export async function init(container, args){
     }
     if(window.vrAd===4 && window.vrAdType==='extra_time' && window._sapoExtraTimePending){
       window.vrAd=0; window.vrAdType=null; window._sapoExtraTimePending=false;
-      timeLeft=30; maxTime=30; isPaused=false; elWin.innerHTML=''; updateTimerUI();
-      timerIv=setInterval(()=>{ if(isPaused) return; timeLeft--; updateTimerUI(); if(timeLeft<=0){ clearInterval(timerIv); S.lose(); showTimeOut(); } },1000); S.coin();
+      timeLeft=30; maxTime=30; isPaused=false;
+      elWin.innerHTML='';
+      updateTimerUI();
+      timerIv=setInterval(()=>{
+        if(isPaused) return;
+        timeLeft--;
+        updateTimerUI();
+        if(timeLeft<=0){
+          clearInterval(timerIv);
+          S.lose();
+          showTimeOut();
+        }
+      },1000);
+      S.coin();
     }
     if(window.vrAd===4 && window.vrAdType==='interstitial' && window._sapoForcedPending){
       window.vrAd=0; window.vrAdType=null; window._sapoForcedPending=false; resetForced(); const fn=window._forcedNext; window._forcedNext=null; if(fn) fn(); else newRound();
