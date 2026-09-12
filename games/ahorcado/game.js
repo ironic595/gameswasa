@@ -1,4 +1,4 @@
-// /games/ahorcado/game.js - v26 FINAL - MOBILE FIX + MENU FULL + AGUA FIX + RALLY
+// /games/ahorcado/game.js - v26.1 FINAL - FIX TIMER PAUSADO EN ANUNCIOS + MOBILE FIX
 export async function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javimsites.workers.dev/';
   const getDeviceId = ()=> window.getDeviceId?window.getDeviceId():(()=>{let id=localStorage.getItem('wasa_device_id'); if(!id){id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id;})();
@@ -59,21 +59,15 @@ export async function init(container, args){
 .ah-stat b{display:block;font-size:18px}
 .ah-stat span{font-size:11px;opacity:.7;font-weight:700}
 .ah-mode-btn{width:min(520px,92vw);height:64px;border-radius:18px;border:0;font-weight:900;font-size:14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
-
 @media(max-width:700px){
- .ah-wrap{padding:48px 8px 8px 8px;align-items:flex-start;overflow:auto}
- .ah-body{flex-direction:column;gap:10px;align-items:center;justify-content:flex-start;width:100%;max-width:400px;height:auto;max-height:none;margin:0 auto}
- .ah-tower{flex:0 0 210px;width:100%;max-width:360px;height:210px;min-height:210px;max-height:210px;overflow:hidden}
- .ah-plank{height:13px;left:10px;right:10px}
- .ah-frog{width:50px;height:50px}
- .ah-panel{flex:0 0 auto;width:100%;max-width:360px;gap:8px}
- .ah-word{font-size:20px;letter-spacing:3px;min-height:26px}
- .ah-word-card{padding:8px}
- .ah-keys-wrap{padding:6px}
- .ah-key{height:38px;font-size:13px;max-width:none}
- .ah-bubble{font-size:14px;padding:12px 14px}
- .ah-stat-box{width:92vw}
- .ah-mode-btn{width:92vw}
+.ah-wrap{padding:48px 8px 8px 8px;align-items:flex-start;overflow:auto}
+.ah-body{flex-direction:column;gap:10px;align-items:center;justify-content:flex-start;width:100%;max-width:400px;height:auto;max-height:none;margin:0 auto}
+.ah-tower{flex:0 0 210px;width:100%;max-width:360px;height:210px;min-height:210px;max-height:210px;overflow:hidden}
+.ah-plank{height:13px;left:10px;right:10px}
+.ah-frog{width:50px;height:50px}
+.ah-panel{flex:0 0 auto;width:100%;max-width:360px;gap:8px}
+.ah-word{font-size:20px;letter-spacing:3px;min-height:26px}
+.ah-bubble{font-size:14px;padding:12px 14px}
 }
   </style>
   <div class="ah">
@@ -104,7 +98,6 @@ export async function init(container, args){
   function getCatsByLang(lang){ return Object.keys(dict).filter(c=>c.startsWith(lang+'_')); }
   function getRandomCat(){ const cats=getCatsByLang(currentLang); return cats[Math.floor(Math.random()*cats.length)]; }
 
-  // POSICIONES FIJAS QUE ENTRAN EN 210px MOBILE Y 440px DESKTOP
   const POS_DESKTOP=[45,105,165,225,285,345];
   const POS_MOBILE=[12,44,76,108,140,172];
 
@@ -112,7 +105,13 @@ export async function init(container, args){
   const timerBar=container.querySelector('#ah-timer-bar'); const timerText=container.querySelector('#ah-timer-text');
   function startTimer(){ clearInterval(timerIv); timeLeft=maxTime=30; updateTimerUI(); timerIv=setInterval(()=>{ if(isPaused) return; timeLeft--; updateTimerUI(); if(timeLeft<=0){ clearInterval(timerIv); S.lose(); showTimeOut(); } },1000); }
   function updateTimerUI(){ const pct=Math.max(0,(timeLeft/maxTime)*100); if(timerBar){ timerBar.style.width=pct+'%'; timerBar.classList.toggle('warn', timeLeft<=15); } if(timerText){ timerText.textContent=timeLeft+'s'; timerText.style.color=timeLeft<=10?'#FF3B30':'#2b1a0a'; } }
-  function showTimeOut(){ isPaused=true; const L=t(); elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card" style="background:#fff3cd;border-color:#8a5a00"><h2 style="margin:0 0 8px;font-weight:900;color:#8a5a00;font-size:18px">${currentLang==='en'?'TIME IS UP!':'¡TIEMPO AGOTADO!'}</h2><div class="ah-bubble">${currentLang==='en'?`Time is up! Watch ad for +30s ⏰`:`¡Tiempo agotado! Mirá anuncio para +30s ⏰`}</div><img src="${FROG_LOSE}" class="ah-sapo-img" onerror="this.style.display='none'"><button id="btnTimeoutContinue" style="width:100%;height:46px;border-radius:22px;background:#2b1a0a;color:#fff;font-weight:900;border:0;cursor:pointer;margin-top:8px;font-size:13px">${L.retryBtn}</button><button id="btnTimeoutAd" style="width:100%;height:48px;margin-top:8px;border-radius:22px;background:linear-gradient(90deg,#FF8C00,#FF00D4);color:#fff;font-weight:900;border:0;cursor:pointer;font-size:13px">${currentLang==='en'?'+30s WATCH AD':'+30s VER ANUNCIO'}</button></div></div>`; elWin.querySelector('#btnTimeoutContinue').onclick=()=>{ isPaused=false; if(gameMode==='rally'){ endRally(false); } else { newRound(false); } }; elWin.querySelector('#btnTimeoutAd').onclick=()=>{ window.vrAd=1; window.vrAdType='extra_time'; window._sapoExtraTimePending=true; elWin.querySelector('#btnTimeoutAd').textContent=t().loadingAd; }; }
+  function showTimeOut(){
+    isPaused=true;
+    const L=t();
+    elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card" style="background:#fff3cd;border-color:#8a5a00"><h2 style="margin:0 0 8px;font-weight:900;color:#8a5a00;font-size:18px">${currentLang==='en'?'TIME IS UP!':'¡TIEMPO AGOTADO!'}</h2><div class="ah-bubble">${currentLang==='en'?`Time is up! Watch ad for +30s ⏰`:`¡Tiempo agotado! Mirá anuncio para +30s ⏰`}</div><img src="${FROG_LOSE}" class="ah-sapo-img" onerror="this.style.display='none'"><button id="btnTimeoutContinue" style="width:100%;height:46px;border-radius:22px;background:#2b1a0a;color:#fff;font-weight:900;border:0;cursor:pointer;margin-top:8px;font-size:13px">${L.retryBtn}</button><button id="btnTimeoutAd" style="width:100%;height:48px;margin-top:8px;border-radius:22px;background:linear-gradient(90deg,#FF8C00,#FF00D4);color:#fff;font-weight:900;border:0;cursor:pointer;font-size:13px">${currentLang==='en'?'+30s WATCH AD':'+30s VER ANUNCIO'}</button></div></div>`;
+    elWin.querySelector('#btnTimeoutContinue').onclick=()=>{ isPaused=false; if(gameMode==='rally'){ showMenu(); } else { newRound(false); } };
+    elWin.querySelector('#btnTimeoutAd').onclick=()=>{ isPaused=true; window.vrAd=1; window.vrAdType='extra_time'; window._sapoExtraTimePending=true; elWin.querySelector('#btnTimeoutAd').textContent=t().loadingAd; };
+  }
 
   let planks=[], frogEl, word, guessed, errors, maxErrors=6, sess=null, claiming=false, gameMode='normal', rallyScore=0, currentCat='';
   const BEST_KEY='ahorcado_rally_best'; const TOTAL_KEY='ahorcado_total_wins';
@@ -122,6 +121,7 @@ export async function init(container, args){
   function incTotal(){ localStorage.setItem(TOTAL_KEY,String(getTotalWins()+1)); }
   async function startSess(){ try{ const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'start_game_session',email,wallet,device_id,game_slug:'ahorcado', level:1})}); const j=await r.json(); if(j.ok) sess=j.session_id; }catch{} }
   async function claim(isDouble,ad,customReward){ if(claiming) return false; claiming=true; try{ const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward',session_id:sess,email,wallet,device_id,game_slug:'ahorcado',ad_watched:ad,double_reward:isDouble, time_taken: 10, custom_reward: customReward, rally_score: rallyScore})}); const j=await r.json(); if(j.ok){ const bal=j.wasa_balance??j.guest_balance??0; if(j.is_guest) localStorage.setItem('wasa_coins_guest',bal); else localStorage.setItem('wasa_coins',bal); if(window.setCoinsUI) window.setCoinsUI(bal); sess=null; claiming=false; return j; } }catch{} claiming=false; return false; }
+  function showForcedAd(next){ isPaused=true; elWin.innerHTML=''; window._forcedNext=next; window._sapoForcedPending=true; window.vrAdType='interstitial'; window.vrAd=1; }
 
   function buildTower(){
     tower.querySelectorAll('.ah-plank,.ah-frog').forEach(e=>e.remove());
@@ -139,15 +139,11 @@ export async function init(container, args){
     frogEl.style.top=(pos[0]-46)+'px';
     tower.insertBefore(frogEl, water);
   }
-
   function moveFrog(){
     const isMobile = window.innerWidth <= 700;
     const pos = isMobile? POS_MOBILE : POS_DESKTOP;
-    if(errors<maxErrors && frogEl){
-      frogEl.style.top=(pos[errors]-46)+'px';
-    }
+    if(errors<maxErrors && frogEl){ frogEl.style.top=(pos[errors]-46)+'px'; }
   }
-
   async function newRound(isRallyContinue=false){
     if(!isRallyContinue){ rallyScore=0; errors=0; currentCat=getRandomCat(); buildTower(); }
     const words=await getWords(currentCat);
@@ -160,7 +156,6 @@ export async function init(container, args){
     } else { elRallyInfo.style.display='none'; }
     buildKeys(); update(); startTimer();
   }
-
   function buildKeys(){
     elKeys.innerHTML=''; const rows=['QWERTYUIOP','ASDFGHJKL','ZXCVBNM'];
     rows.forEach(rowStr=>{
@@ -181,15 +176,13 @@ export async function init(container, args){
       }); elKeys.appendChild(row);
     });
   }
-
   function t(){
     if(currentLang==='en'){
-      return { winTitle:'YOU WON!', loseTitle:'FELL INTO WATER!', winBubble:(w)=>`My model predicted: <b>${w}</b> ✅`, loseBubble:(w)=>`Word was: <b>${w}</b> 🤖❌`, continueBtn:'CONTINUE +0.0001 $WASA', x2Btn:'X2 AD → +0.0002 $WASA', retryBtn:'RETRY', nextRally:'NEXT WORD', claimRally:'CASH OUT', validating:'VALIDATING...', accredited:'✅ CREDITED', loadingAd:'LOADING AD...', errorRetry:'ERROR' };
+      return { winTitle:'YOU WON!', loseTitle:'FELL INTO WATER!', winBubble:(w)=>`My model predicted: <b>${w}</b> ✅`, loseBubble:(w)=>`Word was: <b>${w}</b>`, continueBtn:'CONTINUE +0.0001 $WASA', x2Btn:'X2 AD → +0.0002 $WASA', retryBtn:'RETRY', nextRally:'NEXT WORD', claimRally:'CASH OUT', validating:'VALIDATING...', accredited:'✅ CREDITED', loadingAd:'LOADING AD...', errorRetry:'ERROR' };
     }else{
-      return { winTitle:'¡GANASTE!', loseTitle:'¡SE CAYÓ AL AGUA!', winBubble:(w)=>`Era: <b>${w}</b> ✅`, loseBubble:(w)=>`Era: <b>${w}</b> 🤖❌`, continueBtn:'CONTINUAR +0.0001 $WASA', x2Btn:'VER ANUNCIO x2 → +0.0002 $WASA', retryBtn:'REINTENTAR', nextRally:'SIGUIENTE PALABRA', claimRally:'COBRAR Y SALIR', validating:'VALIDANDO...', accredited:'✅ ACREDITADO', loadingAd:'CARGANDO...', errorRetry:'ERROR' };
+      return { winTitle:'¡GANASTE!', loseTitle:'¡SE CAYÓ AL AGUA!', winBubble:(w)=>`Era: <b>${w}</b> ✅`, loseBubble:(w)=>`Era: <b>${w}</b>`, continueBtn:'CONTINUAR +0.0001 $WASA', x2Btn:'VER ANUNCIO x2 → +0.0002 $WASA', retryBtn:'REINTENTAR', nextRally:'SIGUIENTE PALABRA', claimRally:'COBRAR Y SALIR', validating:'VALIDANDO...', accredited:'✅ ACREDITADO', loadingAd:'CARGANDO...', errorRetry:'ERROR' };
     }
   }
-
   function update(){
     const display=word.split('').map(ch=>guessed.has(ch)?ch:'_').join(' ');
     elWord.textContent=display; const win=!display.includes('_'); const lose=errors>=maxErrors; const L=t();
@@ -199,19 +192,19 @@ export async function init(container, args){
         rallyScore++; setBest(rallyScore);
         elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card"><h2 style="margin:0 0 8px;font-weight:900;font-size:20px">¡${rallyScore}!</h2><div class="ah-bubble">Correcto: <b>${word}</b> ✅<br><br>🔥 RALLY: <b>${rallyScore}</b> • Vidas: ${maxErrors-errors}/${maxErrors}<br>💰 ${(rallyScore*0.0001).toFixed(4)} WASA</div><img src="${FROG_WIN}" class="ah-sapo-img"><button id="btnNextRally" style="width:100%;height:52px;border-radius:22px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0;cursor:pointer;font-size:14px;margin-top:8px">${L.nextRally} →</button><button id="btnEndRally" style="width:100%;height:46px;margin-top:10px;border-radius:18px;background:#fff;border:2px solid #8a5a00;color:#2b1a0a;font-weight:900;cursor:pointer;font-size:12px">${L.claimRally} ${(rallyScore*0.0001).toFixed(4)} WASA</button></div></div>`;
         elWin.querySelector('#btnNextRally').onclick=()=>{ elWin.innerHTML=''; newRound(true); };
-        elWin.querySelector('#btnEndRally').onclick=async(e)=>{ e.target.textContent=L.validating; e.target.disabled=true; const res=await claim(false,false,rallyScore*0.0001); if(res){ S.coin(); showMenu(); } else { e.target.textContent=L.errorRetry; e.target.disabled=false; } };
+        elWin.querySelector('#btnEndRally').onclick=async(e)=>{ isPaused=true; e.target.textContent=L.validating; e.target.disabled=true; const res=await claim(false,false,rallyScore*0.0001); if(res){ S.coin(); showMenu(); } else { e.target.textContent=L.errorRetry; e.target.disabled=false; isPaused=false; } };
       } else {
         elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card"><h2 style="margin:0 0 8px;font-weight:900;font-size:18px">${L.winTitle}</h2><div class="ah-bubble">${L.winBubble(word)}</div><img src="${FROG_WIN}" class="ah-sapo-img"><button id="btnClaim" style="width:100%;height:48px;border-radius:22px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0;cursor:pointer;font-size:13px;margin-top:8px">${L.continueBtn}</button><button id="btnX2" style="width:100%;height:48px;margin-top:8px;border-radius:22px;background:linear-gradient(90deg,#FF00D4,#00F0FF);color:#fff;font-weight:900;border:0;cursor:pointer;font-size:13px">${L.x2Btn}</button></div></div>`;
         elWin.querySelector('#btnClaim').onclick=async(e)=>{ e.target.textContent=L.validating; e.target.disabled=true; const ok=await claim(false,false); if(ok){ S.coin(); setTimeout(()=>newRound(false),600); } else{ e.target.textContent=L.errorRetry; e.target.disabled=false; } };
-        elWin.querySelector('#btnX2').onclick=()=>{ window.vrAd=1; window.vrAdType='double'; window._sapoPending=true; elWin.querySelector('#btnX2').textContent=L.loadingAd; };
+        elWin.querySelector('#btnX2').onclick=()=>{ isPaused=true; window.vrAd=1; window.vrAdType='double'; window._sapoPending=true; elWin.querySelector('#btnX2').textContent=L.loadingAd; };
       }
     }else if(lose){
       clearInterval(timerIv); try{ ctx().resume(); }catch{} S.lose();
       if(gameMode==='rally'){
         const total=rallyScore*0.0001;
         elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card" style="background:#ffe9e9;border-color:#7a0000"><h2 style="margin:0 0 8px;font-weight:900;color:#7a0000;font-size:18px">¡RALLY TERMINADO!</h2><div class="ah-bubble" style="background:#7a0000;color:#fff">Palabra: <b>${word}</b><br><br>🏆 Total: <b>${rallyScore}</b><br>💧 ${total.toFixed(4)} WASA</div><img src="${FROG_LOSE}" class="ah-sapo-img"><button id="btnClaimRally" style="width:100%;height:48px;margin-top:8px;border-radius:22px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0;cursor:pointer;font-size:13px">${rallyScore>0?`COBRAR ${total.toFixed(4)} WASA`:'VOLVER AL MENÚ'}</button><button id="btnX2Rally" style="width:100%;height:48px;margin-top:8px;border-radius:22px;background:linear-gradient(90deg,#FF8C00,#FF00D4);color:#fff;font-weight:900;border:0;cursor:pointer;font-size:13px;${rallyScore===0?'display:none':''}">📺 X2 → ${(total*2).toFixed(4)} WASA</button><button id="btnRetryRally" style="width:100%;height:42px;margin-top:8px;border-radius:18px;background:#fff;border:2px solid #8a5a00;color:#2b1a0a;font-weight:900;cursor:pointer;font-size:12px">MENÚ</button></div></div>`;
-        elWin.querySelector('#btnClaimRally').onclick=async(e)=>{ if(rallyScore===0){ showMenu(); return; } e.target.textContent=t().validating; e.target.disabled=true; const res=await claim(false,false,total); if(res){ S.coin(); showMenu(); } };
-        elWin.querySelector('#btnX2Rally').onclick=()=>{ window.vrAd=1; window.vrAdType='double_rally'; window._sapoPendingRally=true; elWin.querySelector('#btnX2Rally').textContent=t().loadingAd; };
+        elWin.querySelector('#btnClaimRally').onclick=async(e)=>{ if(rallyScore===0){ showMenu(); return; } isPaused=true; e.target.textContent=t().validating; e.target.disabled=true; const res=await claim(false,false,total); if(res){ S.coin(); showMenu(); } };
+        elWin.querySelector('#btnX2Rally').onclick=()=>{ isPaused=true; window.vrAd=1; window.vrAdType='double_rally'; window._sapoPendingRally=true; elWin.querySelector('#btnX2Rally').textContent=t().loadingAd; };
         elWin.querySelector('#btnRetryRally').onclick=()=>showMenu();
       } else {
         elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card" style="background:#ffe9e9;border-color:#7a0000"><h2 style="margin:0 0 8px;font-weight:900;color:#7a0000;font-size:18px">${L.loseTitle}</h2><div class="ah-bubble" style="background:#7a0000;color:#fff">${L.loseBubble(word)}</div><img src="${FROG_LOSE}" class="ah-sapo-img"><button id="btnRetry" style="width:100%;height:44px;margin-top:8px;border-radius:20px;background:#2b1a0a;color:#fff;font-weight:900;border:0;cursor:pointer;font-size:13px">${L.retryBtn}</button></div></div>`;
@@ -219,23 +212,10 @@ export async function init(container, args){
       }
     }
   }
-
   function showMenu(){
-    elWin.innerHTML=''; clearInterval(timerIv);
+    elWin.innerHTML=''; clearInterval(timerIv); isPaused=false;
     const best=getBest(); const total=getTotalWins();
-    elMenu.innerHTML=`<div class="ah-menu"><div class="ah-menu-top">
-      <img src="${FROG_URL}" style="width:110px;height:110px" onerror="this.style.display='none'">
-      <h1 style="margin:0;font-weight:900;font-size:26px">AHORCADO SAPO</h1>
-      <p style="margin:0;opacity:.7;font-weight:700;font-size:13px">Adivina antes de caer al agua</p>
-      <div class="ah-stat-box">
-        <div class="ah-stat"><b>🏆 ${best}</b><span>RÉCORD RALLY</span></div>
-        <div class="ah-stat"><b>🎯 ${total}</b><span>PALABRAS</span></div>
-        <div class="ah-stat"><b>💧 6</b><span>VIDAS</span></div>
-      </div>
-      <button id="btnNormal" class="ah-mode-btn" style="background:#2b1a0a;color:#FFD86A">🎯 MODO NORMAL<br><span style="font-size:11px;opacity:.8">0.0001 WASA por palabra</span></button>
-      <button id="btnRally" class="ah-mode-btn" style="background:linear-gradient(90deg,#FF8C00,#FF00D4);color:#fff">🔥 MODO RALLY<br><span style="font-size:11px">Récord: ${best} • Vidas compartidas</span></button>
-      <div style="margin-top:12px;display:flex;gap:8px"><button id="langEsM" style="padding:8px 18px;border-radius:20px;border:2px solid #8a5a00;font-weight:900;cursor:pointer;background:${currentLang==='es'?'#2b1a0a;color:#FFD86A':'#fffef6'}">ES</button><button id="langEnM" style="padding:8px 18px;border-radius:20px;border:2px solid #8a5a00;font-weight:900;cursor:pointer;background:${currentLang==='en'?'#2b1a0a;color:#FFD86A':'#fffef6'}">EN</button></div>
-    </div></div>`;
+    elMenu.innerHTML=`<div class="ah-menu"><div class="ah-menu-top"><img src="${FROG_URL}" style="width:110px;height:110px" onerror="this.style.display='none'"><h1 style="margin:0;font-weight:900;font-size:26px">AHORCADO SAPO</h1><p style="margin:0;opacity:.7;font-weight:700;font-size:13px">Adivina antes de caer al agua</p><div class="ah-stat-box"><div class="ah-stat"><b>🏆 ${best}</b><span>RÉCORD RALLY</span></div><div class="ah-stat"><b>🎯 ${total}</b><span>PALABRAS</span></div><div class="ah-stat"><b>💧 6</b><span>VIDAS</span></div></div><button id="btnNormal" class="ah-mode-btn" style="background:#2b1a0a;color:#FFD86A">🎯 MODO NORMAL<br><span style="font-size:11px;opacity:.8">0.0001 WASA por palabra</span></button><button id="btnRally" class="ah-mode-btn" style="background:linear-gradient(90deg,#FF8C00,#FF00D4);color:#fff">🔥 MODO RALLY<br><span style="font-size:11px">Récord: ${best} • Vidas compartidas</span></button><div style="margin-top:12px;display:flex;gap:8px"><button id="langEsM" style="padding:8px 18px;border-radius:20px;border:2px solid #8a5a00;font-weight:900;cursor:pointer;background:${currentLang==='es'?'#2b1a0a;color:#FFD86A':'#fffef6'}">ES</button><button id="langEnM" style="padding:8px 18px;border-radius:20px;border:2px solid #8a5a00;font-weight:900;cursor:pointer;background:${currentLang==='en'?'#2b1a0a;color:#FFD86A':'#fffef6'}">EN</button></div></div></div>`;
     elMenu.querySelector('#btnNormal').onclick=()=>{ gameMode='normal'; elMenu.innerHTML=''; rallyScore=0; elRallyInfo.style.display='none'; newRound(false); };
     elMenu.querySelector('#btnRally').onclick=()=>{ gameMode='rally'; elMenu.innerHTML=''; rallyScore=0; newRound(false); };
     elMenu.querySelector('#langEsM').onclick=()=>{ currentLang='es'; langEs.classList.add('active'); langEn.classList.remove('active'); showMenu(); };
@@ -243,10 +223,29 @@ export async function init(container, args){
   }
 
   const adIv=setInterval(async()=>{
-    if(window.vrAd===4 && window.vrAdType==='double' && window._sapoPending){ window.vrAd=0; window.vrAdType=null; window._sapoPending=false; const ok=await claim(true,true); if(ok){ S.coin(); showMenu(); } }
-    if(window.vrAd===4 && window.vrAdType==='double_rally' && window._sapoPendingRally){ window.vrAd=0; window.vrAdType=null; window._sapoPendingRally=false; const total=rallyScore*0.0001*2; const res=await claim(true,true,total); if(res){ S.coin(); showMenu(); } }
-    if(window.vrAd===4 && window.vrAdType==='extra_time' && window._sapoExtraTimePending){ window.vrAd=0; window.vrAdType=null; window._sapoExtraTimePending=false; timeLeft=30; maxTime=30; isPaused=false; elWin.innerHTML=''; updateTimerUI(); timerIv=setInterval(()=>{ if(isPaused) return; timeLeft--; updateTimerUI(); if(timeLeft<=0){ clearInterval(timerIv); S.lose(); showTimeOut(); } },1000); S.coin(); }
+    if(window.vrAd && window.vrAd!==0 && window.vrAd!==4){
+      isPaused=true;
+    }
+    if(window.vrAd===4 && window.vrAdType==='double' && window._sapoPending){
+      window.vrAd=0; window.vrAdType=null; window._sapoPending=false; isPaused=false;
+      const ok=await claim(true,true); if(ok){ S.coin(); showMenu(); }
+    }
+    if(window.vrAd===4 && window.vrAdType==='double_rally' && window._sapoPendingRally){
+      window.vrAd=0; window.vrAdType=null; window._sapoPendingRally=false; isPaused=false;
+      const total=rallyScore*0.0001*2; const res=await claim(true,true,total); if(res){ S.coin(); showMenu(); }
+    }
+    if(window.vrAd===4 && window.vrAdType==='extra_time' && window._sapoExtraTimePending){
+      window.vrAd=0; window.vrAdType=null; window._sapoExtraTimePending=false;
+      timeLeft=30; maxTime=30; isPaused=false; elWin.innerHTML=''; updateTimerUI();
+      clearInterval(timerIv);
+      timerIv=setInterval(()=>{ if(isPaused) return; timeLeft--; updateTimerUI(); if(timeLeft<=0){ clearInterval(timerIv); S.lose(); showTimeOut(); } },1000); S.coin();
+    }
+    if(window.vrAd===4 && window.vrAdType==='interstitial' && window._sapoForcedPending){
+      window.vrAd=0; window.vrAdType=null; window._sapoForcedPending=false; isPaused=false;
+      const fn=window._forcedNext; window._forcedNext=null; if(fn) fn(); else newRound(false);
+    }
   },400);
+
   langEs.onclick=()=>{ currentLang='es'; langEs.classList.add('active'); langEn.classList.remove('active'); if(elMenu.innerHTML) showMenu(); else { currentCat=getRandomCat(); newRound(false); } };
   langEn.onclick=()=>{ currentLang='en'; langEn.classList.add('active'); langEs.classList.remove('active'); if(elMenu.innerHTML) showMenu(); else { currentCat=getRandomCat(); newRound(false); } };
   showMenu();
