@@ -11,6 +11,25 @@
   src: url('fnts/Fixedsys.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
+     /* 1. Color base del texto (marrón cobrizo) */
+  color: #a06030; 
+  
+  /* 2. El truco del relieve: combinación de luces y sombras */
+  text-shadow: 
+    /* Brillo superior e izquierdo (Simula luz) */
+    -1px -1px 0px #fce0a0,
+     0px -1px 0px #fce0a0,
+    -1px  0px 0px #fce0a0,
+    
+    /* Sombra interna/borde intermedio oscuro */
+     1px  1px 0px #502810,
+     0px  1px 0px #502810,
+     1px  0px 0px #502810,
+     
+    /* Sombra proyectada profunda (Efecto 3D/Bloque) */
+     2px  2px 0px #201005,
+     3px  3px 0px #201005,
+     4px  4px 2px rgba(0, 0, 0, 0.6);
 }
 
 *{margin:0;padding:0;box-sizing:border-box}
