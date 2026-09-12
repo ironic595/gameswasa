@@ -1,4 +1,4 @@
-// games/2048-madera/game.js - v5 LAYOUT TRADICIONAL - centrado + top stats + no arrows
+// games/2048-madera/game.js - v6 SIDEBAR PROGRESS DESKTOP / BOTTOM MOBILE - no scroll
 export function init(container, args){
   const getCoins = args.getCoins||(()=>parseFloat(localStorage.getItem('wasa_coins')||'0'));
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javimsites.workers.dev/';
@@ -6,24 +6,35 @@ export function init(container, args){
   function fmt(n){ const v=parseFloat(n)||0; if(v===0) return '0'; return (Math.round(v*1000000)/1000000).toFixed(6).replace(/0+$/,'').replace(/\.$/,''); }
 
   container.innerHTML=`<style>
-.w2048{width:100%;height:100%;min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;font-family:Inter,system-ui;background:radial-gradient(ellipse at 20% 10%,rgba(139,90,43,.18),transparent 60%),linear-gradient(180deg,#d2b48c 0%,#bc9a6a 30%,#8b5a2b 100%);color:#3e2723;overflow:auto;position:relative;padding:12px 12px 20px}
-.w-header{width:100%;max-width:480px;display:flex;flex-direction:column;gap:10px;flex-shrink:0}
-.w-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.w-stat{background:linear-gradient(180deg,#fef9c3,#fde68a);border:1.5px solid #5c4033;border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;align-items:flex-start}
-.w-stat b{font-size:15px;line-height:1;color:#3e2723;font-weight:900}
-.w-stat span{font-size:9px;opacity:.7;text-transform:uppercase;color:#5c4033;font-weight:800;margin-top:4px;letter-spacing:.5px}
+.w2048{width:100%;height:100%;min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;font-family:Inter,system-ui;background:radial-gradient(ellipse at 20% 10%,rgba(139,90,43,.18),transparent 60%),linear-gradient(180deg,#d2b48c 0%,#bc9a6a 30%,#8b5a2b 100%);color:#3e2723;overflow:hidden;position:relative;padding:12px;box-sizing:border-box}
+.w-header{width:100%;max-width:820px;display:flex;flex-direction:column;gap:10px;flex-shrink:0}
+.w-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.w-stat{background:linear-gradient(180deg,#fef9c3,#fde68a);border:1.5px solid #5c4033;border-radius:12px;padding:8px 10px}
+.w-stat b{font-size:14px;color:#3e2723;font-weight:900;display:block}
+.w-stat span{font-size:8px;opacity:.7;text-transform:uppercase;color:#5c4033;font-weight:800;margin-top:3px;display:block;letter-spacing:.5px}
 .w-stat.highlight{background:linear-gradient(180deg,#d1fae5,#a7f3d0);border-color:#065f46}
-.w-main{flex:1;width:100%;max-width:480px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;margin-top:12px}
-.w-board-wrap{width:100%;background:linear-gradient(180deg,#5c4033,#3e2723);padding:10px;border-radius:18px;box-shadow:0 12px 32px rgba(0,0,0,.4);border:2px solid #4a2c17;aspect-ratio:1}
+.w-layout{flex:1;width:100%;max-width:820px;display:flex;gap:16px;justify-content:center;align-items:flex-start;margin-top:14px;min-height:0}
+.w-board-wrap{flex:0 0 480px;width:480px;background:linear-gradient(180deg,#5c4033,#3e2723);padding:10px;border-radius:18px;box-shadow:0 12px 32px rgba(0,0,0,.4);border:2px solid #4a2c17;aspect-ratio:1;box-sizing:border-box}
 .w-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%;height:100%}
 .w-cell{width:100%;aspect-ratio:1;background:rgba(62,39,35,.6);border-radius:8px}
 .w-tiles{position:relative;width:100%;height:100%;margin-top:-100%;pointer-events:none}
 .w-tile{position:absolute;border-radius:8px;display:grid;place-items:center;font-family:JetBrains Mono;font-weight:800;font-size:28px;transition:all.15s cubic-bezier(.34,1.56,.64,1);box-shadow:0 4px 12px rgba(0,0,0,.25);animation:pop.25s}
 @keyframes pop{0%{transform:scale(.2)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
 .t-2{background:linear-gradient(180deg,#fff8e7,#f5deb3);color:#3e2723}.t-4{background:linear-gradient(180deg,#f5deb3,#deb887);color:#3e2723}.t-8{background:linear-gradient(180deg,#deb887,#d2b48c);color:#3e2723}.t-16{background:linear-gradient(180deg,#d2b48c,#bc9a6a);color:#fff}.t-32{background:linear-gradient(180deg,#bc9a6a,#a67b5b);color:#fff}.t-64{background:linear-gradient(180deg,#a67b5b,#8b5a2b);color:#fff}.t-128{background:linear-gradient(180deg,#cd853f,#a0522d);color:#fff;font-size:24px}.t-256{background:linear-gradient(180deg,#a0522d,#8b4513);color:#fff;font-size:24px}.t-512{background:linear-gradient(180deg,#8b4513,#654321);color:#fff;font-size:22px}.t-1024{background:linear-gradient(180deg,#654321,#3e2723);color:#f5deb3;font-size:20px}.t-2048{background:linear-gradient(135deg,#ffd700,#ffb700 50%,#ff8c00);color:#3e2723;font-size:20px;box-shadow:0 0 24px rgba(255,215,0,.6);border:2px solid #fff}
-.w-progress-wrap{width:100%;background:rgba(245,222,179,.85);border:1.5px solid #5c4033;border-radius:12px;padding:8px 10px;box-sizing:border-box}
-.w-progress{height:8px;background:rgba(92,64,51,.2);border-radius:4px;overflow:hidden;border:1px solid rgba(92,64,51,.2);margin-top:6px}.w-progress-bar{height:100%;background:linear-gradient(90deg,#8b5a2b,#3e2723);transition:width.3s ease;width:0%}
-@media(min-width:600px){.w-stats{grid-template-columns:repeat(4,1fr)}.w-stat b{font-size:16px}}
+.w-side{flex:1;min-width:220px;max-width:300px;display:flex;flex-direction:column;gap:12px;position:sticky;top:12px}
+.w-progress-wrap{width:100%;background:rgba(245,222,179,.88);border:1.5px solid #5c4033;border-radius:12px;padding:10px;box-sizing:border-box}
+.w-progress{height:10px;background:rgba(92,64,51,.2);border-radius:5px;overflow:hidden;border:1px solid rgba(92,64,51,.2);margin-top:8px}.w-progress-bar{height:100%;background:linear-gradient(90deg,#8b5a2b,#3e2723);transition:width.3s ease;width:0%}
+.w-hint{font-size:10px;opacity:.7;line-height:1.4;background:rgba(245,222,179,.6);border:1px dashed #5c4033;border-radius:10px;padding:8px 10px}
+
+/* MOBILE: progreso abajo */
+@media(max-width:820px){
+ .w2048{overflow:auto;justify-content:flex-start}
+ .w-layout{flex-direction:column;align-items:center;max-width:480px}
+ .w-board-wrap{flex:0 0 auto;width:100%;max-width:480px}
+ .w-side{max-width:480px;width:100%;min-width:0;position:static}
+ .w-stats{grid-template-columns:1fr 1fr}
+}
+@media(max-width:400px){.w-board-wrap{padding:8px}.w-grid{gap:6px}.w-tile{font-size:22px} }
 </style>
 <div class="w2048" id="wRoot">
   <div class="w-header">
@@ -34,14 +45,18 @@ export function init(container, args){
       <div class="w-stat"><b id="wCount">0</b><span>MERGES</span></div>
     </div>
   </div>
-  <div class="w-main">
+  <div class="w-layout">
     <div class="w-board-wrap">
       <div class="w-grid" id="wGrid"></div>
       <div class="w-tiles" id="wTiles"></div>
     </div>
-    <div class="w-progress-wrap">
-      <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:900;letter-spacing:.2px"><span>PROGRESO AD (20 merges = 0,001 + X2)</span><span id="wProgText">0/20</span></div>
-      <div class="w-progress"><div class="w-progress-bar" id="wProgBar"></div></div>
+    <div class="w-side">
+      <div class="w-progress-wrap">
+        <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:900"><span>PROGRESO AD</span><span id="wProgText">0/20</span></div>
+        <div style="font-size:9px;opacity:.7;margin-top:2px">20 merges = 0,001 + X2 AD</div>
+        <div class="w-progress"><div class="w-progress-bar" id="wProgBar"></div></div>
+      </div>
+      <div class="w-hint">🎮 Usa <b>WASD / Flechas</b> en PC<br>👆 <b>Swipe</b> en celular para mover</div>
     </div>
   </div>
   <div id="wUI"></div>
@@ -62,7 +77,7 @@ export function init(container, args){
     }catch(e){ isClaiming=false; return {ok:false}; }
   }
 
-  function openAd(type){ if(window.vrAd!==0 && window.vrAd!==undefined) return; _rewardPending=type; window.vrAdType=type; window.vrAd=1; ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.6);display:grid;place-items:center;z-index:20;color:white">Cargando ad para ${fmt(BASE_REWARD)} WASA... vrAd=${window.vrAd}</div>`; }
+  function openAd(type){ if(window.vrAd!==0 && window.vrAd!==undefined) return; _rewardPending=type; window.vrAdType=type; window.vrAd=1; ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.6);display:grid;place-items:center;z-index:20;color:white">Cargando ad para ${fmt(BASE_REWARD)} WASA...</div>`; }
   function initGrid(){ grid=Array(4).fill(0).map(()=>Array(4).fill(0)); const gEl=root.querySelector('#wGrid'); gEl.innerHTML=''; for(let i=0;i<16;i++){ const c=document.createElement('div'); c.className='w-cell'; gEl.appendChild(c);} addRandom(); addRandom(); score=0; mergeCount=0; totalReward=0; startSession(); render(); ui.innerHTML=''; }
   function addRandom(){ const empties=[]; for(let r=0;r<4;r++) for(let c=0;c<4;c++) if(grid[r][c]===0) empties.push([r,c]); if(empties.length===0) return; const [r,c]=empties[Math.floor(Math.random()*empties.length)]; grid[r][c]=Math.random()<0.9?2:4; }
   function render(){
@@ -74,13 +89,13 @@ export function init(container, args){
     if(score>best){ best=score; localStorage.setItem('w2048_best',best); }
   }
   function showRewardModal(){
-    ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(62,39,35,.88);backdrop-filter:blur(16px);display:grid;place-items:center;z-index:20"><div style="background:linear-gradient(180deg,#fef9c3,#fde68a);border:2px solid #5c4033;border-radius:20px;padding:24px;text-align:center;width:min(360px,92vw)"><div style="font-size:32px">🪵🎉</div><div style="font-weight:900;margin:8px 0">¡20 COMBINACIONES!</div><div style="display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);border-radius:12px;padding:10px;margin:12px 0;font-weight:800;color:#14532d">💰 +${fmt(BASE_REWARD)} $WASA ganados</div><div style="font-size:10px;opacity:.7;margin-bottom:12px">¿Querés duplicar viendo un anuncio?</div><button style="width:100%;padding:12px;border-radius:12px;font-weight:800;font-size:11px;border:2px solid #5c4033;background:linear-gradient(135deg,#fbbf24,#f59e0b)" id="btnDouble">📺 X2 VIENDO AD (+${fmt(BASE_REWARD)} = ${fmt(BASE_REWARD*2)} WASA)</button><button style="width:100%;padding:12px;border-radius:12px;font-weight:800;font-size:11px;border:2px solid #5c4033;background:#3e2723;color:#f5deb3;margin-top:8px" id="btnClaim">COBRAR ${fmt(BASE_REWARD)} WASA</button></div></div>`;
+    ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(62,39,35,.88);backdrop-filter:blur(16px);display:grid;place-items:center;z-index:20"><div style="background:linear-gradient(180deg,#fef9c3,#fde68a);border:2px solid #5c4033;border-radius:20px;padding:24px;text-align:center;width:min(360px,92vw)"><div style="font-size:32px">🪵🎉</div><div style="font-weight:900;margin:8px 0">¡20 COMBINACIONES!</div><div style="display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);border-radius:12px;padding:10px;margin:12px 0;font-weight:800;color:#14532d">💰 +${fmt(BASE_REWARD)} $WASA</div><button style="width:100%;padding:12px;border-radius:12px;font-weight:800;font-size:11px;border:2px solid #5c4033;background:linear-gradient(135deg,#fbbf24,#f59e0b)" id="btnDouble">📺 X2 VIENDO AD = ${fmt(BASE_REWARD*2)} WASA</button><button style="width:100%;padding:12px;border-radius:12px;font-weight:800;font-size:11px;border:2px solid #5c4033;background:#3e2723;color:#f5deb3;margin-top:8px" id="btnClaim">COBRAR ${fmt(BASE_REWARD)} WASA</button></div></div>`;
     ui.querySelector('#btnDouble').onclick=()=> openAd('double');
     ui.querySelector('#btnClaim').onclick=async()=>{
-      const btn=ui.querySelector('#btnClaim'); if(btn){ btn.textContent='⏳ VALIDANDO SERVER...'; btn.disabled=true; }
+      const btn=ui.querySelector('#btnClaim'); if(btn){ btn.textContent='⏳ VALIDANDO...'; btn.disabled=true; }
       const res=await claimSession(false,false);
-      if(res.ok){ totalReward+=BASE_REWARD; mergeCount=0; startSession(); render(); ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.75);display:grid;place-items:center;z-index:20"><div style="background:#fef9c3;border:2px solid #22c55e;border-radius:12px;padding:12px;text-align:center;width:min(320px,92vw)"><div style="color:#22c55e;font-weight:900">¡+${fmt(BASE_REWARD)} WASA acreditado!</div><div style="font-size:10px">Total: ${fmt(totalReward)} WASA</div><button id="ok" style="margin-top:8px;width:100%;background:#22c55e;color:black;font-weight:900;padding:10px;border-radius:999px">OK</button></div></div>`; ui.querySelector('#ok').onclick=()=>{ ui.innerHTML=''; render(); }; }
-      else{ if(btn){ btn.textContent='REINTENTAR COBRO'; btn.disabled=false; } }
+      if(res.ok){ totalReward+=BASE_REWARD; mergeCount=0; startSession(); render(); ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.75);display:grid;place-items:center;z-index:20"><div style="background:#fef9c3;border:2px solid #22c55e;border-radius:12px;padding:12px;text-align:center;width:min(320px,92vw)"><div style="color:#22c55e;font-weight:900">¡+${fmt(BASE_REWARD)} WASA!</div><button id="ok" style="margin-top:8px;width:100%;background:#22c55e;color:black;font-weight:900;padding:10px;border-radius:999px">OK</button></div></div>`; ui.querySelector('#ok').onclick=()=>{ ui.innerHTML=''; render(); }; }
+      else{ if(btn){ btn.textContent='REINTENTAR'; btn.disabled=false; } }
     };
   }
   function move(dir){
@@ -97,16 +112,23 @@ export function init(container, args){
       const type=_rewardPending; _rewardPending=null; window.vrAd=0; window.vrAdType=null; window._gm_shown=false;
       (async()=>{
         if(type==='double'){
-          ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.75);display:grid;place-items:center;z-index:20"><div style="background:#fef9c3;border:2px solid #5c4033;border-radius:12px;padding:12px;text-align:center"><div style="font-weight:900">Validando X2 server...</div><div style="font-size:11px">${fmt(BASE_REWARD)} → ${fmt(BASE_REWARD*2)} WASA</div></div></div>`;
+          ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.75);display:grid;place-items:center;z-index:20"><div style="background:#fef9c3;border:2px solid #5c4033;border-radius:12px;padding:12px;text-align:center"><div style="font-weight:900">Validando X2...</div></div></div>`;
           const res=await claimSession(true,true);
-          if(res.ok){ totalReward+=BASE_REWARD*2; mergeCount=0; startSession(); render(); ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.75);display:grid;place-items:center;z-index:20"><div style="background:#fef9c3;border:2px solid #22c55e;border-radius:12px;padding:12px;text-align:center;width:min(320px,92vw)"><div style="color:#22c55e;font-weight:900">¡X2 ACREDITADO! +${fmt(BASE_REWARD*2)} WASA</div><div style="font-size:10px">Total: ${fmt(totalReward)} WASA</div><button id="ok2" style="margin-top:8px;width:100%;background:#22c55e;color:black;font-weight:900;padding:10px;border-radius:999px">OK</button></div></div>`; ui.querySelector('#ok2').onclick=()=>{ ui.innerHTML=''; render(); }; }
+          if(res.ok){ totalReward+=BASE_REWARD*2; mergeCount=0; startSession(); render(); ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.75);display:grid;place-items:center;z-index:20"><div style="background:#fef9c3;border:2px solid #22c55e;border-radius:12px;padding:12px;text-align:center;width:min(320px,92vw)"><div style="color:#22c55e;font-weight:900">¡X2 +${fmt(BASE_REWARD*2)} WASA!</div><button id="ok2" style="margin-top:8px;width:100%;background:#22c55e;color:black;font-weight:900;padding:10px;border-radius:999px">OK</button></div></div>`; ui.querySelector('#ok2').onclick=()=>{ ui.innerHTML=''; render(); }; }
           else{ ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.75);display:grid;place-items:center;z-index:20"><div style="background:#fef9c3;border:2px solid #ef4444;border-radius:12px;padding:12px;text-align:center"><div style="color:#ef4444">Error X2: ${res.error||'server'}</div><button id="retry" style="margin-top:8px;width:100%;background:white;color:black;padding:8px;border-radius:999px">Reintentar</button></div></div>`; ui.querySelector('#retry').onclick=()=>{ ui.innerHTML=''; showRewardModal(); }; }
         }
       })();
     } },150);
 
-  const keyHandler=e=>{ if(e.key==='ArrowUp'||e.key==='w'||e.key==='W') move('up'); if(e.key==='ArrowDown'||e.key==='s'||e.key==='S') move('down'); if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A') move('left'); if(e.key==='ArrowRight'||e.key==='d'||e.key==='D') move('right'); };
-  window.addEventListener('keydown', keyHandler);
+  const keyHandler=e=>{
+    const keys=['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'];
+    if(keys.includes(e.key)){ e.preventDefault(); }
+    if(e.key==='ArrowUp'||e.key==='w'||e.key==='W') move('up');
+    if(e.key==='ArrowDown'||e.key==='s'||e.key==='S') move('down');
+    if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A') move('left');
+    if(e.key==='ArrowRight'||e.key==='d'||e.key==='D') move('right');
+  };
+  window.addEventListener('keydown', keyHandler, {passive:false});
   let sx=0,sy=0;
   root.addEventListener('touchstart',e=>{ sx=e.touches[0].clientX; sy=e.touches[0].clientY; },{passive:true});
   root.addEventListener('touchend',e=>{ if(!sx) return; const dx=e.changedTouches[0].clientX-sx; const dy=e.changedTouches[0].clientY-sy; if(Math.abs(dx)>Math.abs(dy)){ if(Math.abs(dx)>30) move(dx>0?'right':'left'); } else{ if(Math.abs(dy)>30) move(dy>0?'down':'up'); } sx=0; sy=0; },{passive:true});
