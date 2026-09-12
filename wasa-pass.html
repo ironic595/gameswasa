@@ -41,24 +41,28 @@ header{width:100%;height:52px;background:rgba(5,8,20,0.75);backdrop-filter:blur(
   bottom:10%; /* Y: mover arriba/abajo - este es donde iba PEPERTRULS */
   color:#c67a2e;
   font-family:Fixedsys;
-  font-weight:400;
-  font-size:24px;
-  text-transform:uppercase;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  line-height: 0.85;
-
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-
-  /* ESTO es lo que faltaba: el borde grueso amarillo/marrón y el relieve */
-  -webkit-text-stroke-width: 1px;
-  -webkit-text-stroke-color: #d8a400;
-  paint-order: stroke fill;
-
-
+  font-size:23px;
+  font-weight: 200;
+  /* en el JS es W * 0.028, o sea 2.8% del ancho de la tarjeta */
+  font-size: 2.8vw; 
+  letter-spacing: 4px;
+  text-align: center;
   
+  /* color principal del fillText */
+  color: #d99152;
+
+  /* las 6 sombras del array shadows[] - en este orden */
+  text-shadow:
+     3px 3px 0 #091721,
+     2px 2px 0 #210d02,
+     1px 1px 0 #5e2a09,
+    -1px 1px 0 #944d1a,
+     1px -1px 0 #944d1a,
+    -1px -1px 0 #ffcc99;
+
+  /* esto es el ctx.imageSmoothingEnabled = false */
+  image-rendering: pixelated;
+  -webkit-font-smoothing: none;
 }
 .btn{height:40px;border-radius:10px;border:1px solid rgba(103,232,249,0.15);background:rgba(255,255,255,0.03);color:white;width:100%;cursor:pointer;font-weight:700}
 .btn-gold{background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#000;border:0;font-weight:900}
