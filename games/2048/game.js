@@ -1,4 +1,4 @@
-// games/2048-madera/game.js - v6 SIDEBAR PROGRESS DESKTOP / BOTTOM MOBILE - no scroll
+// games/2048-madera/game.js - v7 - 40 MERGES = 0,001 base + X2 0,002
 export function init(container, args){
   const getCoins = args.getCoins||(()=>parseFloat(localStorage.getItem('wasa_coins')||'0'));
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javimsites.workers.dev/';
@@ -25,16 +25,13 @@ export function init(container, args){
 .w-progress-wrap{width:100%;background:rgba(245,222,179,.88);border:1.5px solid #5c4033;border-radius:12px;padding:10px;box-sizing:border-box}
 .w-progress{height:10px;background:rgba(92,64,51,.2);border-radius:5px;overflow:hidden;border:1px solid rgba(92,64,51,.2);margin-top:8px}.w-progress-bar{height:100%;background:linear-gradient(90deg,#8b5a2b,#3e2723);transition:width.3s ease;width:0%}
 .w-hint{font-size:10px;opacity:.7;line-height:1.4;background:rgba(245,222,179,.6);border:1px dashed #5c4033;border-radius:10px;padding:8px 10px}
-
-/* MOBILE: progreso abajo */
 @media(max-width:820px){
- .w2048{overflow:auto;justify-content:flex-start}
- .w-layout{flex-direction:column;align-items:center;max-width:480px}
- .w-board-wrap{flex:0 0 auto;width:100%;max-width:480px}
- .w-side{max-width:480px;width:100%;min-width:0;position:static}
- .w-stats{grid-template-columns:1fr 1fr}
+.w2048{overflow:auto}
+.w-layout{flex-direction:column;align-items:center;max-width:480px}
+.w-board-wrap{flex:0 0 auto;width:100%;max-width:480px}
+.w-side{max-width:480px;width:100%;min-width:0;position:static}
+.w-stats{grid-template-columns:1fr 1fr}
 }
-@media(max-width:400px){.w-board-wrap{padding:8px}.w-grid{gap:6px}.w-tile{font-size:22px} }
 </style>
 <div class="w2048" id="wRoot">
   <div class="w-header">
@@ -46,17 +43,14 @@ export function init(container, args){
     </div>
   </div>
   <div class="w-layout">
-    <div class="w-board-wrap">
-      <div class="w-grid" id="wGrid"></div>
-      <div class="w-tiles" id="wTiles"></div>
-    </div>
+    <div class="w-board-wrap"><div class="w-grid" id="wGrid"></div><div class="w-tiles" id="wTiles"></div></div>
     <div class="w-side">
       <div class="w-progress-wrap">
-        <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:900"><span>PROGRESO AD</span><span id="wProgText">0/20</span></div>
-        <div style="font-size:9px;opacity:.7;margin-top:2px">20 merges = 0,001 + X2 AD</div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:900"><span>PROGRESO AD</span><span id="wProgText">0/40</span></div>
+        <div style="font-size:9px;opacity:.7;margin-top:2px">40 merges = 0,001 + X2 AD</div>
         <div class="w-progress"><div class="w-progress-bar" id="wProgBar"></div></div>
       </div>
-      <div class="w-hint">🎮 Usa <b>WASD / Flechas</b> en PC<br>👆 <b>Swipe</b> en celular para mover</div>
+      <div class="w-hint">🎮 Usa <b>WASD / Flechas</b> en PC<br>👆 <b>Swipe</b> en celular</div>
     </div>
   </div>
   <div id="wUI"></div>
@@ -64,7 +58,8 @@ export function init(container, args){
 
   const root=container.querySelector('#wRoot'); const ui=root.querySelector('#wUI');
   let best=parseInt(localStorage.getItem('w2048_best')||'0'); let score=0, grid=[], totalReward=0, mergeCount=0;
-  const MERGES_FOR_AD=20; const BASE_REWARD=0.001;
+  const MERGES_FOR_AD=40; // <-- CAMBIO A 40
+  const BASE_REWARD=0.001; // se mantiene
   let currentSessionId=null, isClaiming=false, _rewardPending=null;
 
   async function startSession(){ currentSessionId=null; try{ const email=localStorage.getItem('wasa_email'); const wallet=localStorage.getItem('wasa_wallet'); const device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'start_game_session', email, wallet, device_id, game_slug:'2048-madera', level:MERGES_FOR_AD})}); const j=await r.json(); if(j.ok){ currentSessionId=j.session_id; return j.session_id; } }catch(e){} return null; }
@@ -72,7 +67,7 @@ export function init(container, args){
     if(isClaiming) return {ok:false}; if(!currentSessionId) await startSession();
     if(!currentSessionId) return {ok:false, error:'sin sesion'}; isClaiming=true;
     try{ const email=localStorage.getItem('wasa_email'); const wallet=localStorage.getItem('wasa_wallet'); const device_id=getDeviceId();
-      const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward', session_id:currentSessionId, email, wallet, device_id, game_slug:'2048-madera', level:MERGES_FOR_AD, ad_watched:adWatched, double_reward:isDouble, time_taken:20})});
+      const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward', session_id:currentSessionId, email, wallet, device_id, game_slug:'2048-madera', level:MERGES_FOR_AD, ad_watched:adWatched, double_reward:isDouble, time_taken:40})});
       const j=await r.json(); if(j.ok){ const bal=j.wasa_balance??j.guest_balance??0; if(j.is_guest){ localStorage.setItem('wasa_coins_guest',bal); localStorage.setItem('wasa_coins','0'); } else{ localStorage.setItem('wasa_coins',bal);} if(typeof window.setCoinsUI==='function') window.setCoinsUI(bal); currentSessionId=null; isClaiming=false; return j; } else{ isClaiming=false; return {ok:false, error:j.error}; }
     }catch(e){ isClaiming=false; return {ok:false}; }
   }
@@ -89,7 +84,7 @@ export function init(container, args){
     if(score>best){ best=score; localStorage.setItem('w2048_best',best); }
   }
   function showRewardModal(){
-    ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(62,39,35,.88);backdrop-filter:blur(16px);display:grid;place-items:center;z-index:20"><div style="background:linear-gradient(180deg,#fef9c3,#fde68a);border:2px solid #5c4033;border-radius:20px;padding:24px;text-align:center;width:min(360px,92vw)"><div style="font-size:32px">🪵🎉</div><div style="font-weight:900;margin:8px 0">¡20 COMBINACIONES!</div><div style="display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);border-radius:12px;padding:10px;margin:12px 0;font-weight:800;color:#14532d">💰 +${fmt(BASE_REWARD)} $WASA</div><button style="width:100%;padding:12px;border-radius:12px;font-weight:800;font-size:11px;border:2px solid #5c4033;background:linear-gradient(135deg,#fbbf24,#f59e0b)" id="btnDouble">📺 X2 VIENDO AD = ${fmt(BASE_REWARD*2)} WASA</button><button style="width:100%;padding:12px;border-radius:12px;font-weight:800;font-size:11px;border:2px solid #5c4033;background:#3e2723;color:#f5deb3;margin-top:8px" id="btnClaim">COBRAR ${fmt(BASE_REWARD)} WASA</button></div></div>`;
+    ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(62,39,35,.88);backdrop-filter:blur(16px);display:grid;place-items:center;z-index:20"><div style="background:linear-gradient(180deg,#fef9c3,#fde68a);border:2px solid #5c4033;border-radius:20px;padding:24px;text-align:center;width:min(360px,92vw)"><div style="font-size:32px">🪵🎉</div><div style="font-weight:900;margin:8px 0">¡40 COMBINACIONES!</div><div style="display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);border-radius:12px;padding:10px;margin:12px 0;font-weight:800;color:#14532d">💰 +${fmt(BASE_REWARD)} $WASA ganados</div><div style="font-size:10px;opacity:.7;margin-bottom:12px">¿Duplicar viendo anuncio?</div><button style="width:100%;padding:12px;border-radius:12px;font-weight:800;font-size:11px;border:2px solid #5c4033;background:linear-gradient(135deg,#fbbf24,#f59e0b)" id="btnDouble">📺 X2 = ${fmt(BASE_REWARD*2)} WASA</button><button style="width:100%;padding:12px;border-radius:12px;font-weight:800;font-size:11px;border:2px solid #5c4033;background:#3e2723;color:#f5deb3;margin-top:8px" id="btnClaim">COBRAR ${fmt(BASE_REWARD)} WASA</button></div></div>`;
     ui.querySelector('#btnDouble').onclick=()=> openAd('double');
     ui.querySelector('#btnClaim').onclick=async()=>{
       const btn=ui.querySelector('#btnClaim'); if(btn){ btn.textContent='⏳ VALIDANDO...'; btn.disabled=true; }
@@ -120,17 +115,9 @@ export function init(container, args){
       })();
     } },150);
 
-  const keyHandler=e=>{
-    const keys=['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'];
-    if(keys.includes(e.key)){ e.preventDefault(); }
-    if(e.key==='ArrowUp'||e.key==='w'||e.key==='W') move('up');
-    if(e.key==='ArrowDown'||e.key==='s'||e.key==='S') move('down');
-    if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A') move('left');
-    if(e.key==='ArrowRight'||e.key==='d'||e.key==='D') move('right');
-  };
+  const keyHandler=e=>{ const keys=['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D']; if(keys.includes(e.key)) e.preventDefault(); if(e.key==='ArrowUp'||e.key==='w'||e.key==='W') move('up'); if(e.key==='ArrowDown'||e.key==='s'||e.key==='S') move('down'); if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A') move('left'); if(e.key==='ArrowRight'||e.key==='d'||e.key==='D') move('right'); };
   window.addEventListener('keydown', keyHandler, {passive:false});
-  let sx=0,sy=0;
-  root.addEventListener('touchstart',e=>{ sx=e.touches[0].clientX; sy=e.touches[0].clientY; },{passive:true});
+  let sx=0,sy=0; root.addEventListener('touchstart',e=>{ sx=e.touches[0].clientX; sy=e.touches[0].clientY; },{passive:true});
   root.addEventListener('touchend',e=>{ if(!sx) return; const dx=e.changedTouches[0].clientX-sx; const dy=e.changedTouches[0].clientY-sy; if(Math.abs(dx)>Math.abs(dy)){ if(Math.abs(dx)>30) move(dx>0?'right':'left'); } else{ if(Math.abs(dy)>30) move(dy>0?'down':'up'); } sx=0; sy=0; },{passive:true});
   initGrid();
   container._cleanup=()=>{ clearInterval(watcher); window.removeEventListener('keydown', keyHandler); window.vrAd=0; };
