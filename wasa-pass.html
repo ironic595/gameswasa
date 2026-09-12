@@ -45,38 +45,32 @@ header{width:100%;height:52px;background:rgba(5,8,20,0.75);backdrop-filter:blur(
 
   letter-spacing: 5px;
     text-transform: uppercase;
-    color: #d4a373; /* Color base tostado/dorado */
+    color: #f5d76e; /* Color dorado base */
     
-    /* Aquí está la magia del relieve */
+    /* La clave: Múltiples sombras para crear el bisel metálico */
     text-shadow: 
-      /* 1. Sombra superior (brillo del bisel) */
-      1px 1px 0px #fceabb,
+      /* Brillo superior (bisel superior) */
+      0px -2px 0px #fff8d6,
       
-      /* 2. Sombras medias (crean el cuerpo del relieve) */
-      2px 2px 0px #b07d4b,
-      3px 3px 0px #9a6b3e,
-      4px 4px 0px #855a33,
-      5px 5px 0px #704a29,
+      /* Sombra interior (bisel inferior) */
+      0px 3px 0px #8a6d1f,
       
-      /* 3. Sombra inferior (profundidad) */
-      6px 6px 0px #5a3a20,
+      /* Contorno oscuro exterior */
+      2px 2px 0px #3a2e0a,
+      -2px -2px 0px #3a2e0a,
+      2px -2px 0px #3a2e0a,
+      -2px 2px 0px #3a2e0a,
       
-      /* 4. Sombra difusa final (proyección) */
-      8px 8px 10px rgba(0,0,0,0.5);
+      /* Sombra de proyección */
+      4px 4px 8px rgba(0,0,0,0.8);
       
-    /* Opcional: Un ligero gradiente en el texto para simular metal */
-    background: linear-gradient(to bottom, #fceabb 0%, #b07d4b 50%, #5a3a20 100%);
+    /* Opcional: un ligero gradiente en el texto para dar volumen metálico */
+    background: linear-gradient(to bottom, #fff8d6 0%, #f5d76e 50%, #b8860b 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     
-    /* Nota: Si usas background-clip:text, las text-shadow se ven detrás del texto transparente. 
-       Para que funcione el relieve con gradiente, a veces es mejor quitar el background-clip 
-       y usar solo el color sólido + text-shadow, o usar capas. 
-       
-       Aquí te dejo la versión más compatible (sin gradiente en el texto, solo color y sombras): */
-    color: #d4a373;
-    background: none;
-    -webkit-text-fill-color: initial;}
+    /* Forzamos el color si el gradiente no funciona en algún navegador */
+    color: #f5d76e;}
   
 .btn{height:40px;border-radius:10px;border:1px solid rgba(103,232,249,0.15);background:rgba(255,255,255,0.03);color:white;width:100%;cursor:pointer;font-weight:700}
 .btn-gold{background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#000;border:0;font-weight:900}
