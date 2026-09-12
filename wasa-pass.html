@@ -2,44 +2,108 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WASA PASS X5 - games.wasa.chat</title>
+<link rel="icon" type="image/png" href="img/founderswasa.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@800;900&display=swap" rel="stylesheet">
 <style>
-@font-face{font-family:'Fixedsys';src:url('fnts/Fixedsys.ttf') format('truetype');}
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:Inter,system-ui;background:radial-gradient(ellipse at 50% 0%, rgba(79,70,229,0.15) 0%, transparent 70%), linear-gradient(180deg,#2046a3 0%,#332891 40%,#315bd5 100%);color:#e2e8f0;min-height:100vh}
-header{width:100%;height:52px;background:rgba(5,8,20,0.75);backdrop-filter:blur(12px);border-bottom:1px solid rgba(103,232,249,0.15);display:flex;align-items:center;padding:0 20px;position:sticky;top:0;z-index:10}
-.page{width:80%;margin:0 auto}
-@media(max-width:768px){.page{width:95%}}
-.hero{padding:20px 0;min-height:240px;display:flex;align-items:center;border-bottom:1px solid rgba(103,232,249,0.10)}
-.hero-inner{display:flex;justify-content:space-between;align-items:center;gap:24px;width:100%}
-.hero-right{width:280px}
-.hero-right img{width:80%;object-fit:contain;background:transparent;filter:drop-shadow(0 20px 40px rgba(0,0,0,0.5))}
-@media(max-width:768px){.hero-right{width:150px}.hero{padding:12px 0;min-height:180px}}
-@keyframes float{0%{transform:translateY(0)}50%{transform:translateY(-12px)}100%{transform:translateY(0)}}
-.float{animation:float 4.2s ease-in-out infinite}
-.layout{display:grid;grid-template-columns:1fr 380px;gap:24px;padding:20px 0 60px;align-items:start}
-@media(max-width:900px){.layout{grid-template-columns:1fr}}
-.card{border-radius:18px;border:1px solid rgba(103,232,249,0.15);background:rgba(15,23,42,0.75);overflow:hidden}
-.card-h{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;align-items:center}
-.card-b{padding:18px;display:flex;flex-direction:column;gap:14px}
-.input{width:100%;height:44px;border-radius:10px;background:#0f172a;border:1px solid rgba(103,232,249,0.20);color:white;padding:0 14px;font-weight:900;font-size:16px;letter-spacing:0.06em;outline:none;transition:.2s}
-.input-error{border-color:#ef4444 !important;box-shadow:0 0 0 3px rgba(239,68,68,.25) !important;background:#1a0f14 !important}
-.input-ok{border-color:#22c55e !important;background:rgba(34,197,94,.08) !important}
-.error-msg{font-size:10px;color:#fca5a5;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);padding:6px 10px;border-radius:8px;display:none}
-.error-msg.show{display:block}
-.info-msg{font-size:10px;color:#86efac;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);padding:8px 12px;border-radius:10px}
-.preview{position:relative;border-radius:12px;overflow:hidden;background:#0b1020;border:1px solid rgba(255,255,255,0.10);aspect-ratio:1/1}
-.preview img{width:100%;height:100%;object-fit:contain}
-.apodo{position:absolute;left:26%;bottom:10%;font-family:Fixedsys;font-size:19px;font-weight:200;letter-spacing:4px;text-transform:uppercase;border-style:outset;color:#d99152;text-shadow:1px 1px 0 #091721,2px 2px 0 #210d02,1px 1px 0 #5e2a09,-1px 1px 0 #944d1a,1px -1px 0 #944d1a,-1px -1px 0 #ffcc99;}
-.btn{height:44px;border-radius:10px;border:1px solid rgba(103,232,249,0.15);background:rgba(255,255,255,0.03);color:white;width:100%;cursor:pointer;font-weight:700;transition:.2s}
-.btn-gold{background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#000;border:0;font-weight:900}
-.btn:disabled{opacity:.4;cursor:not-allowed}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:radial-gradient(ellipse at 50% 0%, rgba(79, 70, 229, 0.15) 0%, transparent 70%), radial-gradient(ellipse at 100% 80%, rgba(245, 158, 11, 0.10) 0%, transparent 60%), linear-gradient(180deg, #2046a3 0%, #332891 40%, #315bd5 100%);color:#e2e8f0;font-family:Inter,system-ui,sans-serif;font-size:13px;line-height:1.5;overflow-x:hidden;min-height:100vh}
+  button{cursor:pointer;border:0;background:0;color:inherit;font:inherit}
+  /* HEADER IGUAL QUE INDEX - SIN SEARCH */
+  header{position:sticky;top:0;z-index:10;background:rgba(5,8,20,0.75);backdrop-filter:blur(12px);border-bottom:1px solid rgba(56,189,248,0.15);display:flex;align-items:center;gap:16px;padding:12px 20px;height:52px}
+  #headerCoins{margin-left:auto;background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);color:#000;font-weight:800;border:none;box-shadow:0 0 12px rgba(251,191,36,0.3);cursor:pointer;display:flex;align-items:center;justify-content:center;height:32px;padding:0 12px;border-radius:20px;font-size:11px;order:2}
+  .right{display:flex;align-items:center;gap:12px;position:relative;margin-left:0;order:3}
+  .wallet-group{display:flex;align-items:center;gap:10px}
+  .wallet{border:1px solid rgba(56,189,248,0.3);border-radius:20px;padding:5px 12px;font-size:11px;background:linear-gradient(135deg, rgba(56,189,248,0.1), rgba(168,85,247,0.1));white-space:nowrap;order:1}
+  .wallet.connected{background:linear-gradient(135deg,#38bdf8 0%,#818cf8 100%);color:#0f172a;border-color:transparent;font-weight:600}
+  .user-btn{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:800;cursor:pointer;transition:.2s;flex-shrink:0;order:2}
+  .user-btn.disconnected{background:#1e293b;border:1px solid rgba(255,255,255,0.1);color:#64748b;}
+  .user-btn.connected{background:linear-gradient(135deg,#fbbf24,#f59e0b);border:2px solid rgba(251,191,36,0.6);color:#000;box-shadow:0 0 14px rgba(251,191,36,0.4);}
+  .user-dropdown{position:absolute;top:48px;right:0;width:180px;background:#0f172a;border:1px solid rgba(56,189,248,0.25);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.5);display:none;flex-direction:column;overflow:hidden;z-index:90}
+  .user-dropdown.open{display:flex}
+  .user-dropdown button{padding:12px 14px;text-align:left;font-size:12px;color:#e2e8f0;transition:.15s}
+  .user-dropdown button:hover{background:rgba(56,189,248,0.12)}
+  .user-dropdown button.danger{color:#f87171}
+  .logo{display:block;width:145px;height:32px;flex-shrink:0;background-image:url('/img/wasagames.png');background-repeat:no-repeat;background-size:contain;background-position:left center;}
+  @media(max-width:700px){header{height:auto;padding:12px 16px;display:grid;grid-template-columns:1fr auto;grid-template-areas:"logo walletgroup" "coins coins";gap:14px;align-items:center} .logo{grid-area:logo} #headerCoins{grid-area:coins;justify-self:end;align-self:center;height:38px;display:flex} .right{grid-area:walletgroup;justify-self:end;display:flex;gap:8px;position:relative} #userDropdown{top:56px;right:0} }
+
+  /* WASA PASS LAYOUT */
+  .page{width:80%;margin:0 auto}
+  @media(max-width:768px){.page{width:95%}}
+  .hero{padding:24px 0;min-height:240px;display:flex;align-items:center;border-bottom:1px solid rgba(103,232,249,0.10)}
+  .hero-inner{display:flex;justify-content:space-between;align-items:center;gap:24px;width:100%}
+  .hero-right{width:280px}
+  .hero-right img{width:80%;object-fit:contain;background:transparent;filter:drop-shadow(0 20px 40px rgba(0,0,0,0.5))}
+  @media(max-width:768px){.hero-right{width:140px}.hero{padding:16px 0;min-height:180px}}
+  @keyframes float{0%{transform:translateY(0)}50%{transform:translateY(-12px)}100%{transform:translateY(0)}}
+  .float{animation:float 4.2s ease-in-out infinite}
+  .layout{display:grid;grid-template-columns:1fr 380px;gap:24px;padding:24px 0 60px;align-items:start}
+  @media(max-width:900px){.layout{grid-template-columns:1fr}}
+  .card{border-radius:18px;border:1px solid rgba(103,232,249,0.15);background:rgba(15,23,42,0.75);overflow:hidden;backdrop-filter:blur(8px)}
+  .card-h{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;align-items:center}
+  .card-b{padding:18px;display:flex;flex-direction:column;gap:14px}
+  .input{width:100%;height:44px;border-radius:10px;background:#0f172a;border:1px solid rgba(103,232,249,0.20);color:white;padding:0 14px;font-weight:900;font-size:16px;letter-spacing:0.06em;outline:none;transition:.2s}
+  .input-error{border-color:#ef4444 !important;box-shadow:0 0 0 3px rgba(239,68,68,.25) !important;background:#1a0f14 !important}
+  .input-ok{border-color:#22c55e !important;background:rgba(34,197,94,.08) !important}
+  .error-msg{font-size:10px;color:#fca5a5;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);padding:6px 10px;border-radius:8px;display:none}
+  .error-msg.show{display:block}
+  .info-msg{font-size:10px;color:#86efac;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);padding:8px 12px;border-radius:10px}
+  .preview{position:relative;border-radius:12px;overflow:hidden;background:#0b1020;border:1px solid rgba(255,255,255,0.10);aspect-ratio:1/1}
+  .preview img{width:100%;height:100%;object-fit:contain}
+  @font-face{font-family:'Fixedsys';src:url('fnts/Fixedsys.ttf') format('truetype');}
+  .apodo{position:absolute;left:26%;bottom:10%;font-family:Fixedsys;font-size:19px;font-weight:200;letter-spacing:4px;text-transform:uppercase;border-style:outset;color:#d99152;text-shadow:1px 1px 0 #091721,2px 2px 0 #210d02,1px 1px 0 #5e2a09,-1px 1px 0 #944d1a,1px -1px 0 #944d1a,-1px -1px 0 #ffcc99;}
+  .btn{height:44px;border-radius:10px;border:1px solid rgba(103,232,249,0.15);background:rgba(255,255,255,0.03);color:white;width:100%;cursor:pointer;font-weight:700;transition:.2s}
+  .btn-gold{background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#000;border:0;font-weight:900}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+
+  /* MODALES IGUAL QUE INDEX */
+  .wasa-overlay{position:fixed;inset:0;background:rgba(3,6,16,0.3);backdrop-filter:blur(4px);z-index:80;display:none;align-items:center;justify-content:center;padding:16px}
+  .wasa-overlay.open{display:flex}
+  .wasa-box{width:100%;max-width:420px;background:linear-gradient(180deg,#101a2e,#0b1329);border:1px solid rgba(56,189,248,0.25);border-radius:20px;padding:20px;box-shadow:0 24px 64px rgba(0,0,0,.6)}
+  .wasa-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+  .wasa-head b{font-size:14px;color:#f8fafc}
+  .wasa-close{width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:#0f172a;display:grid;place-items:center;cursor:pointer}
+  .wallet-opt{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid rgba(56,189,248,0.15);border-radius:14px;margin-bottom:10px;cursor:pointer;background:rgba(255,255,255,0.03)}
+  .wallet-opt:hover{background:rgba(56,189,248,0.12);border-color:#38bdf8}
+  .wallet-opt img{width:32px;height:32px;border-radius:8px;background:white}
+  .buy-opt{display:flex;justify-content:space-between;align-items:center;padding:16px;border:1px solid rgba(251,191,36,0.2);border-radius:14px;margin-bottom:10px;cursor:pointer;background:linear-gradient(135deg,rgba(251,191,36,0.08),rgba(245,158,11,0.05))}
+  .buy-opt:hover{border-color:#fbbf24}
+  .buy-opt b{font-size:15px;color:#fbbf24}
+  .input-wasa{width:100%;height:44px;border-radius:10px;border:1px solid rgba(56,189,248,0.2);background:#0f172a;color:white;padding:0 14px;margin-bottom:10px;outline:none}
+  .input-wasa:focus{border-color:#38bdf8}
+  .btn-wasa{width:100%;height:48px;border-radius:12px;border:0;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+  .btn-wasa-primary{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000}
+  .btn-wasa-secondary{background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.1)}
+  .status-box{font-size:11px;padding:8px 12px;border-radius:8px;margin-bottom:10px;display:none;word-break:break-all}
+  .status-ok{background:#DCFCE7;color:#166534;border:1px solid #86EFAC}
+  .status-err{background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5}
+  .status-info{background:rgba(56,189,248,0.1);color:#38bdf8;border:1px solid rgba(56,189,248,0.2)}
+  .tabs{display:flex;gap:8px;margin-bottom:16px;background:#0a0f24;padding:4px;border-radius:12px;border:1px solid rgba(56,189,248,0.15)}
+  .tab{flex:1;padding:10px;border-radius:8px;text-align:center;font-weight:600;cursor:pointer;color:#94a3b8}
+  .tab.active{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000}
+  .forgot-link{font-size:11px;color:#38bdf8;cursor:pointer;text-decoration:underline}
+  .forgot-box{display:none;margin-top:12px;padding:12px;background:rgba(0,0,0,0.3);border-radius:12px}
+  .forgot-box.open{display:block}
+  .profile-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:12px}
+  .profile-row b{color:#94a3b8;font-weight:500}
+  .profile-row span{color:white;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 </style>
 </head>
 <body>
-<header><b>WASA GAMES</b><div style="flex:1"></div><div style="font-size:11px;background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#000;padding:6px 12px;border-radius:9999px;font-weight:900">WASA PASS X5 • 5 USDT</div></header>
+<header>
+  <a href="/" class="logo" aria-label="Wasa Games"></a>
+  <!-- SIN BARRA DE BUSQUEDA COMO PEDISTE -->
+  <div class="pill coins" id="headerCoins" onclick="openWasaBuy()" style="background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);color:#000;font-weight:800;border:none;box-shadow:0 0 12px rgba(251,191,36,0.3);cursor:pointer;">0.00 $WASA</div>
+  <div class="right">
+    <button class="wallet" id="walletBtn" onclick="handleWalletBtn()">Connect Wallet</button>
+    <button class="user-btn disconnected" id="userBtn" onclick="handleUserBtn()">?</button>
+    <div id="userDropdown" class="user-dropdown">
+      <button onclick="openUserProfile()">👤 Datos de Usuario</button>
+      <button class="danger" onclick="logoutUser()">🚪 Cerrar Sesión</button>
+    </div>
+  </div>
+</header>
 
 <div class="page">
 <section class="hero">
@@ -47,10 +111,10 @@ header{width:100%;height:52px;background:rgba(5,8,20,0.75);backdrop-filter:blur(
 <div>
 <div style="font-size:9px;letter-spacing:0.14em;color:#fcd34d;border:1px solid rgba(252,211,77,0.3);display:inline-block;padding:3px 10px;border-radius:9999px;margin-bottom:8px">LIMITED EDITION 2026 • 500 UNIDADES</div>
 <h1 style="font-size:44px;font-weight:900;line-height:0.9;text-transform:uppercase"><span style="font-size:12px;display:block;color:rgba(255,255,255,0.7);letter-spacing:0.2em">WASA PASS</span><span style="background:linear-gradient(135deg,#fde68a,#f59e0b);-webkit-background-clip:text;color:transparent">Multiplica tus $WASA</span> <span style="color:#fcd34d">x5</span></h1>
-<p style="margin-top:10px;font-size:12px;color:rgba(207,250,254,0.7)">De 0.0003 a 0.0015 $WASA por partida. Solo 500 unidades.</p>
+<p style="margin-top:10px;font-size:12px;color:rgba(207,250,254,0.7)">De 0.0003 a 0.0015 $WASA por partida. Solo 500 unidades. Pago verificado en BSC.</p>
 <button style="margin-top:14px;height:40px;padding:0 18px;border-radius:9999px;background:linear-gradient(135deg,#fcd34d,#f59e0b);border:0;font-weight:900;cursor:pointer" onclick="document.getElementById('compra').scrollIntoView({behavior:'smooth'})">COMPRAR POR 5 USDT →</button>
 </div>
-<div class="hero-right"><img src="img/wasapasshero.png" class="float" alt="WASA PASS"></div>
+<div class="hero-right"><img src="img/wasapasshero.png" class="float" alt="WASA PASS" onerror="this.src='img/founderswasa.png'"></div>
 </div>
 </section>
 
@@ -74,10 +138,10 @@ header{width:100%;height:52px;background:rgba(5,8,20,0.75);backdrop-filter:blur(
   <div id="emailError" class="error-msg">⚠️ Email obligatorio - ahí te llega la imagen del PASS con tu apodo y QR</div>
 </div>
 
-<button id="conn" class="btn">Conectar Wallet (BSC)</button>
+<button id="conn" class="btn" style="display:none">Conectar Wallet BSC (interno)</button>
 <div id="status" style="display:none;font-size:11px;padding:10px;border-radius:10px"></div>
-<button id="pay" class="btn btn-gold" disabled>Pagar 5 USDT → X5 ⚡</button>
-<div style="font-size:9px;color:#64748b;text-align:center">BSC BEP20 • transfer(receiver, 5e18) • X5 en todos los juegos</div>
+<button id="pay" class="btn btn-gold">Pagar 5 USDT → X5 ⚡</button>
+<div style="font-size:9px;color:#64748b;text-align:center">BSC BEP20 • transfer(receiver, 5e18) • X5 en todos los juegos • Verificado on-chain</div>
 </div>
 </div>
 
@@ -88,24 +152,82 @@ header{width:100%;height:52px;background:rgba(5,8,20,0.75);backdrop-filter:blur(
 <img id="base" src="./xc32487hfd.klf" alt="base" onerror="this.src='img/wasapasshero.png'">
 <div id="prevApodo" class="apodo">YOUR NICKNAME</div>
 </div>
-<div style="margin-top:8px;font-size:9px;color:#64748b">PASS: apodo abajo izq + QR cuadrado abajo der - 1024x1560</div>
+<div style="margin-top:8px;font-size:9px;color:#64748b">Layout: apodo 12% x 85.2% • QR 79% x 84.6% • 1024x1560 • Email obligatorio para wallet/guest</div>
 </div>
 </div>
 <canvas id="cvs" style="display:none"></canvas>
 </section>
 </div>
 
+<!-- MODALES IGUAL QUE INDEX -->
+<div id="walletChooser" class="wasa-overlay" onclick="if(event.target===this) closeWalletChooser()">
+  <div class="wasa-box">
+    <div class="wasa-head"><b>Conectar billetera</b><button class="wasa-close" onclick="closeWalletChooser()">✕</button></div>
+    <div id="walletConnectedInfo" class="status-box status-info" style="display:none"></div>
+    <div class="wallet-opt" onclick="connectWith('metamask')"><img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg"><div><b>MetaMask</b></div></div>
+    <div class="wallet-opt" onclick="connectWith('trust')"><img src="https://trustwallet.com/assets/images/media/assets/trust_platform.svg"><div><b>Trust Wallet</b></div></div>
+    <div class="wallet-opt" onclick="connectWith('rabby')"><img src="https://rabby.io/assets/images/logo.png"><div><b>Rabby</b></div></div>
+    <div class="wallet-opt" onclick="connectWith('okx')"><img src="https://static.okx.com/cdn/assets/imgs/221/6FEEB1A3C4A6B5A.png"><div><b>OKX Wallet</b></div></div>
+    <div class="wallet-opt" onclick="openAuthEmail()"><div style="width:32px;height:32px;border-radius:8px;background:#0f172a;display:grid;place-items:center">📧</div><div><b>Email / Contraseña</b></div></div>
+  </div>
+</div>
+
+<div id="wasaBuyModal" class="wasa-overlay" onclick="if(event.target===this) closeWasaBuy()">
+  <div class="wasa-box">
+    <div class="wasa-head"><b>Comprar $WASA con USDT</b><button class="wasa-close" onclick="closeWasaBuy()">✕</button></div>
+    <div style="font-size:11px;color:#94a3b8;margin-bottom:12px">Red: BSC (BEP20) • Pago con USDT</div>
+    <div id="buyStatus" class="status-box"></div>
+    <div class="buy-opt" onclick="buyWasa(10)"><div><b>200 WASA</b><br><small>Pack inicial</small></div><div style="text-align:right"><b>2 USDT</b></div></div>
+    <div class="buy-opt" onclick="buyWasa(50)"><div><b>1000 WASA</b><br><small>Más popular</small></div><div style="text-align:right"><b>10 USDT</b></div></div>
+    <div class="buy-opt" onclick="buyWasa(100)"><div><b>2000 WASA</b><br><small>Pro gamer</small></div><div style="text-align:right"><b>19 USDT</b></div></div>
+    <div style="margin-top:12px"><button class="btn-wasa btn-wasa-secondary" onclick="closeWasaBuy();openWalletChooser()">🔌 Conectar otra billetera</button></div>
+    <div style="font-size:10px;color:#64748b;margin-top:10px;text-align:center" id="configFooter">USDT BSC: cargando config...</div>
+  </div>
+</div>
+
+<div id="authModal" class="wasa-overlay">
+  <div class="wasa-box">
+    <div class="wasa-head"><b>Mi Cuenta</b><button class="wasa-close" onclick="closeAuthEmail()">✕</button></div>
+    <div class="tabs"><div id="tabLogin" class="tab active" onclick="switchAuthTab('login')">Entrar</div><div id="tabRegister" class="tab" onclick="switchAuthTab('register')">Crear cuenta</div></div>
+    <div id="loginForm"><input id="authEmail" class="input-wasa" placeholder="Email"><input id="authPass" class="input-wasa" type="password" placeholder="Contraseña"><span class="forgot-link" onclick="openForgot()">¿Olvidaste tu contraseña?</span><div id="authStatus" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="doLogin()">Entrar</button><div id="forgotBox" class="forgot-box"><div id="forgotStep1"><input id="forgotEmail" class="input-wasa" placeholder="Tu email"><div id="forgotStatus" class="status-box"></div><button class="btn-wasa btn-wasa-secondary" onclick="requestPasswordReset()">Enviar código</button></div><div id="forgotStep2" style="display:none"><input id="forgotCode" class="input-wasa" placeholder="Código 6 dígitos" maxlength="6"><input id="forgotNewPass" class="input-wasa" type="password" placeholder="Nueva contraseña"><button class="btn-wasa btn-wasa-primary" onclick="verifyPasswordReset()">Cambiar contraseña</button></div></div></div>
+    <div id="registerForm" style="display:none"><input id="authEmailReg" class="input-wasa" placeholder="Email"><input id="authPassReg" class="input-wasa" type="password" placeholder="Contraseña"><input id="authNickReg" class="input-wasa" placeholder="Apodo"><div id="authStatusReg" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="doRegister()">Crear cuenta</button></div>
+  </div>
+</div>
+
+<div id="userProfileModal" class="wasa-overlay" onclick="if(event.target===this) closeUserProfile()">
+  <div class="wasa-box">
+    <div class="wasa-head"><b>👤 Mi Perfil</b><button class="wasa-close" onclick="closeUserProfile()">✕</button></div>
+    <div style="text-align:center;margin-bottom:16px"><div style="width:72px;height:72px;margin:0 auto;border-radius:50%;border:3px solid #fbbf24;background:linear-gradient(135deg,#fbbf24,#f59e0b);display:grid;place-items:center;font-size:32px">👤</div><div id="profileDisplayName" style="margin-top:8px;font-weight:700;color:#fbbf24;font-size:14px">Invitado</div></div>
+    <div class="profile-row"><b>Email</b><span id="profileEmail">No logeado</span></div>
+    <div class="profile-row"><b>Wallet</b><span id="profileWallet">No conectada</span></div>
+    <div class="profile-row"><b>$WASA</b><span id="profileCoins">0</span></div>
+    <div style="margin-top:10px"><label style="font-size:11px;color:#94a3b8">Wallets linkeadas</label><div id="profileWalletsList" style="background:rgba(0,0,0,0.2);border-radius:8px;padding:6px 10px;margin-top:4px"></div></div>
+    <div style="margin-top:16px"><label style="font-size:11px;color:#94a3b8">Apodo</label><input id="profileNickname" class="input-wasa" placeholder="Tu apodo" maxlength="20"><div id="profileStatus" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="saveProfile()">💾 Guardar apodo</button><button class="btn-wasa btn-wasa-secondary" style="margin-top:8px" onclick="logoutUser()">🚪 Cerrar Sesión</button></div>
+  </div>
+</div>
+
+<div id="verifyEmailModal" class="wasa-overlay">
+  <div class="wasa-box">
+    <div class="wasa-head"><b>✉ Verifica tu email</b><button class="wasa-close" onclick="closeVerifyModal()">✕</button></div>
+    <div style="padding:12px 0">
+      <p style="font-size:12px;color:#cbd5e1;margin-bottom:8px">Enviamos un código de 6 dígitos a <b id="verifyEmailLabel" style="color:#fbbf24">tu email</b></p>
+      <p style="font-size:10px;color:#64748b;margin-bottom:12px">Revisá spam. Expira en 15 min.</p>
+      <input id="verifyCodeInput" class="input-wasa" placeholder="Código 6 dígitos" maxlength="6" style="letter-spacing:4px;text-align:center;font-size:18px;font-weight:800">
+      <div id="verifyStatus" class="status-box"></div>
+      <button class="btn-wasa btn-wasa-primary" onclick="doVerifyEmail()">✅ Verificar y activar cuenta</button>
+      <button class="btn-wasa btn-wasa-secondary" style="margin-top:8px" onclick="resendVerifyCode()">📨 Reenviar código</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-// CONFIG FINAL v9.8
+// CONFIG FINAL v9.8 con NAV del index
 const WORKER = "https://games-wasa-worker.javimsites.workers.dev";
 const USDT = "0x55d398326f99059fF775485246999027B3197955";
 const BSC_CHAIN = "0x38";
 let wallet="", receiver="";
-let savedEmail = (localStorage.getItem('wasa_email')||'').toLowerCase().trim();
-let savedWallet = (localStorage.getItem('wasa_wallet')||'').toLowerCase();
 let apodoDeD1 = "";
-let modo = "guest"; // email | wallet | guest
 
 const apodoEl = document.getElementById('apodo');
 const emailEl = document.getElementById('email');
@@ -115,22 +237,26 @@ const emailReq = document.getElementById('emailReq');
 const prevApodo = document.getElementById('prevApodo');
 const prevTitle = document.getElementById('prevTitle');
 const cnt = document.getElementById('cnt');
-const connBtn = document.getElementById('conn');
 const payBtn = document.getElementById('pay');
 const statusEl = document.getElementById('status');
 const apodoError = document.getElementById('apodoError');
 const emailError = document.getElementById('emailError');
 const userInfoBox = document.getElementById('userInfoBox');
 
-// Cargar receiver
 fetch(WORKER+"/?action=get_wasa_config").then(r=>r.json()).then(j=>{receiver=j.receiver||j.receiver_wallet||"";}).catch(()=>{});
 
-// 1. CARGAR DATOS REALES DE D1 - FUENTE DE VERDAD
+function getSavedEmail(){ return (localStorage.getItem('wasa_email')||'').toLowerCase().trim(); }
+function getSavedWallet(){ return (localStorage.getItem('wasa_wallet')||'').toLowerCase().trim(); }
+function getSavedNick(){ return (localStorage.getItem('wasa_nickname')||'').toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,12); }
+
+// CARGAR DATOS REALES DE D1 - FUENTE DE VERDAD
 async function cargarDatosDeD1(){
   try{
+    const email = getSavedEmail();
+    const w = getSavedWallet() || (window.ethereum? (await window.ethereum.request({method:'eth_accounts'}).then(a=>a[0]||'').catch(()=>'')) : '');
     let payload = null;
-    if(savedEmail) payload = {action:'get_balance', email:savedEmail};
-    else if(savedWallet) payload = {action:'get_balance', wallet:savedWallet};
+    if(email) payload = {action:'get_balance', email};
+    else if(w) payload = {action:'get_balance', wallet:w};
     else return;
 
     const r = await fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
@@ -146,28 +272,26 @@ async function cargarDatosDeD1(){
       prevApodo.textContent = apodoDeD1;
       prevTitle.textContent = apodoDeD1 + ' • X5';
       
-      // Si tiene email en D1, ocultar email
-      if(j.email || savedEmail){
+      if(j.email || email){
         emailBox.style.display = 'none';
-        modo = "email";
-        savedEmail = (j.email||savedEmail).toLowerCase();
-        localStorage.setItem('wasa_email', savedEmail);
-        userInfoBox.innerHTML = `<div class="info-msg">✓ Cuenta D1: <b>${savedEmail}</b> • Apodo: <b>${j.nickname}</b> - PASS se enviará ahí y se grabará con ese apodo</div>`;
+        userInfoBox.innerHTML = `<div class="info-msg">✓ D1: <b>${j.email||email}</b> • Apodo: <b>${j.nickname}</b> - PASS se grabará con ese apodo y se enviará a ese email</div>`;
+        wallet = w||'';
       } else {
-        modo = "wallet";
         emailReq.textContent = "* obligatorio para recibir imagen con QR";
-        emailInfo.textContent = `Wallet registrada en D1 como ${j.nickname} - Email obligatorio para enviarte el PASS`;
+        emailInfo.textContent = `Wallet en D1 como ${j.nickname} - Email obligatorio para enviarte el PASS`;
         emailInfo.style.color = '#fcd34d';
-        userInfoBox.innerHTML = `<div class="info-msg">✓ Wallet D1: <b>${savedWallet.slice(0,6)}...${savedWallet.slice(-4)}</b> • Apodo: <b>${j.nickname}</b></div>`;
+        userInfoBox.innerHTML = `<div class="info-msg">✓ Wallet D1: <b>${j.nickname}</b> - Apodo de tu cuenta</div>`;
       }
+      if(j.email) localStorage.setItem('wasa_email', j.email.toLowerCase());
+      if(j.nickname) localStorage.setItem('wasa_nickname', j.nickname);
       checkForm();
     }
   }catch(e){ console.log('D1 no disponible', e); }
 }
 
-cargarDatosDeD1();
+// Ejecutar después que wasa-conection.js cargue wasa_email
+setTimeout(cargarDatosDeD1, 800);
 
-// Validacion apodo 12 max obligatorio
 apodoEl.addEventListener('input',()=>{
   if(apodoEl.readOnly) return;
   let v=apodoEl.value.toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,12);
@@ -179,7 +303,6 @@ apodoEl.addEventListener('input',()=>{
   if(v.length>=3){ apodoEl.classList.remove('input-error'); apodoError.classList.remove('show'); }
   checkForm();
 });
-
 emailEl.addEventListener('input',()=>{
   const v = emailEl.value.trim();
   if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){
@@ -189,63 +312,33 @@ emailEl.addEventListener('input',()=>{
   }
   checkForm();
 });
-
 function validateApodo(){
   const v = apodoEl.value.trim();
   if(apodoDeD1 && v===apodoDeD1) return true;
   return /^[A-Z0-9_]{3,12}$/.test(v);
 }
 function validateEmail(){
-  if(emailBox.style.display==='none') return true; // caso email ya registrado
+  if(emailBox.style.display==='none') return true;
   const v = emailEl.value.trim().toLowerCase();
-  if(!v) return false; // obligatorio para wallet/guest
+  if(!v) return false;
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }
 function checkForm(){
   const apOk = validateApodo();
   const emOk = validateEmail();
-  payBtn.disabled = !(apOk && emOk && wallet);
+  // wallet viene del nav (wasa-conection.js) o del ethereum
+  const w = getSavedWallet() || wallet || (window.ethereum? window.ethereum.selectedAddress||'' : '');
+  payBtn.disabled = !(apOk && emOk);
+  // no bloqueamos por wallet aqui porque wasa-conection se encarga, pero si no hay wallet mostramos mensaje
+  if(!w) {
+    // no deshabilitamos, pero el click pedirá conectar
+  }
 }
 
-// Conectar wallet BSC
-async function connect(){
-  if(!window.ethereum){ alert("Instala MetaMask / Trust Wallet"); return; }
-  try{
-    try{ await window.ethereum.request({method:'wallet_switchEthereumChain', params:[{chainId:BSC_CHAIN}]}); }
-    catch(e){ if(e.code===4902){ await window.ethereum.request({method:'wallet_addEthereumChain', params:[{chainId:BSC_CHAIN, chainName:'BNB Smart Chain', rpcUrls:['https://bsc-dataseed.binance.org/'], nativeCurrency:{name:'BNB',symbol:'BNB',decimals:18}, blockExplorerUrls:['https://bscscan.com']}]}) } }
-    const acc=await window.ethereum.request({method:'eth_requestAccounts'});
-    wallet=acc[0];
-    connBtn.textContent="✓ "+wallet.slice(0,6)+"…"+wallet.slice(-4);
-    connBtn.style.background="rgba(34,197,94,.15)";
-    connBtn.style.borderColor="#22c55e";
-    connBtn.classList.add('input-ok');
-    savedWallet = wallet.toLowerCase();
-    localStorage.setItem('wasa_wallet', savedWallet);
-
-    // Verificar si esta wallet ya existe en D1
-    try{
-      const r = await fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'get_balance', wallet})});
-      const j = await r.json();
-      if(j.ok && j.nickname){
-        apodoDeD1 = j.nickname.toUpperCase().slice(0,12);
-        apodoEl.value = apodoDeD1;
-        apodoEl.readOnly = true;
-        apodoEl.classList.add('input-ok');
-        cnt.textContent = `${apodoDeD1.length}/12 - Apodo D1 (bloqueado)`;
-        cnt.style.color = '#22c55e';
-        prevApodo.textContent = apodoDeD1;
-        userInfoBox.innerHTML = `<div class="info-msg">✓ Wallet encontrada en D1: <b>${j.nickname}</b></div>`;
-      } else {
-        // Caso 2.5 - Guest que conecta para pagar -> se registra ahora
-        if(!apodoDeD1){ apodoEl.readOnly=false; emailBox.style.display='block'; }
-      }
-    }catch{}
-    checkForm();
-  }catch(e){ alert('Error conectando: '+e.message); }
+function getWalletForPay(){
+  return getSavedWallet() || wallet || (window.ethereum&&window.ethereum.selectedAddress? window.ethereum.selectedAddress.toLowerCase() : '') || (localStorage.getItem('wasa_wallet')||'').toLowerCase();
 }
-connBtn.addEventListener('click',connect);
 
-// Genera imagen final con QR
 async function genFinalImage(apodo, passId){
   function loadImg(src){return new Promise((res,rej)=>{const i=new Image();i.crossOrigin="anonymous";i.onload=()=>res(i);i.onerror=rej;i.src=src;});}
   const base=await loadImg("./xc32487hfd.klf");
@@ -269,24 +362,28 @@ async function genFinalImage(apodo, passId){
 
 payBtn.addEventListener('click', async()=>{
   payBtn.dataset.tried="1";
-  // validar apodo obligatorio
   if(!validateApodo()){
     apodoEl.classList.add('input-error');
-    apodoError.textContent = !apodoEl.value ? "⚠️ El apodo es obligatorio" : "⚠️ Min 3, max 12, solo A-Z 0-9 _";
-    apodoError.classList.add('show');
-    apodoEl.focus(); return;
+    apodoError.textContent = !apodoEl.value ? "⚠️ El apodo es obligatorio (3-12)" : "⚠️ Min 3, max 12, solo A-Z 0-9 _";
+    apodoError.classList.add('show'); apodoEl.focus(); return;
   }
-  // validar email obligatorio si no está oculto
   if(!validateEmail()){
     emailEl.classList.add('input-error');
     emailError.textContent = !emailEl.value.trim() ? "⚠️ Email obligatorio - ahí te llega la imagen del PASS con tu apodo y QR" : "⚠️ Email inválido";
-    emailError.classList.add('show');
-    emailEl.focus(); return;
+    emailError.classList.add('show'); emailEl.focus(); return;
   }
-  if(!wallet){ alert("Conectá la wallet primero"); return; }
+  let w = getWalletForPay();
+  if(!w){
+    if(window.ethereum){
+      try{
+        const acc=await window.ethereum.request({method:'eth_requestAccounts'});
+        w=acc[0]; wallet=w;
+      }catch(e){ alert("Conectá la wallet del nav primero"); return; }
+    } else { alert("Conectá la wallet desde el nav superior"); if(typeof openWalletChooser==='function') openWalletChooser(); return; }
+  }
 
   const apodo=apodoEl.value.trim().toUpperCase();
-  const finalEmail = (emailEl.value.trim().toLowerCase() || savedEmail || "").toLowerCase();
+  const finalEmail = (emailEl.value.trim().toLowerCase() || getSavedEmail() || "").toLowerCase();
   
   try{
     statusEl.style.display='block';
@@ -294,15 +391,18 @@ payBtn.addEventListener('click', async()=>{
     statusEl.textContent='Enviando 5 USDT en BSC... confirmá en tu wallet';
 
     if(!receiver){ const cfg=await fetch(WORKER+"/?action=get_wasa_config").then(r=>r.json()); receiver=cfg.receiver||cfg.receiver_wallet; }
+    // switch BSC
+    try{ await window.ethereum.request({method:'wallet_switchEthereumChain', params:[{chainId:BSC_CHAIN}]}); }catch(e){ if(e.code===4902){ await window.ethereum.request({method:'wallet_addEthereumChain', params:[{chainId:BSC_CHAIN, chainName:'BNB Smart Chain', rpcUrls:['https://bsc-dataseed.binance.org/'], nativeCurrency:{name:'BNB',symbol:'BNB',decimals:18}, blockExplorerUrls:['https://bscscan.com']}]}) } }
+
     const amount=BigInt(5)*BigInt(10**18);
     const amountHex=amount.toString(16);
     const pad=(h)=>h.replace(/^0x/,'').toLowerCase().padStart(64,'0');
     const data='0xa9059cbb'+pad(receiver)+pad(amountHex);
-    const txHash=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:wallet,to:USDT,data}]});
+    const txHash=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:w,to:USDT,data}]});
 
     statusEl.textContent='Tx '+txHash.slice(0,10)+'... verificando pago 5 USDT en BSC (5-8s)...';
 
-    const body={action:'confirm_wasa_pass_payment',wallet_address:wallet,email:finalEmail,apodo,tx_hash:txHash,price:5,tier:'X5',chain:'BSC'};
+    const body={action:'confirm_wasa_pass_payment',wallet_address:w,email:finalEmail,apodo,tx_hash:txHash,price:5,tier:'X5',chain:'BSC'};
     const r=await fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const j=await r.json();
     if(!j.ok) throw new Error(j.error);
@@ -321,8 +421,8 @@ payBtn.addEventListener('click', async()=>{
       statusEl.textContent='¡Listo! ✅ PASS X5 activado • ID '+passId;
     }
 
-    const w=window.open(); 
-    w.document.write(`<div style="font-family:Inter,sans-serif;text-align:center;padding:20px;background:#0a1020;color:white;min-height:100vh"><h2 style="color:#fcd34d">WASA PASS X5 - ${apodo}</h2><p style="color:#94a3b8">ID: ${passId}</p><img src="${imgData}" style="max-width:600px;width:100%;border-radius:12px;border:2px solid #fcd34d;margin:16px 0"><br><a href="${imgData}" download="WASA_PASS_${apodo}_${passId}.png" style="display:inline-block;margin-top:12px;background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#000;padding:12px 24px;border-radius:9999px;font-weight:900;text-decoration:none">⬇️ DESCARGAR PASS PNG</a><p style="margin-top:16px"><a href="https://games.wasa.chat/pass?id=${passId}" style="color:#38bdf8">games.wasa.chat/pass?id=${passId}</a></p><p style="margin-top:8px;font-size:12px;color:#64748b">Enviado a ${finalEmail||wallet}</p></div>`);
+    const win=window.open();
+    win.document.write(`<div style="font-family:Inter,sans-serif;text-align:center;padding:20px;background:#0a1020;color:white;min-height:100vh"><h2 style="color:#fcd34d">WASA PASS X5 - ${apodo}</h2><p style="color:#94a3b8">ID: ${passId}</p><img src="${imgData}" style="max-width:600px;width:100%;border-radius:12px;border:2px solid #fcd34d;margin:16px 0"><br><a href="${imgData}" download="WASA_PASS_${apodo}_${passId}.png" style="display:inline-block;margin-top:12px;background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#000;padding:12px 24px;border-radius:9999px;font-weight:900;text-decoration:none">⬇️ DESCARGAR PASS PNG</a><p style="margin-top:16px"><a href="https://games.wasa.chat/pass?id=${passId}" style="color:#38bdf8">games.wasa.chat/pass?id=${passId}</a></p><p style="margin-top:8px;font-size:12px;color:#64748b">Enviado a ${finalEmail||w}</p></div>`);
   }catch(e){
     statusEl.style.display='block';
     statusEl.style.background='rgba(239,68,68,.15)'; statusEl.style.borderColor='#ef4444'; statusEl.style.color='#fca5a5';
@@ -330,5 +430,6 @@ payBtn.addEventListener('click', async()=>{
   }
 });
 </script>
+<script src="./wasa-conection.js"></script>
 </body>
 </html>
