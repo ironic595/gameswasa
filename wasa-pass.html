@@ -6,11 +6,7 @@
 <title>WASA PASS X5 - games.wasa.chat</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@800;900&display=swap" rel="stylesheet">
 <style>
-  @font-face {
-  font-family: 'Fixedsys';
-  src: url('fnts/Fixedsys.ttf') format('truetype');
-}
-
+@font-face{font-family:'Fixedsys';src:url('fnts/Fixedsys.ttf') format('truetype');}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:Inter,system-ui;background:radial-gradient(ellipse at 50% 0%, rgba(79,70,229,0.15) 0%, transparent 70%), linear-gradient(180deg,#2046a3 0%,#332891 40%,#315bd5 100%);color:#e2e8f0;min-height:100vh}
 header{width:100%;height:52px;background:rgba(5,8,20,0.75);backdrop-filter:blur(12px);border-bottom:1px solid rgba(103,232,249,0.15);display:flex;align-items:center;padding:0 20px;position:sticky;top:0;z-index:10}
@@ -26,49 +22,20 @@ header{width:100%;height:52px;background:rgba(5,8,20,0.75);backdrop-filter:blur(
 .layout{display:grid;grid-template-columns:1fr 380px;gap:24px;padding:20px 0 60px;align-items:start}
 @media(max-width:900px){.layout{grid-template-columns:1fr}}
 .card{border-radius:18px;border:1px solid rgba(103,232,249,0.15);background:rgba(15,23,42,0.75);overflow:hidden}
-.card-h{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between}
+.card-h{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;align-items:center}
 .card-b{padding:18px;display:flex;flex-direction:column;gap:14px}
-.input{width:100%;height:44px;border-radius:10px;background:#0f172a;border:1px solid rgba(103,232,249,0.20);color:white;padding:0 14px;font-weight:900;font-size:16px;letter-spacing:0.06em;outline:none}
+.input{width:100%;height:44px;border-radius:10px;background:#0f172a;border:1px solid rgba(103,232,249,0.20);color:white;padding:0 14px;font-weight:900;font-size:16px;letter-spacing:0.06em;outline:none;transition:.2s}
+.input-error{border-color:#ef4444 !important;box-shadow:0 0 0 3px rgba(239,68,68,.25) !important;background:#1a0f14 !important}
+.input-ok{border-color:#22c55e !important;background:rgba(34,197,94,.08) !important}
+.error-msg{font-size:10px;color:#fca5a5;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);padding:6px 10px;border-radius:8px;display:none}
+.error-msg.show{display:block}
+.info-msg{font-size:10px;color:#86efac;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);padding:8px 12px;border-radius:10px}
 .preview{position:relative;border-radius:12px;overflow:hidden;background:#0b1020;border:1px solid rgba(255,255,255,0.10);aspect-ratio:1/1}
 .preview img{width:100%;height:100%;object-fit:contain}
-/* EDITAR AQUI POSICION APODO - donde iba PEPERTRULS */
-.apodo{
-  position:absolute;
-  left:26%;   /* X: mover izquierda/derecha */
-  bottom:10%; /* Y: mover arriba/abajo - este es donde iba PEPERTRULS */
-  font-family:Fixedsys;
-  font-size:19px;
-    font-weight: 200; /* El peso que usa el JS */
-    letter-spacing: 4px; /* El letterSpacing del JS */
-    text-transform: uppercase;
-  border-style:outset;
-    color: #d99152; /* El color base final del JS */
-    
-    /* LA CLAVE: Replicamos exactamente el array de shadows del JS */
-    /* El orden es importante: las sombras se apilan de la última a la primera */
-    text-shadow: 
-      /* 1. Sombra más lejana (dx:3, dy:3) - azul muy oscuro */
-      1px 1px 0 #091721,
-      
-      /* 2. Segunda sombra (dx:2, dy:2) - marrón muy oscuro */
-      2px 2px 0 #210d02,
-      
-      /* 3. Tercera sombra (dx:1, dy:1) - marrón oscuro */
-      1px 1px 0 #5e2a09,
-      
-      /* 4. Sombra derecha-abajo (dx:-1, dy:1) - naranja oscuro */
-      -1px 1px 0 #944d1a,
-      
-      /* 5. Sombra izquierda-arriba (dx:1, dy:-1) - naranja oscuro */
-      1px -1px 0 #944d1a,
-      
-      /* 6. Luz superior-izquierda (dx:-1, dy:-1) - crema claro */
-      -1px -1px 0 #ffcc99;
-
-}
-  
-.btn{height:40px;border-radius:10px;border:1px solid rgba(103,232,249,0.15);background:rgba(255,255,255,0.03);color:white;width:100%;cursor:pointer;font-weight:700}
+.apodo{position:absolute;left:26%;bottom:10%;font-family:Fixedsys;font-size:19px;font-weight:200;letter-spacing:4px;text-transform:uppercase;border-style:outset;color:#d99152;text-shadow:1px 1px 0 #091721,2px 2px 0 #210d02,1px 1px 0 #5e2a09,-1px 1px 0 #944d1a,1px -1px 0 #944d1a,-1px -1px 0 #ffcc99;}
+.btn{height:44px;border-radius:10px;border:1px solid rgba(103,232,249,0.15);background:rgba(255,255,255,0.03);color:white;width:100%;cursor:pointer;font-weight:700;transition:.2s}
 .btn-gold{background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#000;border:0;font-weight:900}
+.btn:disabled{opacity:.4;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -78,9 +45,9 @@ header{width:100%;height:52px;background:rgba(5,8,20,0.75);backdrop-filter:blur(
 <section class="hero">
 <div class="hero-inner">
 <div>
-<div style="font-size:9px;letter-spacing:0.14em;color:#fcd34d;border:1px solid rgba(252,211,77,0.3);display:inline-block;padding:3px 10px;border-radius:9999px;margin-bottom:8px">LIMITED EDITION 2026</div>
+<div style="font-size:9px;letter-spacing:0.14em;color:#fcd34d;border:1px solid rgba(252,211,77,0.3);display:inline-block;padding:3px 10px;border-radius:9999px;margin-bottom:8px">LIMITED EDITION 2026 • 500 UNIDADES</div>
 <h1 style="font-size:44px;font-weight:900;line-height:0.9;text-transform:uppercase"><span style="font-size:12px;display:block;color:rgba(255,255,255,0.7);letter-spacing:0.2em">WASA PASS</span><span style="background:linear-gradient(135deg,#fde68a,#f59e0b);-webkit-background-clip:text;color:transparent">Multiplica tus $WASA</span> <span style="color:#fcd34d">x5</span></h1>
-<p style="margin-top:10px;font-size:12px;color:rgba(207,250,254,0.7)">De 0.01 a 0.05 $WASA por partida. Solo 500 unidades.</p>
+<p style="margin-top:10px;font-size:12px;color:rgba(207,250,254,0.7)">De 0.0003 a 0.0015 $WASA por partida. Solo 500 unidades.</p>
 <button style="margin-top:14px;height:40px;padding:0 18px;border-radius:9999px;background:linear-gradient(135deg,#fcd34d,#f59e0b);border:0;font-weight:900;cursor:pointer" onclick="document.getElementById('compra').scrollIntoView({behavior:'smooth'})">COMPRAR POR 5 USDT →</button>
 </div>
 <div class="hero-right"><img src="img/wasapasshero.png" class="float" alt="WASA PASS"></div>
@@ -91,22 +58,37 @@ header{width:100%;height:52px;background:rgba(5,8,20,0.75);backdrop-filter:blur(
 <div class="card">
 <div class="card-h"><div><div style="font-size:10px;color:#67e8f9;letter-spacing:0.1em">CHECKOUT</div><div style="font-weight:900;color:white">Personalizá tu WASA PASS</div></div><div style="font-weight:900;color:#fcd34d">5 USDT</div></div>
 <div class="card-b">
-<div><label style="font-size:10px;color:#cbd5e1">TU APODO (GRABADO EN EL PASS)</label><input id="apodo" class="input" placeholder="PEPERTRULS" maxlength="16"><div id="cnt" style="font-size:9px;color:#64748b;margin-top:4px">0/16</div></div>
-<button id="conn" class="btn">Conectar Wallet</button>
-<div id="status" style="display:none;font-size:10px;padding:8px;border-radius:8px"></div>
+<div id="userInfoBox"></div>
+
+<div>
+  <label style="font-size:10px;color:#cbd5e1">TU APODO (GRABADO EN EL PASS) *</label>
+  <input id="apodo" class="input" placeholder="PEPERTRULS" maxlength="12" autocomplete="off">
+  <div id="cnt" style="font-size:9px;color:#64748b;margin-top:4px">0/12 - Min 3, Max 12 (A-Z 0-9 _)</div>
+  <div id="apodoError" class="error-msg">⚠️ Apodo obligatorio - 3 a 12 caracteres (A-Z 0-9 _)</div>
+</div>
+
+<div id="emailBox">
+  <label style="font-size:10px;color:#cbd5e1">TU EMAIL <span id="emailReq" style="color:#fcd34d">* obligatorio para recibir el PASS</span></label>
+  <input id="email" class="input" placeholder="tu@email.com" type="email" autocomplete="email">
+  <div id="emailInfo" style="font-size:9px;color:#64748b;margin-top:4px"></div>
+  <div id="emailError" class="error-msg">⚠️ Email obligatorio - ahí te llega la imagen del PASS con tu apodo y QR</div>
+</div>
+
+<button id="conn" class="btn">Conectar Wallet (BSC)</button>
+<div id="status" style="display:none;font-size:11px;padding:10px;border-radius:10px"></div>
 <button id="pay" class="btn btn-gold" disabled>Pagar 5 USDT → X5 ⚡</button>
-<div style="font-size:9px;color:#64748b;text-align:center">Transfer ERC20 transfer(receiver, 5e18) • BSC BEP20</div>
+<div style="font-size:9px;color:#64748b;text-align:center">BSC BEP20 • transfer(receiver, 5e18) • X5 en todos los juegos</div>
 </div>
 </div>
 
 <div class="card">
-<div class="card-h"><div style="font-size:10px;color:#67e8f9">PREVIEW EN VIVO (SIN QR - QR solo al comprar)</div><div id="prevTitle" style="font-size:12px;font-weight:900;color:white">NICKNAME • X5</div></div>
+<div class="card-h"><div style="font-size:10px;color:#67e8f9">PREVIEW EN VIVO (QR solo al comprar)</div><div id="prevTitle" style="font-size:12px;font-weight:900;color:white">NICKNAME • X5</div></div>
 <div style="padding:14px">
 <div class="preview">
-<img id="base" src="./xc32487hfd.klf" alt="base">
+<img id="base" src="./xc32487hfd.klf" alt="base" onerror="this.src='img/wasapasshero.png'">
 <div id="prevApodo" class="apodo">YOUR NICKNAME</div>
 </div>
-<div style="margin-top:8px;font-size:9px;color:#64748b">EDITAR: .apodo { left:14%; bottom:18% } → mueve donde iba PEPERTRULS. QR NO va acá, lo genera el JS.</div>
+<div style="margin-top:8px;font-size:9px;color:#64748b">PASS: apodo abajo izq + QR cuadrado abajo der - 1024x1560</div>
 </div>
 </div>
 <canvas id="cvs" style="display:none"></canvas>
@@ -115,61 +97,170 @@ header{width:100%;height:52px;background:rgba(5,8,20,0.75);backdrop-filter:blur(
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-// CONFIG
-const WORKER = "https://games-wasa-worker.javisimes.workers.dev";
+// CONFIG FINAL v9.8
+const WORKER = "https://games-wasa-worker.javimsites.workers.dev";
 const USDT = "0x55d398326f99059fF775485246999027B3197955";
+const BSC_CHAIN = "0x38";
 let wallet="", receiver="";
+let savedEmail = (localStorage.getItem('wasa_email')||'').toLowerCase().trim();
+let savedWallet = (localStorage.getItem('wasa_wallet')||'').toLowerCase();
+let apodoDeD1 = "";
+let modo = "guest"; // email | wallet | guest
 
-// ELEMENTOS
 const apodoEl = document.getElementById('apodo');
+const emailEl = document.getElementById('email');
+const emailBox = document.getElementById('emailBox');
+const emailInfo = document.getElementById('emailInfo');
+const emailReq = document.getElementById('emailReq');
 const prevApodo = document.getElementById('prevApodo');
 const prevTitle = document.getElementById('prevTitle');
 const cnt = document.getElementById('cnt');
 const connBtn = document.getElementById('conn');
 const payBtn = document.getElementById('pay');
 const statusEl = document.getElementById('status');
+const apodoError = document.getElementById('apodoError');
+const emailError = document.getElementById('emailError');
+const userInfoBox = document.getElementById('userInfoBox');
 
-// CARGAR RECEIVER
-fetch(WORKER+"/?action=get_wasa_config").then(r=>r.json()).then(j=>{receiver=j.receiver||j.receiver_wallet||""}).catch(()=>{});
+// Cargar receiver
+fetch(WORKER+"/?action=get_wasa_config").then(r=>r.json()).then(j=>{receiver=j.receiver||j.receiver_wallet||"";}).catch(()=>{});
 
+// 1. CARGAR DATOS REALES DE D1 - FUENTE DE VERDAD
+async function cargarDatosDeD1(){
+  try{
+    let payload = null;
+    if(savedEmail) payload = {action:'get_balance', email:savedEmail};
+    else if(savedWallet) payload = {action:'get_balance', wallet:savedWallet};
+    else return;
+
+    const r = await fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const j = await r.json();
+    if(j.ok && j.nickname){
+      apodoDeD1 = j.nickname.toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,12);
+      apodoEl.value = apodoDeD1;
+      apodoEl.readOnly = true;
+      apodoEl.classList.add('input-ok');
+      apodoEl.classList.remove('input-error');
+      cnt.textContent = `${apodoDeD1.length}/12 - Apodo de tu cuenta en D1 (bloqueado)`;
+      cnt.style.color = '#22c55e';
+      prevApodo.textContent = apodoDeD1;
+      prevTitle.textContent = apodoDeD1 + ' • X5';
+      
+      // Si tiene email en D1, ocultar email
+      if(j.email || savedEmail){
+        emailBox.style.display = 'none';
+        modo = "email";
+        savedEmail = (j.email||savedEmail).toLowerCase();
+        localStorage.setItem('wasa_email', savedEmail);
+        userInfoBox.innerHTML = `<div class="info-msg">✓ Cuenta D1: <b>${savedEmail}</b> • Apodo: <b>${j.nickname}</b> - PASS se enviará ahí y se grabará con ese apodo</div>`;
+      } else {
+        modo = "wallet";
+        emailReq.textContent = "* obligatorio para recibir imagen con QR";
+        emailInfo.textContent = `Wallet registrada en D1 como ${j.nickname} - Email obligatorio para enviarte el PASS`;
+        emailInfo.style.color = '#fcd34d';
+        userInfoBox.innerHTML = `<div class="info-msg">✓ Wallet D1: <b>${savedWallet.slice(0,6)}...${savedWallet.slice(-4)}</b> • Apodo: <b>${j.nickname}</b></div>`;
+      }
+      checkForm();
+    }
+  }catch(e){ console.log('D1 no disponible', e); }
+}
+
+cargarDatosDeD1();
+
+// Validacion apodo 12 max obligatorio
 apodoEl.addEventListener('input',()=>{
-  let v=apodoEl.value.toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,16);
+  if(apodoEl.readOnly) return;
+  let v=apodoEl.value.toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,12);
   apodoEl.value=v;
-  cnt.textContent=v.length+"/16";
+  cnt.textContent=v.length+"/12 - Min 3, Max 12 (A-Z 0-9 _)";
   prevApodo.textContent=v||"YOUR NICKNAME";
   prevTitle.textContent=(v||"NICKNAME")+" • X5";
   payBtn.textContent=`Pagar 5 USDT — ${v||'APODO'} → X5 ⚡`;
-  payBtn.disabled = !/^[A-Z0-9_]{3,16}$/.test(v) || !wallet;
+  if(v.length>=3){ apodoEl.classList.remove('input-error'); apodoError.classList.remove('show'); }
+  checkForm();
 });
 
+emailEl.addEventListener('input',()=>{
+  const v = emailEl.value.trim();
+  if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){
+    emailEl.classList.remove('input-error'); emailEl.classList.add('input-ok'); emailError.classList.remove('show');
+  } else {
+    emailEl.classList.remove('input-ok');
+  }
+  checkForm();
+});
+
+function validateApodo(){
+  const v = apodoEl.value.trim();
+  if(apodoDeD1 && v===apodoDeD1) return true;
+  return /^[A-Z0-9_]{3,12}$/.test(v);
+}
+function validateEmail(){
+  if(emailBox.style.display==='none') return true; // caso email ya registrado
+  const v = emailEl.value.trim().toLowerCase();
+  if(!v) return false; // obligatorio para wallet/guest
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+}
+function checkForm(){
+  const apOk = validateApodo();
+  const emOk = validateEmail();
+  payBtn.disabled = !(apOk && emOk && wallet);
+}
+
+// Conectar wallet BSC
 async function connect(){
-  if(!window.ethereum){ alert("Instala MetaMask / Trust"); return; }
-  const acc=await window.ethereum.request({method:'eth_requestAccounts'});
-  wallet=acc[0];
-  connBtn.textContent="✓ "+wallet.slice(0,6)+"…"+wallet.slice(-4);
-  payBtn.disabled = !/^[A-Z0-9_]{3,16}$/.test(apodoEl.value);
+  if(!window.ethereum){ alert("Instala MetaMask / Trust Wallet"); return; }
+  try{
+    try{ await window.ethereum.request({method:'wallet_switchEthereumChain', params:[{chainId:BSC_CHAIN}]}); }
+    catch(e){ if(e.code===4902){ await window.ethereum.request({method:'wallet_addEthereumChain', params:[{chainId:BSC_CHAIN, chainName:'BNB Smart Chain', rpcUrls:['https://bsc-dataseed.binance.org/'], nativeCurrency:{name:'BNB',symbol:'BNB',decimals:18}, blockExplorerUrls:['https://bscscan.com']}]}) } }
+    const acc=await window.ethereum.request({method:'eth_requestAccounts'});
+    wallet=acc[0];
+    connBtn.textContent="✓ "+wallet.slice(0,6)+"…"+wallet.slice(-4);
+    connBtn.style.background="rgba(34,197,94,.15)";
+    connBtn.style.borderColor="#22c55e";
+    connBtn.classList.add('input-ok');
+    savedWallet = wallet.toLowerCase();
+    localStorage.setItem('wasa_wallet', savedWallet);
+
+    // Verificar si esta wallet ya existe en D1
+    try{
+      const r = await fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'get_balance', wallet})});
+      const j = await r.json();
+      if(j.ok && j.nickname){
+        apodoDeD1 = j.nickname.toUpperCase().slice(0,12);
+        apodoEl.value = apodoDeD1;
+        apodoEl.readOnly = true;
+        apodoEl.classList.add('input-ok');
+        cnt.textContent = `${apodoDeD1.length}/12 - Apodo D1 (bloqueado)`;
+        cnt.style.color = '#22c55e';
+        prevApodo.textContent = apodoDeD1;
+        userInfoBox.innerHTML = `<div class="info-msg">✓ Wallet encontrada en D1: <b>${j.nickname}</b></div>`;
+      } else {
+        // Caso 2.5 - Guest que conecta para pagar -> se registra ahora
+        if(!apodoDeD1){ apodoEl.readOnly=false; emailBox.style.display='block'; }
+      }
+    }catch{}
+    checkForm();
+  }catch(e){ alert('Error conectando: '+e.message); }
 }
 connBtn.addEventListener('click',connect);
 
-// GENERA IMAGEN FINAL CON QR - SOLO DESPUES DE PAGO - NO EN PREVIEW
+// Genera imagen final con QR
 async function genFinalImage(apodo, passId){
   function loadImg(src){return new Promise((res,rej)=>{const i=new Image();i.crossOrigin="anonymous";i.onload=()=>res(i);i.onerror=rej;i.src=src;});}
   const base=await loadImg("./xc32487hfd.klf");
-  // QR - solo aqui, no en preview
   const div=document.createElement('div'); div.style.position='fixed'; div.style.left='-9999px'; document.body.appendChild(div);
-  new QRCode(div,{text:`https://games.wasa.chat/pass?id=${passId}`,width:512,height:512});
-  await new Promise(r=>setTimeout(r,300));
+  new QRCode(div,{text:`https://games.wasa.chat/pass?id=${passId}`,width:512,height:512,correctLevel:QRCode.CorrectLevel.H});
+  await new Promise(r=>setTimeout(r,400));
   let qrUrl=""; const cv=div.querySelector('canvas'); if(cv) qrUrl=cv.toDataURL(); else qrUrl=div.querySelector('img').src;
   document.body.removeChild(div);
   const qrImg=await loadImg(qrUrl);
   const c=document.getElementById('cvs');
-  c.width=base.naturalWidth||base.width; c.height=base.naturalHeight||base.height;
+  c.width=base.naturalWidth||base.width||1024; c.height=base.naturalHeight||base.height||1560;
   const ctx=c.getContext('2d');
   ctx.drawImage(base,0,0,c.width,c.height);
-  // APODO - EDITAR PORCENTAJES ACA: X=14% Y=82%
   const x=c.width*0.14, y=c.height*0.82, fs=c.width*0.052;
-  ctx.fillStyle="#c67a2e"; ctx.font=`900 ${fs}px Inter`; ctx.fillText(apodo,x,y);
-  // QR en cuadrado turquesa
+  ctx.fillStyle="#c67a2e"; ctx.font=`900 ${fs}px Inter, monospace`; ctx.fillText(apodo,x,y);
   const qs=c.width*0.20, qx=c.width*0.68, qy=c.height*0.695;
   ctx.fillStyle="#fff"; ctx.fillRect(qx-10,qy-10,qs+20,qs+20);
   ctx.drawImage(qrImg,qx,qy,qs,qs);
@@ -177,26 +268,66 @@ async function genFinalImage(apodo, passId){
 }
 
 payBtn.addEventListener('click', async()=>{
-  const apodo=apodoEl.value;
-  if(!wallet || !/^[A-Z0-9_]{3,16}$/.test(apodo)) return;
+  payBtn.dataset.tried="1";
+  // validar apodo obligatorio
+  if(!validateApodo()){
+    apodoEl.classList.add('input-error');
+    apodoError.textContent = !apodoEl.value ? "⚠️ El apodo es obligatorio" : "⚠️ Min 3, max 12, solo A-Z 0-9 _";
+    apodoError.classList.add('show');
+    apodoEl.focus(); return;
+  }
+  // validar email obligatorio si no está oculto
+  if(!validateEmail()){
+    emailEl.classList.add('input-error');
+    emailError.textContent = !emailEl.value.trim() ? "⚠️ Email obligatorio - ahí te llega la imagen del PASS con tu apodo y QR" : "⚠️ Email inválido";
+    emailError.classList.add('show');
+    emailEl.focus(); return;
+  }
+  if(!wallet){ alert("Conectá la wallet primero"); return; }
+
+  const apodo=apodoEl.value.trim().toUpperCase();
+  const finalEmail = (emailEl.value.trim().toLowerCase() || savedEmail || "").toLowerCase();
+  
   try{
-    statusEl.style.display='block'; statusEl.textContent='Enviando 5 USDT...';
-    const amount=BigInt(5)*BigInt(10**18); const amountHex=amount.toString(16);
+    statusEl.style.display='block';
+    statusEl.style.background='rgba(252,211,77,.15)'; statusEl.style.borderColor='#fcd34d'; statusEl.style.color='#fde68a';
+    statusEl.textContent='Enviando 5 USDT en BSC... confirmá en tu wallet';
+
+    if(!receiver){ const cfg=await fetch(WORKER+"/?action=get_wasa_config").then(r=>r.json()); receiver=cfg.receiver||cfg.receiver_wallet; }
+    const amount=BigInt(5)*BigInt(10**18);
+    const amountHex=amount.toString(16);
     const pad=(h)=>h.replace(/^0x/,'').toLowerCase().padStart(64,'0');
     const data='0xa9059cbb'+pad(receiver)+pad(amountHex);
     const txHash=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:wallet,to:USDT,data}]});
-    statusEl.textContent='Tx '+txHash.slice(0,10)+'... confirmando en worker...';
-    const body={action:'confirm_wasa_pass_payment',wallet_address:wallet,apodo,tx_hash:txHash,price:5,tier:'X5'};
+
+    statusEl.textContent='Tx '+txHash.slice(0,10)+'... verificando pago 5 USDT en BSC (5-8s)...';
+
+    const body={action:'confirm_wasa_pass_payment',wallet_address:wallet,email:finalEmail,apodo,tx_hash:txHash,price:5,tier:'X5',chain:'BSC'};
     const r=await fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const j=await r.json();
     if(!j.ok) throw new Error(j.error);
     const passId=j.wasa_pass_id;
+
     statusEl.textContent='Generando PASS con QR... ID '+passId;
     const imgData=await genFinalImage(apodo, passId);
-    await fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send_wasa_pass_email',wasa_pass_id:passId,image_base64:imgData})});
-    statusEl.textContent='¡Listo! PASS enviado a tu email. ID '+passId;
-    const w=window.open(); w.document.write(`<img src="${imgData}" style="max-width:600px;width:100%"><p>${apodo} - ${passId}</p>`);
-  }catch(e){ statusEl.textContent='Error: '+e.message; }
+
+    if(finalEmail){
+      statusEl.textContent='Enviando PASS a '+finalEmail+'...';
+      await fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send_wasa_pass_email',wasa_pass_id:passId,image_base64:imgData,email:finalEmail,apodo})});
+      statusEl.style.background='rgba(34,197,94,.15)'; statusEl.style.borderColor='#22c55e'; statusEl.style.color='#86efac';
+      statusEl.textContent='¡Listo! ✅ PASS enviado a '+finalEmail+' • ID '+passId+' • Ahora ganas x5';
+    } else {
+      statusEl.style.background='rgba(34,197,94,.15)'; statusEl.style.borderColor='#22c55e'; statusEl.style.color='#86efac';
+      statusEl.textContent='¡Listo! ✅ PASS X5 activado • ID '+passId;
+    }
+
+    const w=window.open(); 
+    w.document.write(`<div style="font-family:Inter,sans-serif;text-align:center;padding:20px;background:#0a1020;color:white;min-height:100vh"><h2 style="color:#fcd34d">WASA PASS X5 - ${apodo}</h2><p style="color:#94a3b8">ID: ${passId}</p><img src="${imgData}" style="max-width:600px;width:100%;border-radius:12px;border:2px solid #fcd34d;margin:16px 0"><br><a href="${imgData}" download="WASA_PASS_${apodo}_${passId}.png" style="display:inline-block;margin-top:12px;background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#000;padding:12px 24px;border-radius:9999px;font-weight:900;text-decoration:none">⬇️ DESCARGAR PASS PNG</a><p style="margin-top:16px"><a href="https://games.wasa.chat/pass?id=${passId}" style="color:#38bdf8">games.wasa.chat/pass?id=${passId}</a></p><p style="margin-top:8px;font-size:12px;color:#64748b">Enviado a ${finalEmail||wallet}</p></div>`);
+  }catch(e){
+    statusEl.style.display='block';
+    statusEl.style.background='rgba(239,68,68,.15)'; statusEl.style.borderColor='#ef4444'; statusEl.style.color='#fca5a5';
+    statusEl.textContent='Error: '+e.message;
+  }
 });
 </script>
 </body>
