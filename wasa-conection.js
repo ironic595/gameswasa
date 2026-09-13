@@ -1,4 +1,4 @@
-// wasa-conection.js v9.4 FIX - tu mismo archivo de 112 lineas con connectWith arreglado
+// wasa-conection.js v9.5 FIX - cada wallet va a su pagina, no todo a MetaMask
 const WASA_CONFIG = {
   USDT_CONTRACT: '0x55d398326f99059fF775485246999027B3197955',
   RECEIVER: null,
@@ -60,32 +60,54 @@ function closeForgot(){ const box=document.getElementById('forgotBox'); if(box) 
 async function requestPasswordReset(){ const email=document.getElementById('forgotEmail')?.value.trim().toLowerCase()||''; const el=document.getElementById('forgotStatus'); try{ const r=await fetch(WASA_CONFIG.WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'requestpasswordreset',email})}); const j=await r.json(); if(!j.ok) throw new Error(j.error); if(el){ el.textContent='✅ Código enviado'; el.className='status-box status-ok'; el.style.display='block'; } document.getElementById('forgotStep1').style.display='none'; document.getElementById('forgotStep2').style.display='block'; }catch(e){ if(el){ el.textContent='❌ '+e.message; el.className='status-box status-err'; el.style.display='block'; } } }
 async function verifyPasswordReset(){ const email=document.getElementById('forgotEmail')?.value.trim().toLowerCase()||''; const code=document.getElementById('forgotCode')?.value.trim()||''; const pass=document.getElementById('forgotNewPass')?.value||''; try{ const r=await fetch(WASA_CONFIG.WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'verifypasswordreset',email,code,newPassword:pass})}); const j=await r.json(); if(!j.ok) throw new Error(j.error); closeForgot(); openAuthEmail('login'); }catch(e){} }
 
-// FIX DEFINITIVO - ESTO ERA EL BUG
+// FIX DEFINITIVO - CADA WALLET A SU PAGINA
+const WALLET_LINKS = {
+  metamask: {name:'MetaMask', url:'https://metamask.io/download/', deep:'https://metamask.app.link/dapp/games.wasa.chat/'},
+  trust: {name:'Trust Wallet', url:'https://trustwallet.com/download', deep:'https://link.trustwallet.com/open?url=https://games.wasa.chat/'},
+  rabby: {name:'Rabby', url:'https://rabby.io/', deep:'https://rabby.io/'},
+  okx: {name:'OKX Wallet', url:'https://www.okx.com/web3', deep:'https://www.okx.com/download'}
+};
+
 async function connectWith(type){
   const info=document.getElementById('walletConnectedInfo');
-  const show=(m,c)=>{ if(info){ info.textContent=m; info.className='status-box '+c; info.style.display='block'; console.log('[WALLET]',m); } };
-  try{
-    if(!window.ethereum){
-      show('❌ No detecto billetera. Abrí con MetaMask o instalala','status-err');
-      window.open('https://metamask.io/download/','_blank');
-      return;
+  const show=(m,c)=>{ if(info){ info.textContent=m; info.className='status-box '+c; info.style.display='block'; } };
+  
+  if(type==='email' || type==='Email'){
+    openAuthEmail('login');
+    return;
+  }
+
+  if(!window.ethereum){
+    const w = WALLET_LINKS[type] || WALLET_LINKS.metamask;
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if(isMobile){
+      show(`Abriendo ${w.name}... Si no tenés la app, te lleva a instalarla`, 'status-info');
+      window.location.href = w.deep;
+      setTimeout(()=>window.open(w.url,'_blank'), 2500);
+    } else {
+      show(`No detecto ${w.name}. Instalá ${w.name} - Redirigiendo...`, 'status-err');
+      setTimeout(()=>window.open(w.url,'_blank'), 1000);
     }
-    show('⏳ Conectando...','status-info');
+    return;
+  }
+
+  try{
+    show(`⏳ Conectando con ${WALLET_LINKS[type]?.name||'wallet'}...`, 'status-info');
     const accs=await window.ethereum.request({method:'eth_requestAccounts'});
     const wallet=accs[0];
     if(!wallet) throw new Error('No wallet returned');
     localStorage.setItem('wasa_wallet',wallet.toLowerCase());
     updateWalletUI();
     const email=getStoredEmail();
-    if(email){ await fetch(WASA_CONFIG.WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'link_wallet',email,wallet})}); }
+    if(email){ try{ await fetch(WASA_CONFIG.WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'link_wallet',email,wallet})}); }catch(e){} }
     closeWalletChooser();
-    show('✅ Conectado: '+wallet,'status-ok');
-    setTimeout(()=>openWasaBuy(),300);
+    show('✅ Conectado: '+wallet.slice(0,6)+'...'+wallet.slice(-4),'status-ok');
+    setTimeout(()=>{ if(document.getElementById('wasaBuyModal')) openWasaBuy(); },300);
   }catch(e){
-    console.error('connectWith fail',e);
-    show('❌ '+(e.message||'Rechazado por el usuario'),'status-err');
+    show('❌ '+(e.message||'Rechazado'),'status-err');
   }
 }
+
 async function buyWasa(wasaAmount){ const usdt=WASA_CONFIG.PRICES[wasaAmount]; const el=document.getElementById('buyStatus'); if(el){ el.textContent='⏳ Pago '+usdt+' USDT -> '+wasaAmount+' WASA...'; el.className='status-box status-info'; el.style.display='block'; } }
 function openVerifyModal(email){ const m=document.getElementById('verifyEmailModal'); if(!m) return; const lbl=document.getElementById('verifyEmailLabel'); if(lbl) lbl.textContent=email||pendingVerifyEmail||'tu email'; m.classList.add('open'); pendingVerifyEmail=email||pendingVerifyEmail; }
 function closeVerifyModal(){ document.getElementById('verifyEmailModal')?.classList.remove('open'); }
