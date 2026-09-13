@@ -38,28 +38,54 @@ async function loadImageObfuscated(url){
   }
 }
 
+async function ensureFixedsys(){
+  try {
+    const fontFace = new FontFace('FixedsysTTF', 'url(/fnts/Fixedsys.ttf)', { weight: '200' });
+    await fontFace.load();
+    document.fonts.add(fontFace);
+    await document.fonts.ready;
+    await document.fonts.load(`200 14px FixedsysTTF`);
+  } catch(e) {
+    console.warn('FixedsysTTF no cargo, fallback', e);
+    try { await document.fonts.load(`200 14px Fixedsys`); await document.fonts.ready; } catch {}
+  }
+}
+
 export async function crearWasaPassFinal({codeId, apodo, email, tx_hash, multiplier=5}){
   if(!codeId) codeId=genId10();
   const cleanApodo = (apodo||'PLAYER').toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,12);
+  await ensureFixedsys();
   
   const W=1024, H=1560;
   const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
   const ctx=canvas.getContext('2d');
+  ctx.imageSmoothingEnabled=false;
 
   const base=await loadImageObfuscated(BASE_IMG_URL);
   ctx.drawImage(base,0,0,W,H);
 
-  // 1. APODO - rectangulo inferior izq (nuevo layout)
+  // 1. APODO - layout 12% x 85.2% w62% h8.8% - ESTILO EMBOSS REAL como founders
   const nickRect={x:Math.floor(W*0.12), y:Math.floor(H*0.852), w:Math.floor(W*0.62), h:Math.floor(H*0.088)};
-  ctx.fillStyle='#FFFFFF';
-  ctx.fillRect(nickRect.x+4, nickRect.y+4, nickRect.w-8, nickRect.h-8);
-  // borde sutil
-  ctx.strokeStyle='rgba(0,0,0,0.15)'; ctx.lineWidth=2; ctx.strokeRect(nickRect.x+4, nickRect.y+4, nickRect.w-8, nickRect.h-8);
-  ctx.fillStyle='#0A2A3A';
-  // Fuente Fixedsys si esta cargada, sino monospace bold
-  ctx.font=`bold ${Math.floor(nickRect.h*0.50)}px Fixedsys, monospace`;
+  const fontSize = Math.floor(nickRect.h*0.55);
+  const yPos = nickRect.y + nickRect.h/2 + 2;
+  const xPos = nickRect.x + nickRect.w/2;
   ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText(cleanApodo, nickRect.x+nickRect.w/2, nickRect.y+nickRect.h/2+2);
+  ctx.font = `200 ${fontSize}px "FixedsysTTF", "Fixedsys", "Courier New", Courier, monospace`;
+  try { ctx.letterSpacing = '4px'; } catch {}
+  const shadows = [
+    {dx: 3, dy: 3, color: '#091721'},
+    {dx: 2, dy: 2, color: '#210d02'},
+    {dx: 1, dy: 1, color: '#5e2a09'},
+    {dx: -1, dy: 1, color: '#944d1a'},
+    {dx: 1, dy: -1, color: '#944d1a'},
+    {dx: -1, dy: -1, color: '#ffcc99'},
+  ];
+  for(const s of shadows){
+    ctx.fillStyle = s.color;
+    ctx.fillText(cleanApodo, xPos + s.dx, yPos + s.dy);
+  }
+  ctx.fillStyle = '#d99152';
+  ctx.fillText(cleanApodo, xPos, yPos);
 
   // 2. QR CUADRADO abajo der - 100% compatible (no rMQR)
   const qrValue=`https://games.wasa.chat/pass?id=${codeId}`;
