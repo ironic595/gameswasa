@@ -5,235 +5,122 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WASA PASS X5 - games.wasa.chat</title>
 <link rel="icon" type="image/png" href="img/founderswasa.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@800;900&display=swap" rel="stylesheet">
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{background:radial-gradient(ellipse at 50% 0%, rgba(79, 70, 229, 0.15) 0%, transparent 70%), radial-gradient(ellipse at 100% 80%, rgba(245, 158, 11, 0.10) 0%, transparent 60%), linear-gradient(180deg, #2046a3 0%, #332891 40%, #315bd5 100%);color:#e2e8f0;font-family:Inter,system-ui,sans-serif;font-size:13px;line-height:1.5;overflow-x:hidden;min-height:100vh}
-  button{cursor:pointer;border:0;background:0;color:inherit;font:inherit}
-  /* HEADER IGUAL QUE INDEX - SIN SEARCH */
-  header{position:sticky;top:0;z-index:10;background:rgba(5,8,20,0.75);backdrop-filter:blur(12px);border-bottom:1px solid rgba(56,189,248,0.15);display:flex;align-items:center;gap:16px;padding:12px 20px;height:52px}
-  #headerCoins{margin-left:auto;background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);color:#000;font-weight:800;border:none;box-shadow:0 0 12px rgba(251,191,36,0.3);cursor:pointer;display:flex;align-items:center;justify-content:center;height:32px;padding:0 12px;border-radius:20px;font-size:11px;order:2}
-  .right{display:flex;align-items:center;gap:12px;position:relative;margin-left:0;order:3}
-  .wallet-group{display:flex;align-items:center;gap:10px}
-  .wallet{border:1px solid rgba(56,189,248,0.3);border-radius:20px;padding:5px 12px;font-size:11px;background:linear-gradient(135deg, rgba(56,189,248,0.1), rgba(168,85,247,0.1));white-space:nowrap;order:1}
-  .wallet.connected{background:linear-gradient(135deg,#38bdf8 0%,#818cf8 100%);color:#0f172a;border-color:transparent;font-weight:600}
-  .user-btn{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:800;cursor:pointer;transition:.2s;flex-shrink:0;order:2}
-  .user-btn.disconnected{background:#1e293b;border:1px solid rgba(255,255,255,0.1);color:#64748b;}
-  .user-btn.connected{background:linear-gradient(135deg,#fbbf24,#f59e0b);border:2px solid rgba(251,191,36,0.6);color:#000;box-shadow:0 0 14px rgba(251,191,36,0.4);}
-  .user-dropdown{position:absolute;top:48px;right:0;width:180px;background:#0f172a;border:1px solid rgba(56,189,248,0.25);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.5);display:none;flex-direction:column;overflow:hidden;z-index:90}
-  .user-dropdown.open{display:flex}
-  .user-dropdown button{padding:12px 14px;text-align:left;font-size:12px;color:#e2e8f0;transition:.15s}
-  .user-dropdown button:hover{background:rgba(56,189,248,0.12)}
-  .user-dropdown button.danger{color:#f87171}
-  .logo{display:block;width:145px;height:32px;flex-shrink:0;background-image:url('/img/wasagames.png');background-repeat:no-repeat;background-size:contain;background-position:left center;}
-  @media(max-width:700px){header{height:auto;padding:12px 16px;display:grid;grid-template-columns:1fr auto;grid-template-areas:"logo walletgroup" "coins coins";gap:14px;align-items:center} .logo{grid-area:logo} #headerCoins{grid-area:coins;justify-self:end;align-self:center;height:38px;display:flex} .right{grid-area:walletgroup;justify-self:end;display:flex;gap:8px;position:relative} #userDropdown{top:56px;right:0} }
-
-  /* WASA PASS LAYOUT */
-  .page{width:80%;margin:0 auto}
-  @media(max-width:768px){.page{width:95%}}
-  .hero{padding:24px 0;min-height:240px;display:flex;align-items:center;border-bottom:1px solid rgba(103,232,249,0.10)}
-  .hero-inner{display:flex;justify-content:space-between;align-items:center;gap:24px;width:100%}
-  .hero-right{width:280px}
-  .hero-right img{width:80%;object-fit:contain;background:transparent;filter:drop-shadow(0 20px 40px rgba(0,0,0,0.5))}
-  @media(max-width:768px){.hero-right{width:140px}.hero{padding:16px 0;min-height:180px}}
-  @keyframes float{0%{transform:translateY(0)}50%{transform:translateY(-12px)}100%{transform:translateY(0)}}
-  .float{animation:float 4.2s ease-in-out infinite}
-  .layout{display:grid;grid-template-columns:1fr 380px;gap:24px;padding:24px 0 60px;align-items:start}
-  @media(max-width:900px){.layout{grid-template-columns:1fr}}
-  .card{border-radius:18px;border:1px solid rgba(103,232,249,0.15);background:rgba(15,23,42,0.75);overflow:hidden;backdrop-filter:blur(8px)}
-  .card-h{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;align-items:center}
-  .card-b{padding:18px;display:flex;flex-direction:column;gap:14px}
-  .input{width:100%;height:44px;border-radius:10px;background:#0f172a;border:1px solid rgba(103,232,249,0.20);color:white;padding:0 14px;font-weight:900;font-size:16px;letter-spacing:0.06em;outline:none;transition:.2s}
-  .input-error{border-color:#ef4444 !important;box-shadow:0 0 0 3px rgba(239,68,68,.25) !important;background:#1a0f14 !important}
-  .input-ok{border-color:#22c55e !important;background:rgba(34,197,94,.08) !important}
-  .error-msg{font-size:10px;color:#fca5a5;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);padding:6px 10px;border-radius:8px;display:none}
-  .error-msg.show{display:block}
-  .info-msg{font-size:10px;color:#86efac;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);padding:8px 12px;border-radius:10px}
-  .preview{position:relative;border-radius:12px;overflow:hidden;background:#0b1020;border:1px solid rgba(255,255,255,0.10);aspect-ratio:1/1}
-  .preview img{width:100%;height:100%;object-fit:contain}
-  @font-face{font-family:'Fixedsys';src:url('fnts/Fixedsys.ttf') format('truetype');}
-  .apodo{position:absolute;left:26%;bottom:10%;font-family:Fixedsys;font-size:19px;font-weight:200;letter-spacing:4px;text-transform:uppercase;border-style:outset;color:#d99152;text-shadow:1px 1px 0 #091721,2px 2px 0 #210d02,1px 1px 0 #5e2a09,-1px 1px 0 #944d1a,1px -1px 0 #944d1a,-1px -1px 0 #ffcc99;}
-  .btn{height:44px;border-radius:10px;border:1px solid rgba(103,232,249,0.15);background:rgba(255,255,255,0.03);color:white;width:100%;cursor:pointer;font-weight:700;transition:.2s}
-  .btn-gold{background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#000;border:0;font-weight:900}
-  .btn:disabled{opacity:.4;cursor:not-allowed}
-
-  /* MODALES IGUAL QUE INDEX */
-  .wasa-overlay{position:fixed;inset:0;background:rgba(3,6,16,0.3);backdrop-filter:blur(4px);z-index:80;display:none;align-items:center;justify-content:center;padding:16px}
-  .wasa-overlay.open{display:flex}
-  .wasa-box{width:100%;max-width:420px;background:linear-gradient(180deg,#101a2e,#0b1329);border:1px solid rgba(56,189,248,0.25);border-radius:20px;padding:20px;box-shadow:0 24px 64px rgba(0,0,0,.6)}
-  .wasa-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-  .wasa-head b{font-size:14px;color:#f8fafc}
-  .wasa-close{width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:#0f172a;display:grid;place-items:center;cursor:pointer}
-  .wallet-opt{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid rgba(56,189,248,0.15);border-radius:14px;margin-bottom:10px;cursor:pointer;background:rgba(255,255,255,0.03)}
-  .wallet-opt:hover{background:rgba(56,189,248,0.12);border-color:#38bdf8}
-  .wallet-opt img{width:32px;height:32px;border-radius:8px;background:white}
-  .buy-opt{display:flex;justify-content:space-between;align-items:center;padding:16px;border:1px solid rgba(251,191,36,0.2);border-radius:14px;margin-bottom:10px;cursor:pointer;background:linear-gradient(135deg,rgba(251,191,36,0.08),rgba(245,158,11,0.05))}
-  .buy-opt:hover{border-color:#fbbf24}
-  .buy-opt b{font-size:15px;color:#fbbf24}
-  .input-wasa{width:100%;height:44px;border-radius:10px;border:1px solid rgba(56,189,248,0.2);background:#0f172a;color:white;padding:0 14px;margin-bottom:10px;outline:none}
-  .input-wasa:focus{border-color:#38bdf8}
-  .btn-wasa{width:100%;height:48px;border-radius:12px;border:0;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
-  .btn-wasa-primary{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000}
-  .btn-wasa-secondary{background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.1)}
-  .status-box{font-size:11px;padding:8px 12px;border-radius:8px;margin-bottom:10px;display:none;word-break:break-all}
-  .status-ok{background:#DCFCE7;color:#166534;border:1px solid #86EFAC}
-  .status-err{background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5}
-  .status-info{background:rgba(56,189,248,0.1);color:#38bdf8;border:1px solid rgba(56,189,248,0.2)}
-  .tabs{display:flex;gap:8px;margin-bottom:16px;background:#0a0f24;padding:4px;border-radius:12px;border:1px solid rgba(56,189,248,0.15)}
-  .tab{flex:1;padding:10px;border-radius:8px;text-align:center;font-weight:600;cursor:pointer;color:#94a3b8}
-  .tab.active{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000}
-  .forgot-link{font-size:11px;color:#38bdf8;cursor:pointer;text-decoration:underline}
-  .forgot-box{display:none;margin-top:12px;padding:12px;background:rgba(0,0,0,0.3);border-radius:12px}
-  .forgot-box.open{display:block}
-  .profile-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:12px}
-  .profile-row b{color:#94a3b8;font-weight:500}
-  .profile-row span{color:white;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:radial-gradient(ellipse at 50% 0%, rgba(79,70,229,0.15) 0%, transparent 70%), linear-gradient(180deg,#2046a3 0%,#332891 40%,#315bd5 100%);color:#e2e8f0;font-family:Inter,system-ui,sans-serif;min-height:100vh}
+header{position:sticky;top:0;z-index:10;background:rgba(5,8,20,0.75);backdrop-filter:blur(12px);border-bottom:1px solid rgba(56,189,248,0.15);display:flex;align-items:center;gap:16px;padding:12px 20px;height:52px}
+#headerCoins{margin-left:auto;background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);color:#000;font-weight:800;height:32px;padding:0 12px;border-radius:20px;font-size:11px;display:flex;align-items:center}
+.right{display:flex;align-items:center;gap:12px;position:relative}
+.wallet{border:1px solid rgba(56,189,248,0.3);border-radius:20px;padding:5px 12px;font-size:11px;white-space:nowrap}
+.wallet.connected{background:linear-gradient(135deg,#38bdf8 0%,#818cf8 100%);color:#0f172a;font-weight:600}
+.user-btn{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:800;cursor:pointer}
+.user-btn.disconnected{background:#1e293b;color:#64748b}
+.user-btn.connected{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000}
+.user-dropdown{position:absolute;top:48px;right:0;width:180px;background:#0f172a;border:1px solid rgba(56,189,248,0.25);border-radius:12px;display:none;flex-direction:column;z-index:90}
+.user-dropdown.open{display:flex}
+.user-dropdown button{padding:12px 14px;text-align:left;font-size:12px}
+.logo{display:block;width:145px;height:32px;background-image:url('/img/wasagames.png');background-size:contain;background-repeat:no-repeat}
+.page{width:80%;margin:0 auto} @media(max-width:768px){.page{width:95%}}
+.layout{display:grid;grid-template-columns:1fr 380px;gap:24px;padding:24px 0 60px} @media(max-width:900px){.layout{grid-template-columns:1fr}}
+.card{border-radius:18px;border:1px solid rgba(103,232,249,0.15);background:rgba(15,23,42,0.75);overflow:hidden}
+.card-h{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;align-items:center}
+.card-b{padding:18px;display:flex;flex-direction:column;gap:14px}
+.input{width:100%;height:44px;border-radius:10px;background:#0f172a;border:1px solid rgba(103,232,249,0.20);color:white;padding:0 14px;font-weight:900;font-size:16px;outline:none}
+.input-error{border-color:#ef4444 !important;background:#1a0f14 !important}
+.input-ok{border-color:#22c55e !important}
+.preview{position:relative;border-radius:12px;overflow:hidden;background:#0b1020;border:1px solid rgba(255,255,255,0.10);aspect-ratio:1/1}
+.preview img{width:100%;height:100%;object-fit:contain}
+@font-face{font-family:'Fixedsys';src:url('fnts/Fixedsys.ttf') format('truetype');}
+.apodo{position:absolute;left:26%;bottom:10%;font-family:Fixedsys;font-size:19px;letter-spacing:4px;text-transform:uppercase;color:#d99152;text-shadow:1px 1px 0 #091721,2px 2px 0 #210d02;}
+.btn{height:44px;border-radius:10px;color:white;width:100%;cursor:pointer;font-weight:700}
+.btn-gold{background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#000;font-weight:900}
+.btn:disabled{opacity:.4}
+.wasa-overlay{position:fixed;inset:0;background:rgba(3,6,16,0.5);backdrop-filter:blur(6px);z-index:80;display:none;align-items:center;justify-content:center;padding:16px} .wasa-overlay.open{display:flex}
+.wasa-box{width:100%;max-width:420px;background:linear-gradient(180deg,#101a2e,#0b1329);border:1px solid rgba(56,189,248,0.25);border-radius:20px;padding:20px}
+.wasa-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.wasa-close{width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:#0f172a;display:grid;place-items:center;cursor:pointer}
+.wallet-opt{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid rgba(56,189,248,0.15);border-radius:14px;margin-bottom:10px;cursor:pointer;background:rgba(255,255,255,0.03)}
+.input-wasa{width:100%;height:44px;border-radius:10px;border:1px solid rgba(56,189,248,0.2);background:#0f172a;color:white;padding:0 14px;margin-bottom:10px}
+.btn-wasa{width:100%;height:48px;border-radius:12px;border:0;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.btn-wasa-primary{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000}
+.status-box{font-size:11px;padding:8px 12px;border-radius:8px;margin-bottom:10px;display:none}
+.status-ok{background:#DCFCE7;color:#166534} .status-err{background:#FEE2E2;color:#991B1B} .status-info{background:rgba(56,189,248,0.1);color:#38bdf8}
+.tabs{display:flex;gap:8px;margin-bottom:16px;background:#0a0f24;padding:4px;border-radius:12px} .tab{flex:1;padding:10px;border-radius:8px;text-align:center;cursor:pointer;color:#94a3b8} .tab.active{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000}
 </style>
 </head>
 <body>
 <header>
-  <a href="/" class="logo" aria-label="Wasa Games"></a>
-  <!-- SIN BARRA DE BUSQUEDA COMO PEDISTE -->
-  <div class="pill coins" id="headerCoins" onclick="openWasaBuy()" style="background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);color:#000;font-weight:800;border:none;box-shadow:0 0 12px rgba(251,191,36,0.3);cursor:pointer;">0.00 $WASA</div>
+  <a href="/" class="logo"></a>
+  <div id="headerCoins">0.00 $WASA</div>
   <div class="right">
     <button class="wallet" id="walletBtn" onclick="handleWalletBtn()">Connect Wallet</button>
     <button class="user-btn disconnected" id="userBtn" onclick="handleUserBtn()">?</button>
-    <div id="userDropdown" class="user-dropdown">
-      <button onclick="openUserProfile()">👤 Datos de Usuario</button>
-      <button class="danger" onclick="logoutUser()">🚪 Cerrar Sesión</button>
-    </div>
+    <div id="userDropdown" class="user-dropdown"><button onclick="openUserProfile()">👤 Datos</button><button onclick="logoutUser()">🚪 Salir</button></div>
   </div>
 </header>
 
 <div class="page">
-<section class="hero">
-<div class="hero-inner">
-<div>
-<div style="font-size:9px;letter-spacing:0.14em;color:#fcd34d;border:1px solid rgba(252,211,77,0.3);display:inline-block;padding:3px 10px;border-radius:9999px;margin-bottom:8px">LIMITED EDITION 2026 • 500 UNIDADES</div>
-<h1 style="font-size:44px;font-weight:900;line-height:0.9;text-transform:uppercase"><span style="font-size:12px;display:block;color:rgba(255,255,255,0.7);letter-spacing:0.2em">WASA PASS</span><span style="background:linear-gradient(135deg,#fde68a,#f59e0b);-webkit-background-clip:text;color:transparent">Multiplica tus $WASA</span> <span style="color:#fcd34d">x5</span></h1>
-<p style="margin-top:10px;font-size:12px;color:rgba(207,250,254,0.7)">De 0.0003 a 0.0015 $WASA por partida. Solo 500 unidades. Pago verificado en BSC.</p>
-<button style="margin-top:14px;height:40px;padding:0 18px;border-radius:9999px;background:linear-gradient(135deg,#fcd34d,#f59e0b);border:0;font-weight:900;cursor:pointer" onclick="document.getElementById('compra').scrollIntoView({behavior:'smooth'})">COMPRAR POR 5 USDT →</button>
-</div>
-<div class="hero-right"><img src="img/wasapasshero.png" class="float" alt="WASA PASS" onerror="this.src='img/founderswasa.png'"></div>
-</div>
-</section>
-
 <section id="compra" class="layout">
 <div class="card">
-<div class="card-h"><div><div style="font-size:10px;color:#67e8f9;letter-spacing:0.1em">CHECKOUT</div><div style="font-weight:900;color:white">Personalizá tu WASA PASS</div></div><div style="font-weight:900;color:#fcd34d">5 USDT</div></div>
+<div class="card-h"><div>Personalizá tu WASA PASS</div><div style="color:#fcd34d;font-weight:900">5 USDT</div></div>
 <div class="card-b">
 <div id="userInfoBox"></div>
-
 <div>
   <label style="font-size:10px;color:#cbd5e1">TU APODO (GRABADO EN EL PASS) *</label>
-  <input id="apodo" class="input" placeholder="PEPERTRULS" maxlength="12" autocomplete="off">
-  <div id="cnt" style="font-size:9px;color:#64748b;margin-top:4px">0/12 - Min 3, Max 12 (A-Z 0-9 _)</div>
-  <div id="apodoError" class="error-msg">⚠️ Apodo obligatorio - 3 a 12 caracteres (A-Z 0-9 _)</div>
+  <input id="apodo" class="input" placeholder="PEPERTRULS" maxlength="12" autocomplete="off" spellcheck="false">
+  <div id="cnt" style="font-size:9px;color:#64748b;margin-top:4px">0/12 - Min 3, Max 12</div>
+  <div id="apodoError" style="display:none;color:#f87171;font-size:10px">⚠️ Apodo obligatorio 3-12</div>
 </div>
-
 <div id="emailBox">
-  <label style="font-size:10px;color:#cbd5e1">TU EMAIL <span id="emailReq" style="color:#fcd34d">* obligatorio para recibir el PASS</span></label>
-  <input id="email" class="input" placeholder="tu@email.com" type="email" autocomplete="email">
-  <div id="emailInfo" style="font-size:9px;color:#64748b;margin-top:4px"></div>
-  <div id="emailError" class="error-msg">⚠️ Email obligatorio - ahí te llega la imagen del PASS con tu apodo y QR</div>
+  <label style="font-size:10px;color:#cbd5e1">TU EMAIL * obligatorio</label>
+  <input id="email" class="input" placeholder="tu@email.com" type="email">
+  <div id="emailError" style="display:none;color:#f87171;font-size:10px">⚠️ Email obligatorio</div>
 </div>
-
-<button id="conn" class="btn" style="display:none">Conectar Wallet BSC (interno)</button>
-<div id="status" style="display:none;font-size:11px;padding:10px;border-radius:10px"></div>
+<div id="status" style="display:none;font-size:11px;padding:10px;border-radius:10px;border:1px solid transparent"></div>
 <button id="pay" class="btn btn-gold">Pagar 5 USDT → X5 ⚡</button>
-<div style="font-size:9px;color:#64748b;text-align:center">BSC BEP20 • transfer(receiver, 5e18) • X5 en todos los juegos • Verificado on-chain</div>
 </div>
 </div>
 
 <div class="card">
-<div class="card-h"><div style="font-size:10px;color:#67e8f9">PREVIEW EN VIVO (QR solo al comprar)</div><div id="prevTitle" style="font-size:12px;font-weight:900;color:white">NICKNAME • X5</div></div>
+<div class="card-h"><div style="font-size:10px;color:#67e8f9">PREVIEW EN VIVO</div><div id="prevTitle" style="font-size:12px;font-weight:900">NICKNAME • X5</div></div>
 <div style="padding:14px">
 <div class="preview">
-<img id="base" src="./xc32487hfd.klf" alt="base" onerror="this.src='img/wasapasshero.png'">
+<img id="base" src="./xc32487hfd.klf" onerror="this.src='img/wasapasshero.png'">
 <div id="prevApodo" class="apodo">YOUR NICKNAME</div>
 </div>
-<div style="margin-top:8px;font-size:9px;color:#64748b">Layout: apodo 12% x 85.2% • QR 79% x 84.6% • 1024x1560 • Email obligatorio para wallet/guest</div>
 </div>
 </div>
 <canvas id="cvs" style="display:none"></canvas>
 </section>
 </div>
 
-<!-- MODALES IGUAL QUE INDEX -->
 <div id="walletChooser" class="wasa-overlay" onclick="if(event.target===this) closeWalletChooser()">
   <div class="wasa-box">
     <div class="wasa-head"><b>Conectar billetera</b><button class="wasa-close" onclick="closeWalletChooser()">✕</button></div>
     <div id="walletConnectedInfo" class="status-box status-info" style="display:none"></div>
-    <div class="wallet-opt" onclick="connectWith('metamask')"><img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg"><div><b>MetaMask</b></div></div>
-    <div class="wallet-opt" onclick="connectWith('trust')"><img src="https://trustwallet.com/assets/images/media/assets/trust_platform.svg"><div><b>Trust Wallet</b></div></div>
-    <div class="wallet-opt" onclick="connectWith('rabby')"><img src="https://rabby.io/assets/images/logo.png"><div><b>Rabby</b></div></div>
-    <div class="wallet-opt" onclick="connectWith('okx')"><img src="https://static.okx.com/cdn/assets/imgs/221/6FEEB1A3C4A6B5A.png"><div><b>OKX Wallet</b></div></div>
-    <div class="wallet-opt" onclick="openAuthEmail()"><div style="width:32px;height:32px;border-radius:8px;background:#0f172a;display:grid;place-items:center">📧</div><div><b>Email / Contraseña</b></div></div>
+    <div class="wallet-opt" onclick="connectWith('metamask')"><img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" width="32"><div><b>MetaMask</b></div></div>
+    <div class="wallet-opt" onclick="connectWith('trust')"><img src="https://trustwallet.com/assets/images/media/assets/trust_platform.svg" width="32"><div><b>Trust Wallet</b></div></div>
+    <div class="wallet-opt" onclick="connectWith('rabby')"><img src="https://rabby.io/assets/images/logo.png" width="32"><div><b>Rabby</b></div></div>
+    <div class="wallet-opt" onclick="connectWith('okx')"><img src="https://static.okx.com/cdn/assets/imgs/221/6FEEB1A3C4A6B5A.png" width="32"><div><b>OKX Wallet</b></div></div>
+    <div class="wallet-opt" onclick="openAuthEmail('login')"><div style="width:32px;height:32px;background:#0f172a;display:grid;place-items:center;border-radius:8px">📧</div><div><b>Email / Contraseña</b></div></div>
   </div>
 </div>
 
-<div id="wasaBuyModal" class="wasa-overlay" onclick="if(event.target===this) closeWasaBuy()">
-  <div class="wasa-box">
-    <div class="wasa-head"><b>Comprar $WASA con USDT</b><button class="wasa-close" onclick="closeWasaBuy()">✕</button></div>
-    <div style="font-size:11px;color:#94a3b8;margin-bottom:12px">Red: BSC (BEP20) • Pago con USDT</div>
-    <div id="buyStatus" class="status-box"></div>
-    <div class="buy-opt" onclick="buyWasa(10)"><div><b>200 WASA</b><br><small>Pack inicial</small></div><div style="text-align:right"><b>2 USDT</b></div></div>
-    <div class="buy-opt" onclick="buyWasa(50)"><div><b>1000 WASA</b><br><small>Más popular</small></div><div style="text-align:right"><b>10 USDT</b></div></div>
-    <div class="buy-opt" onclick="buyWasa(100)"><div><b>2000 WASA</b><br><small>Pro gamer</small></div><div style="text-align:right"><b>19 USDT</b></div></div>
-    <div style="margin-top:12px"><button class="btn-wasa btn-wasa-secondary" onclick="closeWasaBuy();openWalletChooser()">🔌 Conectar otra billetera</button></div>
-    <div style="font-size:10px;color:#64748b;margin-top:10px;text-align:center" id="configFooter">USDT BSC: cargando config...</div>
-  </div>
-</div>
-
-<div id="authModal" class="wasa-overlay">
-  <div class="wasa-box">
-    <div class="wasa-head"><b>Mi Cuenta</b><button class="wasa-close" onclick="closeAuthEmail()">✕</button></div>
-    <div class="tabs"><div id="tabLogin" class="tab active" onclick="switchAuthTab('login')">Entrar</div><div id="tabRegister" class="tab" onclick="switchAuthTab('register')">Crear cuenta</div></div>
-    <div id="loginForm"><input id="authEmail" class="input-wasa" placeholder="Email"><input id="authPass" class="input-wasa" type="password" placeholder="Contraseña"><span class="forgot-link" onclick="openForgot()">¿Olvidaste tu contraseña?</span><div id="authStatus" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="doLogin()">Entrar</button><div id="forgotBox" class="forgot-box"><div id="forgotStep1"><input id="forgotEmail" class="input-wasa" placeholder="Tu email"><div id="forgotStatus" class="status-box"></div><button class="btn-wasa btn-wasa-secondary" onclick="requestPasswordReset()">Enviar código</button></div><div id="forgotStep2" style="display:none"><input id="forgotCode" class="input-wasa" placeholder="Código 6 dígitos" maxlength="6"><input id="forgotNewPass" class="input-wasa" type="password" placeholder="Nueva contraseña"><button class="btn-wasa btn-wasa-primary" onclick="verifyPasswordReset()">Cambiar contraseña</button></div></div></div>
-    <div id="registerForm" style="display:none"><input id="authEmailReg" class="input-wasa" placeholder="Email"><input id="authPassReg" class="input-wasa" type="password" placeholder="Contraseña"><input id="authNickReg" class="input-wasa" placeholder="Apodo"><div id="authStatusReg" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="doRegister()">Crear cuenta</button></div>
-  </div>
-</div>
-
-<div id="userProfileModal" class="wasa-overlay" onclick="if(event.target===this) closeUserProfile()">
-  <div class="wasa-box">
-    <div class="wasa-head"><b>👤 Mi Perfil</b><button class="wasa-close" onclick="closeUserProfile()">✕</button></div>
-    <div style="text-align:center;margin-bottom:16px"><div style="width:72px;height:72px;margin:0 auto;border-radius:50%;border:3px solid #fbbf24;background:linear-gradient(135deg,#fbbf24,#f59e0b);display:grid;place-items:center;font-size:32px">👤</div><div id="profileDisplayName" style="margin-top:8px;font-weight:700;color:#fbbf24;font-size:14px">Invitado</div></div>
-    <div class="profile-row"><b>Email</b><span id="profileEmail">No logeado</span></div>
-    <div class="profile-row"><b>Wallet</b><span id="profileWallet">No conectada</span></div>
-    <div class="profile-row"><b>$WASA</b><span id="profileCoins">0</span></div>
-    <div style="margin-top:10px"><label style="font-size:11px;color:#94a3b8">Wallets linkeadas</label><div id="profileWalletsList" style="background:rgba(0,0,0,0.2);border-radius:8px;padding:6px 10px;margin-top:4px"></div></div>
-    <div style="margin-top:16px"><label style="font-size:11px;color:#94a3b8">Apodo</label><input id="profileNickname" class="input-wasa" placeholder="Tu apodo" maxlength="20"><div id="profileStatus" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="saveProfile()">💾 Guardar apodo</button><button class="btn-wasa btn-wasa-secondary" style="margin-top:8px" onclick="logoutUser()">🚪 Cerrar Sesión</button></div>
-  </div>
-</div>
-
-<div id="verifyEmailModal" class="wasa-overlay">
-  <div class="wasa-box">
-    <div class="wasa-head"><b>✉ Verifica tu email</b><button class="wasa-close" onclick="closeVerifyModal()">✕</button></div>
-    <div style="padding:12px 0">
-      <p style="font-size:12px;color:#cbd5e1;margin-bottom:8px">Enviamos un código de 6 dígitos a <b id="verifyEmailLabel" style="color:#fbbf24">tu email</b></p>
-      <p style="font-size:10px;color:#64748b;margin-bottom:12px">Revisá spam. Expira en 15 min.</p>
-      <input id="verifyCodeInput" class="input-wasa" placeholder="Código 6 dígitos" maxlength="6" style="letter-spacing:4px;text-align:center;font-size:18px;font-weight:800">
-      <div id="verifyStatus" class="status-box"></div>
-      <button class="btn-wasa btn-wasa-primary" onclick="doVerifyEmail()">✅ Verificar y activar cuenta</button>
-      <button class="btn-wasa btn-wasa-secondary" style="margin-top:8px" onclick="resendVerifyCode()">📨 Reenviar código</button>
-    </div>
-  </div>
-</div>
+<div id="authModal" class="wasa-overlay"><div class="wasa-box"><div class="wasa-head"><b>Mi Cuenta</b><button class="wasa-close" onclick="closeAuthEmail()">✕</button></div><div class="tabs"><div id="tabLogin" class="tab active" onclick="switchAuthTab('login')">Entrar</div><div id="tabRegister" class="tab" onclick="switchAuthTab('register')">Crear</div></div><div id="loginForm"><input id="authEmail" class="input-wasa" placeholder="Email"><input id="authPass" class="input-wasa" type="password" placeholder="Contraseña"><div id="authStatus" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="doLogin()">Entrar</button></div><div id="registerForm" style="display:none"><input id="authEmailReg" class="input-wasa" placeholder="Email"><input id="authPassReg" class="input-wasa" type="password" placeholder="Contraseña"><input id="authNickReg" class="input-wasa" placeholder="Apodo"><div id="authStatusReg" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="doRegister()">Crear cuenta</button></div></div></div>
+<div id="userProfileModal" class="wasa-overlay" onclick="if(event.target===this) closeUserProfile()"><div class="wasa-box"><div class="wasa-head"><b>👤 Mi Perfil</b><button class="wasa-close" onclick="closeUserProfile()">✕</button></div><div id="profileDisplayName" style="color:#fbbf24;font-weight:700;text-align:center">Invitado</div><div id="profileEmail">No logeado</div><div id="profileWallet">No conectada</div><div id="profileCoins">0</div><div id="profileWalletsList"></div><input id="profileNickname" class="input-wasa" placeholder="Apodo"><div id="profileStatus" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="saveProfile()">💾 Guardar</button></div></div>
+<div id="wasaBuyModal" class="wasa-overlay"><div class="wasa-box"><div class="wasa-head"><b>Comprar $WASA</b><button class="wasa-close" onclick="closeWasaBuy()">✕</button></div><div id="buyStatus" class="status-box"></div></div></div>
+<div id="verifyEmailModal" class="wasa-overlay"><div class="wasa-box"><div class="wasa-head"><b>Verifica</b><button class="wasa-close" onclick="closeVerifyModal()">✕</button></div><input id="verifyCodeInput" class="input-wasa" placeholder="Código"><div id="verifyStatus" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="doVerifyEmail()">Verificar</button></div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-// CONFIG FINAL v9.8 con NAV del index
 const WORKER = "https://games-wasa-worker.javimsites.workers.dev";
 const USDT = "0x55d398326f99059fF775485246999027B3197955";
 const BSC_CHAIN = "0x38";
-let wallet="", receiver="";
-let apodoDeD1 = "";
+let wallet="", receiver="", apodoDeD1="";
 
 const apodoEl = document.getElementById('apodo');
 const emailEl = document.getElementById('email');
 const emailBox = document.getElementById('emailBox');
-const emailInfo = document.getElementById('emailInfo');
-const emailReq = document.getElementById('emailReq');
 const prevApodo = document.getElementById('prevApodo');
 const prevTitle = document.getElementById('prevTitle');
 const cnt = document.getElementById('cnt');
@@ -247,97 +134,45 @@ fetch(WORKER+"/?action=get_wasa_config").then(r=>r.json()).then(j=>{receiver=j.r
 
 function getSavedEmail(){ return (localStorage.getItem('wasa_email')||'').toLowerCase().trim(); }
 function getSavedWallet(){ return (localStorage.getItem('wasa_wallet')||'').toLowerCase().trim(); }
-function getSavedNick(){ return (localStorage.getItem('wasa_nickname')||'').toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,12); }
 
-// CARGAR DATOS REALES DE D1 - FUENTE DE VERDAD
-async function cargarDatosDeD1(){
-  try{
-    const email = getSavedEmail();
-    const w = getSavedWallet() || (window.ethereum? (await window.ethereum.request({method:'eth_accounts'}).then(a=>a[0]||'').catch(()=>'')) : '');
-    let payload = null;
-    if(email) payload = {action:'get_balance', email};
-    else if(w) payload = {action:'get_balance', wallet:w};
-    else return;
-
-    const r = await fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    const j = await r.json();
-    if(j.ok && j.nickname){
-      apodoDeD1 = j.nickname.toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,12);
-      apodoEl.value = apodoDeD1;
-      apodoEl.readOnly = true;
-      apodoEl.classList.add('input-ok');
-      apodoEl.classList.remove('input-error');
-      cnt.textContent = `${apodoDeD1.length}/12 - Apodo de tu cuenta en D1 (bloqueado)`;
-      cnt.style.color = '#22c55e';
-      prevApodo.textContent = apodoDeD1;
-      prevTitle.textContent = apodoDeD1 + ' • X5';
-      
-      if(j.email || email){
-        emailBox.style.display = 'none';
-        userInfoBox.innerHTML = `<div class="info-msg">✓ D1: <b>${j.email||email}</b> • Apodo: <b>${j.nickname}</b> - PASS se grabará con ese apodo y se enviará a ese email</div>`;
-        wallet = w||'';
-      } else {
-        emailReq.textContent = "* obligatorio para recibir imagen con QR";
-        emailInfo.textContent = `Wallet en D1 como ${j.nickname} - Email obligatorio para enviarte el PASS`;
-        emailInfo.style.color = '#fcd34d';
-        userInfoBox.innerHTML = `<div class="info-msg">✓ Wallet D1: <b>${j.nickname}</b> - Apodo de tu cuenta</div>`;
-      }
-      if(j.email) localStorage.setItem('wasa_email', j.email.toLowerCase());
-      if(j.nickname) localStorage.setItem('wasa_nickname', j.nickname);
-      checkForm();
-    }
-  }catch(e){ console.log('D1 no disponible', e); }
+function updatePreview(v){
+  const clean = (v||'').toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,12);
+  prevApodo.textContent = clean || "YOUR NICKNAME";
+  prevTitle.textContent = (clean || "NICKNAME") + " • X5";
+  cnt.textContent = clean.length + "/12 - Min 3, Max 12";
+  cnt.style.color = clean.length>=3 ? '#22c55e' : '#64748b';
+  return clean;
 }
 
-// Ejecutar después que wasa-conection.js cargue wasa_email
-setTimeout(cargarDatosDeD1, 800);
-
-apodoEl.addEventListener('input',()=>{
-  if(apodoEl.readOnly) return;
-  let v=apodoEl.value.toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,12);
-  apodoEl.value=v;
-  cnt.textContent=v.length+"/12 - Min 3, Max 12 (A-Z 0-9 _)";
-  prevApodo.textContent=v||"YOUR NICKNAME";
-  prevTitle.textContent=(v||"NICKNAME")+" • X5";
-  payBtn.textContent=`Pagar 5 USDT — ${v||'APODO'} → X5 ⚡`;
-  if(v.length>=3){ apodoEl.classList.remove('input-error'); apodoError.classList.remove('show'); }
+// ESTE ES EL FIX DEL PREVIEW QUE NO ANDABA
+apodoEl.addEventListener('input', function(){
+  if(this.readOnly) return;
+  let v = this.value.toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,12);
+  this.value = v;
+  updatePreview(v);
+  payBtn.textContent = `Pagar 5 USDT — ${v||'APODO'} → X5 ⚡`;
+  if(v.length>=3){ this.classList.remove('input-error'); apodoError.style.display='none'; this.classList.add('input-ok'); }
+  else this.classList.remove('input-ok');
   checkForm();
 });
+apodoEl.addEventListener('keyup', function(){
+  if(this.readOnly) return;
+  let v = this.value.toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,12);
+  this.value = v;
+  updatePreview(v);
+});
+
 emailEl.addEventListener('input',()=>{
   const v = emailEl.value.trim();
-  if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){
-    emailEl.classList.remove('input-error'); emailEl.classList.add('input-ok'); emailError.classList.remove('show');
-  } else {
-    emailEl.classList.remove('input-ok');
-  }
+  if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){ emailEl.classList.remove('input-error'); emailEl.classList.add('input-ok'); emailError.style.display='none'; }
+  else emailEl.classList.remove('input-ok');
   checkForm();
 });
-function validateApodo(){
-  const v = apodoEl.value.trim();
-  if(apodoDeD1 && v===apodoDeD1) return true;
-  return /^[A-Z0-9_]{3,12}$/.test(v);
-}
-function validateEmail(){
-  if(emailBox.style.display==='none') return true;
-  const v = emailEl.value.trim().toLowerCase();
-  if(!v) return false;
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-}
-function checkForm(){
-  const apOk = validateApodo();
-  const emOk = validateEmail();
-  // wallet viene del nav (wasa-conection.js) o del ethereum
-  const w = getSavedWallet() || wallet || (window.ethereum? window.ethereum.selectedAddress||'' : '');
-  payBtn.disabled = !(apOk && emOk);
-  // no bloqueamos por wallet aqui porque wasa-conection se encarga, pero si no hay wallet mostramos mensaje
-  if(!w) {
-    // no deshabilitamos, pero el click pedirá conectar
-  }
-}
 
-function getWalletForPay(){
-  return getSavedWallet() || wallet || (window.ethereum&&window.ethereum.selectedAddress? window.ethereum.selectedAddress.toLowerCase() : '') || (localStorage.getItem('wasa_wallet')||'').toLowerCase();
-}
+function validateApodo(){ const v=apodoEl.value.trim(); if(apodoDeD1 && v===apodoDeD1) return true; return /^[A-Z0-9_]{3,12}$/.test(v); }
+function validateEmail(){ if(emailBox.style.display==='none') return true; const v=emailEl.value.trim().toLowerCase(); if(!v) return false; return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+function checkForm(){ const apOk=validateApodo(); const emOk=validateEmail(); payBtn.disabled=!(apOk&&emOk); }
+function getWalletForPay(){ return getSavedWallet() || wallet || (window.ethereum&&window.ethereum.selectedAddress? window.ethereum.selectedAddress.toLowerCase() : '') || (localStorage.getItem('wasa_wallet')||'').toLowerCase(); }
 
 async function genFinalImage(apodo, passId){
   function loadImg(src){return new Promise((res,rej)=>{const i=new Image();i.crossOrigin="anonymous";i.onload=()=>res(i);i.onerror=rej;i.src=src;});}
@@ -360,147 +195,54 @@ async function genFinalImage(apodo, passId){
   return c.toDataURL("image/png");
 }
 
+// FIX PAGAR - ABRE MODAL SI NO HAY WALLET
 payBtn.addEventListener('click', async()=>{
-  payBtn.dataset.tried="1";
-  if(!validateApodo()){
-    apodoEl.classList.add('input-error');
-    apodoError.textContent = !apodoEl.value ? "⚠️ El apodo es obligatorio (3-12)" : "⚠️ Min 3, max 12, solo A-Z 0-9 _";
-    apodoError.classList.add('show'); apodoEl.focus(); return;
-  }
-  if(!validateEmail()){
-    emailEl.classList.add('input-error');
-    emailError.textContent = !emailEl.value.trim() ? "⚠️ Email obligatorio - ahí te llega la imagen del PASS con tu apodo y QR" : "⚠️ Email inválido";
-    emailError.classList.add('show'); emailEl.focus(); return;
-  }
-  let w = getWalletForPay();
+  if(!validateApodo()){ apodoEl.classList.add('input-error'); apodoError.style.display='block'; apodoEl.focus(); return; }
+  if(!validateEmail()){ emailEl.classList.add('input-error'); emailError.style.display='block'; emailEl.focus(); return; }
+  let w=getWalletForPay();
   if(!w){
     try{
-      statusEl.style.display='block';
-      statusEl.style.background='rgba(56,189,248,.12)'; statusEl.style.borderColor='#38bdf8'; statusEl.style.color='#38bdf8';
-      statusEl.textContent='🔌 Conectando wallet... Abrí tu wallet desde el popup';
+      statusEl.style.display='block'; statusEl.style.background='rgba(56,189,248,.12)'; statusEl.style.color='#38bdf8';
+      statusEl.textContent='🔌 Conectando wallet...';
       if(typeof openWalletChooser==='function'){
         openWalletChooser();
-        for(let i=0;i<30;i++){
-          await new Promise(r=>setTimeout(r,1000));
-          w = getWalletForPay() || localStorage.getItem('wasa_wallet');
-          if(w) break;
-        }
+        for(let i=0;i<30;i++){ await new Promise(r=>setTimeout(r,1000)); w=getWalletForPay()||localStorage.getItem('wasa_wallet'); if(w) break; }
       } else if(window.ethereum){
-        const acc=await window.ethereum.request({method:'eth_requestAccounts'});
-        w=acc[0]; wallet=w;
-        localStorage.setItem('wasa_wallet', w.toLowerCase());
+        const acc=await window.ethereum.request({method:'eth_requestAccounts'}); w=acc[0]; wallet=w; localStorage.setItem('wasa_wallet', w.toLowerCase());
       }
-      if(!w){
-        statusEl.style.background='rgba(239,68,68,.15)'; statusEl.style.borderColor='#ef4444'; statusEl.style.color='#fca5a5';
-        statusEl.textContent='Conectá tu wallet para pagar. Usa el popup de wallets del nav.';
-        return;
-      }
-      statusEl.textContent='✓ Wallet conectada: '+w.slice(0,6)+'...'+w.slice(-4)+' - Continuando pago...';
-      await new Promise(r=>setTimeout(r,600));
-    }catch(e){
-      statusEl.style.display='block';
-      statusEl.style.background='rgba(239,68,68,.15)'; statusEl.style.borderColor='#ef4444'; statusEl.style.color='#fca5a5';
-      statusEl.textContent='No se pudo conectar wallet: '+e.message;
-      return;
-    }
+      if(!w){ statusEl.style.background='rgba(239,68,68,.15)'; statusEl.style.color='#fca5a5'; statusEl.textContent='Conectá tu wallet. Usa Connect Wallet.'; return; }
+      statusEl.textContent='✓ Wallet: '+w.slice(0,6)+'...'+w.slice(-4)+' - Pagando...'; await new Promise(r=>setTimeout(r,500));
+    }catch(e){ statusEl.style.display='block'; statusEl.style.background='rgba(239,68,68,.15)'; statusEl.style.color='#fca5a5'; statusEl.textContent='Error wallet: '+e.message; return; }
   }
-
   const apodo=apodoEl.value.trim().toUpperCase();
-  const finalEmail = (emailEl.value.trim().toLowerCase() || getSavedEmail() || "").toLowerCase();
-  
+  const finalEmail=(emailEl.value.trim().toLowerCase()||getSavedEmail()||"").toLowerCase();
   try{
-    statusEl.style.display='block';
-    statusEl.style.background='rgba(252,211,77,.15)'; statusEl.style.borderColor='#fcd34d'; statusEl.style.color='#fde68a';
-    statusEl.textContent='Enviando 5 USDT en BSC... confirmá en tu wallet';
-
+    statusEl.style.display='block'; statusEl.style.background='rgba(252,211,77,.15)'; statusEl.style.color='#fde68a'; statusEl.textContent='Enviando 5 USDT en BSC...';
     if(!receiver){ const cfg=await fetch(WORKER+"/?action=get_wasa_config").then(r=>r.json()); receiver=cfg.receiver||cfg.receiver_wallet; }
     try{ await window.ethereum.request({method:'wallet_switchEthereumChain', params:[{chainId:BSC_CHAIN}]}); }catch(e){ if(e.code===4902){ await window.ethereum.request({method:'wallet_addEthereumChain', params:[{chainId:BSC_CHAIN, chainName:'BNB Smart Chain', rpcUrls:['https://bsc-dataseed.binance.org/'], nativeCurrency:{name:'BNB',symbol:'BNB',decimals:18}, blockExplorerUrls:['https://bscscan.com']}]}) } }
-
-    const amount=BigInt(5)*BigInt(10**18);
-    const amountHex=amount.toString(16);
-    const pad=(h)=>h.replace(/^0x/,'').toLowerCase().padStart(64,'0');
-    const data='0xa9059cbb'+pad(receiver)+pad(amountHex);
+    const amount=BigInt(5)*BigInt(10**18); const amountHex=amount.toString(16); const pad=(h)=>h.replace(/^0x/,'').toLowerCase().padStart(64,'0'); const data='0xa9059cbb'+pad(receiver)+pad(amountHex);
     const txHash=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:w,to:USDT,data}]});
-
-    statusEl.textContent='Tx '+txHash.slice(0,10)+'... verificando pago 5 USDT en BSC (5-8s)...';
-
+    statusEl.textContent='Tx '+txHash.slice(0,10)+'... verificando...';
     const body={action:'confirm_wasa_pass_payment',wallet_address:w,email:finalEmail,apodo,tx_hash:txHash,price:5,tier:'X5',chain:'BSC'};
-    const r=await fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    const j=await r.json();
-    if(!j.ok) throw new Error(j.error);
-    const passId=j.wasa_pass_id;
-
-    statusEl.textContent='Generando PASS con QR... ID '+passId;
+    const r=await fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); const j=await r.json(); if(!j.ok) throw new Error(j.error);
+    const passId=j.wasa_pass_id; statusEl.textContent='Generando PASS ID '+passId;
     const imgData=await genFinalImage(apodo, passId);
-
-    if(finalEmail){
-      statusEl.textContent='Enviando PASS a '+finalEmail+'...';
-      await fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send_wasa_pass_email',wasa_pass_id:passId,image_base64:imgData,email:finalEmail,apodo})});
-      statusEl.style.background='rgba(34,197,94,.15)'; statusEl.style.borderColor='#22c55e'; statusEl.style.color='#86efac';
-      statusEl.textContent='¡Listo! ✅ PASS enviado a '+finalEmail+' • ID '+passId+' • Ahora ganas x5';
-    } else {
-      statusEl.style.background='rgba(34,197,94,.15)'; statusEl.style.borderColor='#22c55e'; statusEl.style.color='#86efac';
-      statusEl.textContent='¡Listo! ✅ PASS X5 activado • ID '+passId;
-    }
-
-    const win=window.open();
-    win.document.write(`<div style="font-family:Inter,sans-serif;text-align:center;padding:20px;background:#0a1020;color:white;min-height:100vh"><h2 style="color:#fcd34d">WASA PASS X5 - ${apodo}</h2><p style="color:#94a3b8">ID: ${passId}</p><img src="${imgData}" style="max-width:600px;width:100%;border-radius:12px;border:2px solid #fcd34d;margin:16px 0"><br><a href="${imgData}" download="WASA_PASS_${apodo}_${passId}.png" style="display:inline-block;margin-top:12px;background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#000;padding:12px 24px;border-radius:9999px;font-weight:900;text-decoration:none">⬇️ DESCARGAR PASS PNG</a><p style="margin-top:16px"><a href="https://games.wasa.chat/pass?id=${passId}" style="color:#38bdf8">games.wasa.chat/pass?id=${passId}</a></p><p style="margin-top:8px;font-size:12px;color:#64748b">Enviado a ${finalEmail||w}</p></div>`);
-  }catch(e){
-    statusEl.style.display='block';
-    statusEl.style.background='rgba(239,68,68,.15)'; statusEl.style.borderColor='#ef4444'; statusEl.style.color='#fca5a5';
-    statusEl.textContent='Error: '+e.message;
-  }
+    if(finalEmail){ statusEl.textContent='Enviando a '+finalEmail+'...'; await fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send_wasa_pass_email',wasa_pass_id:passId,image_base64:imgData,email:finalEmail,apodo})}); statusEl.style.background='rgba(34,197,94,.15)'; statusEl.style.color='#86efac'; statusEl.textContent='¡Listo! ✅ PASS enviado a '+finalEmail; }
+    const win=window.open(); win.document.write(`<div style="text-align:center;padding:20px;background:#0a1020;color:white;min-height:100vh"><h2 style="color:#fcd34d">WASA PASS X5 - ${apodo}</h2><p>ID: ${passId}</p><img src="${imgData}" style="max-width:600px;width:100%;border-radius:12px;border:2px solid #fcd34d;margin:16px 0"><br><a href="${imgData}" download="WASA_PASS_${apodo}_${passId}.png" style="display:inline-block;margin-top:12px;background:#fcd34d;color:#000;padding:12px 24px;border-radius:9999px;font-weight:900;text-decoration:none">⬇️ DESCARGAR</a></div>`);
+  }catch(e){ statusEl.style.display='block'; statusEl.style.background='rgba(239,68,68,.15)'; statusEl.style.color='#fca5a5'; statusEl.textContent='Error: '+e.message; }
 });
 
-
-  const apodo=apodoEl.value.trim().toUpperCase();
-  const finalEmail = (emailEl.value.trim().toLowerCase() || getSavedEmail() || "").toLowerCase();
-  
+async function cargarD1(){
   try{
-    statusEl.style.display='block';
-    statusEl.style.background='rgba(252,211,77,.15)'; statusEl.style.borderColor='#fcd34d'; statusEl.style.color='#fde68a';
-    statusEl.textContent='Enviando 5 USDT en BSC... confirmá en tu wallet';
-
-    if(!receiver){ const cfg=await fetch(WORKER+"/?action=get_wasa_config").then(r=>r.json()); receiver=cfg.receiver||cfg.receiver_wallet; }
-    // switch BSC
-    try{ await window.ethereum.request({method:'wallet_switchEthereumChain', params:[{chainId:BSC_CHAIN}]}); }catch(e){ if(e.code===4902){ await window.ethereum.request({method:'wallet_addEthereumChain', params:[{chainId:BSC_CHAIN, chainName:'BNB Smart Chain', rpcUrls:['https://bsc-dataseed.binance.org/'], nativeCurrency:{name:'BNB',symbol:'BNB',decimals:18}, blockExplorerUrls:['https://bscscan.com']}]}) } }
-
-    const amount=BigInt(5)*BigInt(10**18);
-    const amountHex=amount.toString(16);
-    const pad=(h)=>h.replace(/^0x/,'').toLowerCase().padStart(64,'0');
-    const data='0xa9059cbb'+pad(receiver)+pad(amountHex);
-    const txHash=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:w,to:USDT,data}]});
-
-    statusEl.textContent='Tx '+txHash.slice(0,10)+'... verificando pago 5 USDT en BSC (5-8s)...';
-
-    const body={action:'confirm_wasa_pass_payment',wallet_address:w,email:finalEmail,apodo,tx_hash:txHash,price:5,tier:'X5',chain:'BSC'};
-    const r=await fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    const j=await r.json();
-    if(!j.ok) throw new Error(j.error);
-    const passId=j.wasa_pass_id;
-
-    statusEl.textContent='Generando PASS con QR... ID '+passId;
-    const imgData=await genFinalImage(apodo, passId);
-
-    if(finalEmail){
-      statusEl.textContent='Enviando PASS a '+finalEmail+'...';
-      await fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send_wasa_pass_email',wasa_pass_id:passId,image_base64:imgData,email:finalEmail,apodo})});
-      statusEl.style.background='rgba(34,197,94,.15)'; statusEl.style.borderColor='#22c55e'; statusEl.style.color='#86efac';
-      statusEl.textContent='¡Listo! ✅ PASS enviado a '+finalEmail+' • ID '+passId+' • Ahora ganas x5';
-    } else {
-      statusEl.style.background='rgba(34,197,94,.15)'; statusEl.style.borderColor='#22c55e'; statusEl.style.color='#86efac';
-      statusEl.textContent='¡Listo! ✅ PASS X5 activado • ID '+passId;
-    }
-
-    const win=window.open();
-    win.document.write(`<div style="font-family:Inter,sans-serif;text-align:center;padding:20px;background:#0a1020;color:white;min-height:100vh"><h2 style="color:#fcd34d">WASA PASS X5 - ${apodo}</h2><p style="color:#94a3b8">ID: ${passId}</p><img src="${imgData}" style="max-width:600px;width:100%;border-radius:12px;border:2px solid #fcd34d;margin:16px 0"><br><a href="${imgData}" download="WASA_PASS_${apodo}_${passId}.png" style="display:inline-block;margin-top:12px;background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#000;padding:12px 24px;border-radius:9999px;font-weight:900;text-decoration:none">⬇️ DESCARGAR PASS PNG</a><p style="margin-top:16px"><a href="https://games.wasa.chat/pass?id=${passId}" style="color:#38bdf8">games.wasa.chat/pass?id=${passId}</a></p><p style="margin-top:8px;font-size:12px;color:#64748b">Enviado a ${finalEmail||w}</p></div>`);
-  }catch(e){
-    statusEl.style.display='block';
-    statusEl.style.background='rgba(239,68,68,.15)'; statusEl.style.borderColor='#ef4444'; statusEl.style.color='#fca5a5';
-    statusEl.textContent='Error: '+e.message;
-  }
-});
+    const email=getSavedEmail();
+    const w=getSavedWallet() || (window.ethereum? await window.ethereum.request({method:'eth_accounts'}).then(a=>a[0]||'').catch(()=>'') : '');
+    let payload=null; if(email) payload={action:'get_balance', email}; else if(w) payload={action:'get_balance', wallet:w}; else return;
+    const r=await fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); const j=await r.json();
+    if(j.ok && j.nickname){ apodoDeD1=j.nickname.toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,12); apodoEl.value=apodoDeD1; apodoEl.readOnly=true; apodoEl.classList.add('input-ok'); cnt.textContent=`${apodoDeD1.length}/12 - Apodo D1 (bloqueado)`; cnt.style.color='#22c55e'; updatePreview(apodoDeD1); if(j.email||email){ emailBox.style.display='none'; userInfoBox.innerHTML=`<div style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);padding:8px 12px;border-radius:10px;font-size:10px;color:#86efac">✓ D1: <b>${j.email||email}</b> • Apodo: <b>${j.nickname}</b></div>`; } if(j.email) localStorage.setItem('wasa_email', j.email.toLowerCase()); if(j.nickname) localStorage.setItem('wasa_nickname', j.nickname); checkForm(); }
+  }catch(e){}
+}
+setTimeout(cargarD1, 800);
 </script>
-<script src="./wasa-conection.js"></script>
+<script src="data:application/javascript;base64,Ly8gd2FzYS1jb25lY3Rpb24uanMgdjkuNSBGSVggLSBjYWRhIHdhbGxldCB2YSBhIHN1IHBhZ2luYSwgbm8gdG9kbyBhIE1ldGFNYXNrCmNvbnN0IFdBU0FfQ09ORklHID0gewogIFVTRFRfQ09OVFJBQ1Q6ICcweDU1ZDM5ODMyNmY5OTA1OWZGNzc1NDg1MjQ2OTk5MDI3QjMxOTc5NTUnLAogIFJFQ0VJVkVSOiBudWxsLAogIFdPUktFUl9VUkw6ICdodHRwczovL2dhbWVzLXdhc2Etd29ya2VyLmphdmltc2l0ZXMud29ya2Vycy5kZXYvJywKICBQUklDRVM6IHsgMjAwOiAyLCAxMDAwOiAxMCwgMjAwMDogMTkgfSwKICBfbG9hZGVkOiBmYWxzZQp9OwpsZXQgY29ubmVjdGVkV2FsbGV0ID0gbnVsbDsgbGV0IGNvbm5lY3RlZE5pY2tuYW1lID0gbnVsbDsgbGV0IGNvbm5lY3RlZEVtYWlsID0gbnVsbDsKbGV0IGF1dGhUYWIgPSAnbG9naW4nOyBsZXQgdXNlck1lbnVPcGVuID0gZmFsc2U7IGxldCBsaW5rZWRXYWxsZXRzID0gW107IGxldCBwZW5kaW5nVmVyaWZ5RW1haWwgPSBudWxsOwoKZnVuY3Rpb24gZ2V0RGV2aWNlSWQoKXsgbGV0IGlkPWxvY2FsU3RvcmFnZS5nZXRJdGVtKCd3YXNhX2RldmljZV9pZCcpOyBpZighaWQpeyBpZD0nZGV2XycrTWF0aC5yYW5kb20oKS50b1N0cmluZygzNikuc2xpY2UoMikrRGF0ZS5ub3coKS50b1N0cmluZygzNik7IGxvY2FsU3RvcmFnZS5zZXRJdGVtKCd3YXNhX2RldmljZV9pZCcsaWQpOyB9IHJldHVybiBpZDsgfQpmdW5jdGlvbiBjbGVhblN0b3JlZCh2KXsgaWYodj09bnVsbCkgcmV0dXJuIG51bGw7IGNvbnN0IHM9U3RyaW5nKHYpLnRyaW0oKTsgaWYoIXMgfHwgcz09PSJ1bmRlZmluZWQiIHx8IHM9PT0ibnVsbCIgfHwgcz09PSIiKSByZXR1cm4gbnVsbDsgcmV0dXJuIHM7IH0KZnVuY3Rpb24gZ2V0U3RvcmVkV2FsbGV0KCl7IGNvbnN0IHY9Y2xlYW5TdG9yZWQobG9jYWxTdG9yYWdlLmdldEl0ZW0oJ3dhc2Ffd2FsbGV0JykpOyBpZighdiB8fCB2Lmxlbmd0aDwxMCkgcmV0dXJuIG51bGw7IHJldHVybiB2LnRvTG93ZXJDYXNlKCk7IH0KZnVuY3Rpb24gZ2V0U3RvcmVkRW1haWwoKXsgY29uc3Qgdj1jbGVhblN0b3JlZChsb2NhbFN0b3JhZ2UuZ2V0SXRlbSgnd2FzYV9lbWFpbCcpKTsgaWYoIXYgfHwhdi5pbmNsdWRlcygnQCcpKSByZXR1cm4gbnVsbDsgcmV0dXJuIHYudG9Mb3dlckNhc2UoKTsgfQpmdW5jdGlvbiBnZXRTdG9yZWROaWNrKCl7IHJldHVybiBjbGVhblN0b3JlZChsb2NhbFN0b3JhZ2UuZ2V0SXRlbSgnd2FzYV9uaWNrJykpOyB9CmZ1bmN0aW9uIGdldEd1ZXN0Q29pbnMoKXsgcmV0dXJuIHBhcnNlRmxvYXQobG9jYWxTdG9yYWdlLmdldEl0ZW0oJ3dhc2FfY29pbnNfZ3Vlc3QnKXx8JzAnKTsgfQpmdW5jdGlvbiBpc0xvZ2dlZCgpeyByZXR1cm4hIShnZXRTdG9yZWRXYWxsZXQoKSB8fCBnZXRTdG9yZWRFbWFpbCgpKTsgfQoKYXN5bmMgZnVuY3Rpb24gbG9hZFdhc2FDb25maWcoKXsgdHJ5eyBjb25zdCByPWF3YWl0IGZldGNoKFdBU0FfQ09ORklHLldPUktFUl9VUkwrJz9hY3Rpb249Z2V0X3dhc2FfY29uZmlnJnQ9JytEYXRlLm5vdygpKTsgY29uc3Qgaj1hd2FpdCByLmpzb24oKTsgaWYoai5vayYmai5yZWNlaXZlcil7IFdBU0FfQ09ORklHLlJFQ0VJVkVSPWoucmVjZWl2ZXI7IGlmKGoudXNkdF9jb250cmFjdCkgV0FTQV9DT05GSUcuVVNEVF9DT05UUkFDVD1qLnVzZHRfY29udHJhY3Q7IGlmKGoucHJpY2VzKSBXQVNBX0NPTkZJRy5QUklDRVM9ai5wcmljZXM7IFdBU0FfQ09ORklHLl9sb2FkZWQ9dHJ1ZTsgfSB9Y2F0Y2goZSl7fSB9CmZ1bmN0aW9uIHVwZGF0ZVdhbGxldFVJKCl7CiAgY29ubmVjdGVkV2FsbGV0PWdldFN0b3JlZFdhbGxldCgpOyBjb25uZWN0ZWRFbWFpbD1nZXRTdG9yZWRFbWFpbCgpOyBjb25uZWN0ZWROaWNrbmFtZT1nZXRTdG9yZWROaWNrKCk7CiAgdHJ5eyBsaW5rZWRXYWxsZXRzPUpTT04ucGFyc2UobG9jYWxTdG9yYWdlLmdldEl0ZW0oJ3dhc2Ffd2FsbGV0cycpfHwnW10nKTsgaWYoIUFycmF5LmlzQXJyYXkobGlua2VkV2FsbGV0cykpIGxpbmtlZFdhbGxldHM9W107IH1jYXRjaHsgbGlua2VkV2FsbGV0cz1bXTsgfQogIGNvbnN0IGJ0bj1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnd2FsbGV0QnRuJyk7IGNvbnN0IGluZm89ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3dhbGxldENvbm5lY3RlZEluZm8nKTsgY29uc3QgdXNlckJ0bj1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgndXNlckJ0bicpOwogIGlmKGJ0bil7IGlmKGNvbm5lY3RlZFdhbGxldCl7IGJ0bi50ZXh0Q29udGVudD0oY29ubmVjdGVkTmlja25hbWV8fGNvbm5lY3RlZFdhbGxldC5zbGljZSgwLDYpKycuLi4nK2Nvbm5lY3RlZFdhbGxldC5zbGljZSgtNCkpOyBidG4uY2xhc3NMaXN0LmFkZCgnY29ubmVjdGVkJyk7IGlmKGluZm8peyBpbmZvLnN0eWxlLmRpc3BsYXk9J2Jsb2NrJzsgaW5mby50ZXh0Q29udGVudD0n4pyFICcrY29ubmVjdGVkV2FsbGV0OyB9IH1lbHNleyBidG4udGV4dENvbnRlbnQ9J0Nvbm5lY3QgV2FsbGV0JzsgYnRuLmNsYXNzTGlzdC5yZW1vdmUoJ2Nvbm5lY3RlZCcpOyBpZihpbmZvKSBpbmZvLnN0eWxlLmRpc3BsYXk9J25vbmUnOyB9IH0KICBpZih1c2VyQnRuKXsgaWYoaXNMb2dnZWQoKSl7IGNvbnN0IG5hbWU9Y29ubmVjdGVkTmlja25hbWV8fGNvbm5lY3RlZEVtYWlsPy5zcGxpdCgnQCcpWzBdfHxjb25uZWN0ZWRXYWxsZXQ/LnNsaWNlKDAsNil8fCdVJzsgdXNlckJ0bi50ZXh0Q29udGVudD1uYW1lLnNsaWNlKDAsMikudG9VcHBlckNhc2UoKTsgdXNlckJ0bi5jbGFzc05hbWU9J3VzZXItYnRuIGNvbm5lY3RlZCc7IH1lbHNleyB1c2VyQnRuLnRleHRDb250ZW50PSfwn5GkJzsgdXNlckJ0bi5jbGFzc05hbWU9J3VzZXItYnRuIGRpc2Nvbm5lY3RlZCc7IH0gfQogIGlmKCFpc0xvZ2dlZCgpKSBjbG9zZVVzZXJNZW51KCk7Cn0KYXN5bmMgZnVuY3Rpb24gc3luY0JhbGFuY2VGcm9tRDEoKXsKICBjb25zdCBlbWFpbD1nZXRTdG9yZWRFbWFpbCgpOyBjb25zdCB3YWxsZXQ9Z2V0U3RvcmVkV2FsbGV0KCk7IGNvbnN0IGRldmljZV9pZD1nZXREZXZpY2VJZCgpOwogIHRyeXsKICAgIGlmKGVtYWlsfHx3YWxsZXQpeyBjb25zdCByPWF3YWl0IGZldGNoKFdBU0FfQ09ORklHLldPUktFUl9VUkwse21ldGhvZDonUE9TVCcsaGVhZGVyczp7J0NvbnRlbnQtVHlwZSc6J2FwcGxpY2F0aW9uL2pzb24nfSxib2R5OkpTT04uc3RyaW5naWZ5KHthY3Rpb246J2dldF9iYWxhbmNlJyxlbWFpbCx3YWxsZXQsZGV2aWNlX2lkfSl9KTsgY29uc3Qgaj1hd2FpdCByLmpzb24oKTsgaWYoai5vayYmdHlwZW9mIGoud2FzYV9iYWxhbmNlIT09J3VuZGVmaW5lZCcpeyBsb2NhbFN0b3JhZ2Uuc2V0SXRlbSgnd2FzYV9jb2lucycsai53YXNhX2JhbGFuY2UpOyBzZXRDb2luc1VJKGoud2FzYV9iYWxhbmNlKTsgaWYoai53YWxsZXRzKSBsb2NhbFN0b3JhZ2Uuc2V0SXRlbSgnd2FzYV93YWxsZXRzJyxKU09OLnN0cmluZ2lmeShqLndhbGxldHMpKTsgaWYoai5uaWNrbmFtZSYmIWdldFN0b3JlZE5pY2soKSkgbG9jYWxTdG9yYWdlLnNldEl0ZW0oJ3dhc2Ffbmljaycsai5uaWNrbmFtZSk7IHVwZGF0ZVdhbGxldFVJKCk7IH0gfQogICAgZWxzZXsgY29uc3Qgcj1hd2FpdCBmZXRjaChXQVNBX0NPTkZJRy5XT1JLRVJfVVJMLHttZXRob2Q6J1BPU1QnLGhlYWRlcnM6eydDb250ZW50LVR5cGUnOidhcHBsaWNhdGlvbi9qc29uJ30sYm9keTpKU09OLnN0cmluZ2lmeSh7YWN0aW9uOidnZXRfZ3Vlc3RfYmFsYW5jZScsZGV2aWNlX2lkfSl9KTsgY29uc3Qgaj1hd2FpdCByLmpzb24oKTsgaWYoai5vayl7IGxvY2FsU3RvcmFnZS5zZXRJdGVtKCd3YXNhX2NvaW5zX2d1ZXN0JyxqLmd1ZXN0X2JhbGFuY2UpOyBzZXRDb2luc1VJKGouZ3Vlc3RfYmFsYW5jZSk7IH0gfQogIH1jYXRjaChlKXt9Cn0KZnVuY3Rpb24gaGFuZGxlV2FsbGV0QnRuKCl7IGlmKGdldFN0b3JlZFdhbGxldCgpKXsgb3Blbldhc2FCdXkoKTsgfWVsc2V7IG9wZW5XYWxsZXRDaG9vc2VyKCk7IH0gfQpmdW5jdGlvbiBvcGVuV2FsbGV0Q2hvb3NlcigpeyBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnd2FsbGV0Q2hvb3NlcicpPy5jbGFzc0xpc3QuYWRkKCdvcGVuJyk7IH0KZnVuY3Rpb24gY2xvc2VXYWxsZXRDaG9vc2VyKCl7IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCd3YWxsZXRDaG9vc2VyJyk/LmNsYXNzTGlzdC5yZW1vdmUoJ29wZW4nKTsgfQpmdW5jdGlvbiBvcGVuV2FzYUJ1eSgpeyBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnd2FzYUJ1eU1vZGFsJyk/LmNsYXNzTGlzdC5hZGQoJ29wZW4nKTsgdXBkYXRlV2FsbGV0VUkoKTsgfQpmdW5jdGlvbiBjbG9zZVdhc2FCdXkoKXsgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3dhc2FCdXlNb2RhbCcpPy5jbGFzc0xpc3QucmVtb3ZlKCdvcGVuJyk7IH0KZnVuY3Rpb24gb3BlbkF1dGhFbWFpbCh0YWIpeyBpZih0YWIpIGF1dGhUYWI9dGFiOyBjbG9zZVdhbGxldENob29zZXIoKTsgY2xvc2VVc2VyTWVudSgpOyBjbG9zZVZlcmlmeU1vZGFsKCk7IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdhdXRoTW9kYWwnKT8uY2xhc3NMaXN0LmFkZCgnb3BlbicpOyBzd2l0Y2hBdXRoVGFiKGF1dGhUYWIpOyB9CmZ1bmN0aW9uIGNsb3NlQXV0aEVtYWlsKCl7IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdhdXRoTW9kYWwnKT8uY2xhc3NMaXN0LnJlbW92ZSgnb3BlbicpOyB9CmZ1bmN0aW9uIHN3aXRjaEF1dGhUYWIodGFiKXsgYXV0aFRhYj10YWI7IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCd0YWJMb2dpbicpPy5jbGFzc0xpc3QudG9nZ2xlKCdhY3RpdmUnLHRhYj09PSdsb2dpbicpOyBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgndGFiUmVnaXN0ZXInKT8uY2xhc3NMaXN0LnRvZ2dsZSgnYWN0aXZlJyx0YWI9PT0ncmVnaXN0ZXInKTsgY29uc3QgbGY9ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2xvZ2luRm9ybScpOyBjb25zdCByZj1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncmVnaXN0ZXJGb3JtJyk7IGlmKGxmKSBsZi5zdHlsZS5kaXNwbGF5PXRhYj09PSdsb2dpbic/J2Jsb2NrJzonbm9uZSc7IGlmKHJmKSByZi5zdHlsZS5kaXNwbGF5PXRhYj09PSdyZWdpc3Rlcic/J2Jsb2NrJzonbm9uZSc7IGNvbnN0IGZiPWRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdmb3Jnb3RCb3gnKTsgaWYoZmIpIGZiLmNsYXNzTGlzdC5yZW1vdmUoJ29wZW4nKTsgfQpmdW5jdGlvbiBvcGVuVXNlck1lbnUoKXsgaWYoIWlzTG9nZ2VkKCkpeyBvcGVuQXV0aEVtYWlsKCdyZWdpc3RlcicpOyByZXR1cm47IH0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3VzZXJEcm9wZG93bicpPy5jbGFzc0xpc3QuYWRkKCdvcGVuJyk7IHVzZXJNZW51T3Blbj10cnVlOyB9CmZ1bmN0aW9uIGNsb3NlVXNlck1lbnUoKXsgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3VzZXJEcm9wZG93bicpPy5jbGFzc0xpc3QucmVtb3ZlKCdvcGVuJyk7IHVzZXJNZW51T3Blbj1mYWxzZTsgfQpmdW5jdGlvbiBoYW5kbGVVc2VyQnRuKCl7IGlmKCFpc0xvZ2dlZCgpKXsgb3BlbkF1dGhFbWFpbCgncmVnaXN0ZXInKTsgcmV0dXJuOyB9IGlmKHVzZXJNZW51T3BlbikgY2xvc2VVc2VyTWVudSgpOyBlbHNlIG9wZW5Vc2VyTWVudSgpOyB9CmZ1bmN0aW9uIG9wZW5Vc2VyUHJvZmlsZSgpeyBjb25zdCBtb2RhbD1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgndXNlclByb2ZpbGVNb2RhbCcpOyBpZighbW9kYWwpIHJldHVybjsgY29uc3QgZW1haWw9Z2V0U3RvcmVkRW1haWwoKTsgY29uc3Qgd2FsbGV0PWdldFN0b3JlZFdhbGxldCgpOyBjb25zdCBuaWNrPWdldFN0b3JlZE5pY2soKTsgY29uc3QgaXNMb2c9aXNMb2dnZWQoKTsgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3Byb2ZpbGVFbWFpbCcpLnRleHRDb250ZW50PWVtYWlsfHwnTm8gbG9nZWFkbyc7IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdwcm9maWxlV2FsbGV0JykudGV4dENvbnRlbnQ9d2FsbGV0PyB3YWxsZXQuc2xpY2UoMCwxMCkrJy4uLicrd2FsbGV0LnNsaWNlKC02KSA6ICdObyBjb25lY3RhZGEnOyBjb25zdCBndWVzdEJhbD1sb2NhbFN0b3JhZ2UuZ2V0SXRlbSgnd2FzYV9jb2luc19ndWVzdCcpfHwnMCc7IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdwcm9maWxlQ29pbnMnKS50ZXh0Q29udGVudD0obG9jYWxTdG9yYWdlLmdldEl0ZW0oJ3dhc2FfY29pbnMnKXx8JzAnKSsnICRXQVNBJysoZ3Vlc3RCYWwhPT0nMCcmJiFpc0xvZz8nICsgJytndWVzdEJhbCsnIGd1ZXN0JzonJyk7IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdwcm9maWxlRGlzcGxheU5hbWUnKS50ZXh0Q29udGVudD1pc0xvZz8obmlja3x8ZW1haWw/LnNwbGl0KCdAJylbMF18fCh3YWxsZXQ/d2FsbGV0LnNsaWNlKDAsNikrJy4uLic6J1VzdWFyaW8nKSk6J0ludml0YWRvJzsgY29uc3Qgbmlja0lucHV0PWRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdwcm9maWxlTmlja25hbWUnKTsgaWYobmlja0lucHV0KSBuaWNrSW5wdXQudmFsdWU9bmlja3x8Jyc7IGNvbnN0IGxpc3RFbD1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncHJvZmlsZVdhbGxldHNMaXN0Jyk7IGlmKGxpc3RFbCl7IGlmKGxpbmtlZFdhbGxldHMubGVuZ3RoPjApeyBsaXN0RWwuaW5uZXJIVE1MPWxpbmtlZFdhbGxldHMubWFwKHc9PmA8ZGl2IHN0eWxlPSJmb250LXNpemU6MTBweDtwYWRkaW5nOjRweCAwO2JvcmRlci1ib3R0b206MXB4IHNvbGlkIHJnYmEoMjU1LDI1NSwyNTUsMC4wNSk7ZGlzcGxheTpmbGV4O2p1c3RpZnktY29udGVudDpzcGFjZS1iZXR3ZWVuIj48c3Bhbj4ke3cud2FsbGV0X2FkZHJlc3Muc2xpY2UoMCw2KX0uLi4ke3cud2FsbGV0X2FkZHJlc3Muc2xpY2UoLTQpfTwvc3Bhbj48c3BhbiBzdHlsZT0iY29sb3I6JHt3LmlzX3ByaW1hcnk/JyNmYmJmMjQnOicjNjQ3NDhiJ30iPiR7dy5pc19wcmltYXJ5Pyfil48gcHJpbWFyaWEnOicnfTwvc3Bhbj48L2Rpdj5gKS5qb2luKCcnKTsgfWVsc2V7IGxpc3RFbC5pbm5lckhUTUw9JzxkaXYgc3R5bGU9ImZvbnQtc2l6ZToxMHB4O2NvbG9yOiM2NDc0OGIiPk5vIGhheSB3YWxsZXRzIGxpbmtlYWRhczwvZGl2Pic7IH0gfSBtb2RhbC5jbGFzc0xpc3QuYWRkKCdvcGVuJyk7IH0KZnVuY3Rpb24gY2xvc2VVc2VyUHJvZmlsZSgpeyBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgndXNlclByb2ZpbGVNb2RhbCcpPy5jbGFzc0xpc3QucmVtb3ZlKCdvcGVuJyk7IH0KYXN5bmMgZnVuY3Rpb24gc2F2ZVByb2ZpbGUoKXsgY29uc3Qgbmljaz1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncHJvZmlsZU5pY2tuYW1lJyk/LnZhbHVlLnRyaW0oKXx8Jyc7IGNvbnN0IGVsPWRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdwcm9maWxlU3RhdHVzJyk7IGNvbnN0IHNob3c9KG0sYyk9PnsgaWYoZWwpeyBlbC50ZXh0Q29udGVudD1tOyBlbC5jbGFzc05hbWU9J3N0YXR1cy1ib3ggJytjOyBlbC5zdHlsZS5kaXNwbGF5PSdibG9jayc7IH0gfTsgaWYobmljay5sZW5ndGg8MikgcmV0dXJuIHNob3coJ03DrW4gMiBjYXJhY3RlcmVzJywnc3RhdHVzLWVycicpOyBsb2NhbFN0b3JhZ2Uuc2V0SXRlbSgnd2FzYV9uaWNrJyxuaWNrKTsgdHJ5eyBhd2FpdCBmZXRjaChXQVNBX0NPTkZJRy5XT1JLRVJfVVJMLHttZXRob2Q6J1BPU1QnLGhlYWRlcnM6eydDb250ZW50LVR5cGUnOidhcHBsaWNhdGlvbi9qc29uJ30sYm9keTpKU09OLnN0cmluZ2lmeSh7YWN0aW9uOid1cGRhdGVfcHJvZmlsZScsZW1haWw6Z2V0U3RvcmVkRW1haWwoKSxuaWNrbmFtZTpuaWNrLHdhbGxldDpnZXRTdG9yZWRXYWxsZXQoKX0pfSk7IH1jYXRjaChlKXt9IHVwZGF0ZVdhbGxldFVJKCk7IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdwcm9maWxlRGlzcGxheU5hbWUnKS50ZXh0Q29udGVudD1uaWNrOyBzaG93KCfinIUgR3VhcmRhZG86ICcrbmljaywnc3RhdHVzLW9rJyk7IH0KZnVuY3Rpb24gbG9nb3V0VXNlcigpeyBjbG9zZVVzZXJNZW51KCk7IGNsb3NlVXNlclByb2ZpbGUoKTsgbG9jYWxTdG9yYWdlLnJlbW92ZUl0ZW0oJ3dhc2Ffd2FsbGV0Jyk7IGxvY2FsU3RvcmFnZS5yZW1vdmVJdGVtKCd3YXNhX2VtYWlsJyk7IGxvY2FsU3RvcmFnZS5yZW1vdmVJdGVtKCd3YXNhX25pY2snKTsgbG9jYWxTdG9yYWdlLnJlbW92ZUl0ZW0oJ3dhc2Ffd2FsbGV0cycpOyBsb2NhbFN0b3JhZ2UucmVtb3ZlSXRlbSgnd2FzYV9lbWFpbF9wZW5kaW5nJyk7IGxvY2FsU3RvcmFnZS5zZXRJdGVtKCd3YXNhX2NvaW5zJywnMCcpOyBzZXRDb2luc1VJKDApOyB1cGRhdGVXYWxsZXRVSSgpOyBzeW5jQmFsYW5jZUZyb21EMSgpOyB9CmZ1bmN0aW9uIHNldENvaW5zVUkobil7IGNvbnN0IGY9KCgpPT57IGNvbnN0IHY9cGFyc2VGbG9hdChuKXx8MDsgaWYodj09PTApIHJldHVybiAnMCc7IGlmKHY8MC4wMDEpIHJldHVybiB2LnRvRml4ZWQoNikucmVwbGFjZSgvMCskLywnJykucmVwbGFjZSgvXC4kLywnJyk7IGlmKHY8MSkgcmV0dXJuIChNYXRoLnJvdW5kKHYqMTAwMDAwMCkvMTAwMDAwMCkudG9TdHJpbmcoKTsgcmV0dXJuIChNYXRoLnJvdW5kKHYqMTAwMCkvMTAwMCkudG9TdHJpbmcoKTsgfSkoKSsnICRXQVNBJzsgWydtb2RhbENvaW5zJywnaGVhZGVyQ29pbnMnLCdwcm9maWxlQ29pbnMnXS5mb3JFYWNoKGlkPT57Y29uc3QgZWw9ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoaWQpOyBpZihlbCkgZWwudGV4dENvbnRlbnQ9Zjt9KTsgfQpmdW5jdGlvbiBnZXRDb2lucygpeyBjb25zdCBtYWluPXBhcnNlRmxvYXQobG9jYWxTdG9yYWdlLmdldEl0ZW0oJ3dhc2FfY29pbnMnKXx8JzAnKTsgaWYoIWdldFN0b3JlZEVtYWlsKCkmJiFnZXRTdG9yZWRXYWxsZXQoKSl7IGNvbnN0IGd1ZXN0PXBhcnNlRmxvYXQobG9jYWxTdG9yYWdlLmdldEl0ZW0oJ3dhc2FfY29pbnNfZ3Vlc3QnKXx8JzAnKTsgcmV0dXJuIG1haW4rZ3Vlc3Q7IH0gcmV0dXJuIG1haW47IH0KZnVuY3Rpb24gc2V0Q29pbnMobil7IGNvbnN0IGVtYWlsPWdldFN0b3JlZEVtYWlsKCk7IGNvbnN0IHdhbGxldD1nZXRTdG9yZWRXYWxsZXQoKTsgaWYoIWVtYWlsJiYhd2FsbGV0KXsgc2V0Q29pbnNVSShuKTsgcmV0dXJuOyB9IGNvbnN0IG9sZD1wYXJzZUZsb2F0KGxvY2FsU3RvcmFnZS5nZXRJdGVtKCd3YXNhX2NvaW5zJyl8fCcwJyk7IGlmKE1hdGguYWJzKG4tb2xkKT4wLjEpeyBzZXRDb2luc1VJKG9sZCk7IHJldHVybjsgfSBsb2NhbFN0b3JhZ2Uuc2V0SXRlbSgnd2FzYV9jb2lucycsbik7IHNldENvaW5zVUkobik7IH0KZnVuY3Rpb24gYWRkQ29pbnMobil7IGlmKG4+MC4xKSByZXR1cm47IGNvbnN0IGN1cj1nZXRDb2lucygpOyBzZXRDb2lucyhjdXIrbik7IH0KZnVuY3Rpb24gc2hvd0F1dGhTdGF0dXMobXNnLGNscyxpc1JlZyl7IGNvbnN0IGlkPWlzUmVnPydhdXRoU3RhdHVzUmVnJzonYXV0aFN0YXR1cyc7IGNvbnN0IGVsPWRvY3VtZW50LmdldEVsZW1lbnRCeUlkKGlkKTsgaWYoIWVsKSByZXR1cm47IGVsLnRleHRDb250ZW50PW1zZzsgZWwuY2xhc3NOYW1lPSdzdGF0dXMtYm94ICcrY2xzOyBlbC5zdHlsZS5kaXNwbGF5PSdibG9jayc7IH0KYXN5bmMgZnVuY3Rpb24gZG9Mb2dpbigpeyBjb25zdCBlbWFpbD1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnYXV0aEVtYWlsJyk/LnZhbHVlLnRyaW0oKS50b0xvd2VyQ2FzZSgpfHwnJzsgY29uc3QgcGFzcz1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnYXV0aFBhc3MnKT8udmFsdWV8fCcnOyBpZighZW1haWwuaW5jbHVkZXMoJ0AnKSkgcmV0dXJuIHNob3dBdXRoU3RhdHVzKCdFbWFpbCBpbnbDoWxpZG8nLCdzdGF0dXMtZXJyJyxmYWxzZSk7IHRyeXsgY29uc3Qgcj1hd2FpdCBmZXRjaChXQVNBX0NPTkZJRy5XT1JLRVJfVVJMLHttZXRob2Q6J1BPU1QnLGhlYWRlcnM6eydDb250ZW50LVR5cGUnOidhcHBsaWNhdGlvbi9qc29uJ30sYm9keTpKU09OLnN0cmluZ2lmeSh7YWN0aW9uOidsb2dpbicsZW1haWwscGFzc3dvcmQ6cGFzcyxkZXZpY2VfaWQ6Z2V0RGV2aWNlSWQoKX0pfSk7IGNvbnN0IGo9YXdhaXQgci5qc29uKCk7IGlmKCFqLm9rKSB0aHJvdyBuZXcgRXJyb3Ioai5lcnJvcik7IGxvY2FsU3RvcmFnZS5zZXRJdGVtKCd3YXNhX2VtYWlsJyxqLmVtYWlsfHxlbWFpbCk7IGlmKGoubmlja25hbWUpIGxvY2FsU3RvcmFnZS5zZXRJdGVtKCd3YXNhX25pY2snLGoubmlja25hbWUpOyB1cGRhdGVXYWxsZXRVSSgpOyBzaG93QXV0aFN0YXR1cygn4pyFIExvZ2luIE9LJywnc3RhdHVzLW9rJyxmYWxzZSk7IHNldFRpbWVvdXQoKCk9PnsgY2xvc2VBdXRoRW1haWwoKTsgc3luY0JhbGFuY2VGcm9tRDEoKTsgfSw3MDApOyB9Y2F0Y2goZSl7IHNob3dBdXRoU3RhdHVzKCfinYwgJytlLm1lc3NhZ2UsJ3N0YXR1cy1lcnInLGZhbHNlKTsgfSB9CmFzeW5jIGZ1bmN0aW9uIGRvUmVnaXN0ZXIoKXsgY29uc3QgZW1haWw9ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2F1dGhFbWFpbFJlZycpPy52YWx1ZS50cmltKCkudG9Mb3dlckNhc2UoKXx8Jyc7IGNvbnN0IHBhc3M9ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2F1dGhQYXNzUmVnJyk/LnZhbHVlfHwnJzsgY29uc3Qgbmljaz1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnYXV0aE5pY2tSZWcnKT8udmFsdWUudHJpbSgpfHwnJzsgY29uc3Qgc3RhdHVzRWw9ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2F1dGhTdGF0dXNSZWcnKTsgaWYoIWVtYWlsLmluY2x1ZGVzKCdAJykpIHJldHVybjsgaWYoc3RhdHVzRWwpeyBzdGF0dXNFbC50ZXh0Q29udGVudD0n4o+zIENyZWFuZG8gY3VlbnRhLi4uJzsgc3RhdHVzRWwuY2xhc3NOYW1lPSdzdGF0dXMtYm94IHN0YXR1cy1pbmZvJzsgc3RhdHVzRWwuc3R5bGUuZGlzcGxheT0nYmxvY2snOyB9IHRyeXsgY29uc3Qgcj1hd2FpdCBmZXRjaChXQVNBX0NPTkZJRy5XT1JLRVJfVVJMLHttZXRob2Q6J1BPU1QnLGhlYWRlcnM6eydDb250ZW50LVR5cGUnOidhcHBsaWNhdGlvbi9qc29uJ30sYm9keTpKU09OLnN0cmluZ2lmeSh7YWN0aW9uOidyZWdpc3RlcicsZW1haWwscGFzc3dvcmQ6cGFzcyxuaWNrbmFtZTpuaWNrLGRldmljZV9pZDpnZXREZXZpY2VJZCgpfSl9KTsgY29uc3Qgaj1hd2FpdCByLmpzb24oKTsgaWYoIWoub2spIHRocm93IG5ldyBFcnJvcihqLmVycm9yKTsgcGVuZGluZ1ZlcmlmeUVtYWlsPWVtYWlsOyBsb2NhbFN0b3JhZ2Uuc2V0SXRlbSgnd2FzYV9lbWFpbF9wZW5kaW5nJyxlbWFpbCk7IGlmKHN0YXR1c0VsKXsgc3RhdHVzRWwudGV4dENvbnRlbnQ9J+KchSBSZXZpc2EgdHUgZW1haWwnOyBzdGF0dXNFbC5jbGFzc05hbWU9J3N0YXR1cy1ib3ggc3RhdHVzLW9rJzsgfSBzZXRUaW1lb3V0KCgpPT57IGNsb3NlQXV0aEVtYWlsKCk7IG9wZW5WZXJpZnlNb2RhbChlbWFpbCk7IH0sNjAwKTsgfWNhdGNoKGUpeyBpZihzdGF0dXNFbCl7IHN0YXR1c0VsLnRleHRDb250ZW50PSfinYwgJysoZS5tZXNzYWdlfHwnRXJyb3InKTsgc3RhdHVzRWwuY2xhc3NOYW1lPSdzdGF0dXMtYm94IHN0YXR1cy1lcnInOyB9IH0gfQpmdW5jdGlvbiBvcGVuRm9yZ290KCl7IGNvbnN0IGJveD1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnZm9yZ290Qm94Jyk7IGlmKGJveCkgYm94LmNsYXNzTGlzdC5hZGQoJ29wZW4nKTsgfQpmdW5jdGlvbiBjbG9zZUZvcmdvdCgpeyBjb25zdCBib3g9ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2ZvcmdvdEJveCcpOyBpZihib3gpIGJveC5jbGFzc0xpc3QucmVtb3ZlKCdvcGVuJyk7IGNvbnN0IGxmPWRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdsb2dpbkZvcm0nKTsgaWYobGYpIGxmLnN0eWxlLmRpc3BsYXk9J2Jsb2NrJzsgfQphc3luYyBmdW5jdGlvbiByZXF1ZXN0UGFzc3dvcmRSZXNldCgpeyBjb25zdCBlbWFpbD1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnZm9yZ290RW1haWwnKT8udmFsdWUudHJpbSgpLnRvTG93ZXJDYXNlKCl8fCcnOyBjb25zdCBlbD1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnZm9yZ290U3RhdHVzJyk7IHRyeXsgY29uc3Qgcj1hd2FpdCBmZXRjaChXQVNBX0NPTkZJRy5XT1JLRVJfVVJMLHttZXRob2Q6J1BPU1QnLGhlYWRlcnM6eydDb250ZW50LVR5cGUnOidhcHBsaWNhdGlvbi9qc29uJ30sYm9keTpKU09OLnN0cmluZ2lmeSh7YWN0aW9uOidyZXF1ZXN0cGFzc3dvcmRyZXNldCcsZW1haWx9KX0pOyBjb25zdCBqPWF3YWl0IHIuanNvbigpOyBpZighai5vaykgdGhyb3cgbmV3IEVycm9yKGouZXJyb3IpOyBpZihlbCl7IGVsLnRleHRDb250ZW50PSfinIUgQ8OzZGlnbyBlbnZpYWRvJzsgZWwuY2xhc3NOYW1lPSdzdGF0dXMtYm94IHN0YXR1cy1vayc7IGVsLnN0eWxlLmRpc3BsYXk9J2Jsb2NrJzsgfSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnZm9yZ290U3RlcDEnKS5zdHlsZS5kaXNwbGF5PSdub25lJzsgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2ZvcmdvdFN0ZXAyJykuc3R5bGUuZGlzcGxheT0nYmxvY2snOyB9Y2F0Y2goZSl7IGlmKGVsKXsgZWwudGV4dENvbnRlbnQ9J+KdjCAnK2UubWVzc2FnZTsgZWwuY2xhc3NOYW1lPSdzdGF0dXMtYm94IHN0YXR1cy1lcnInOyBlbC5zdHlsZS5kaXNwbGF5PSdibG9jayc7IH0gfSB9CmFzeW5jIGZ1bmN0aW9uIHZlcmlmeVBhc3N3b3JkUmVzZXQoKXsgY29uc3QgZW1haWw9ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2ZvcmdvdEVtYWlsJyk/LnZhbHVlLnRyaW0oKS50b0xvd2VyQ2FzZSgpfHwnJzsgY29uc3QgY29kZT1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnZm9yZ290Q29kZScpPy52YWx1ZS50cmltKCl8fCcnOyBjb25zdCBwYXNzPWRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdmb3Jnb3ROZXdQYXNzJyk/LnZhbHVlfHwnJzsgdHJ5eyBjb25zdCByPWF3YWl0IGZldGNoKFdBU0FfQ09ORklHLldPUktFUl9VUkwse21ldGhvZDonUE9TVCcsaGVhZGVyczp7J0NvbnRlbnQtVHlwZSc6J2FwcGxpY2F0aW9uL2pzb24nfSxib2R5OkpTT04uc3RyaW5naWZ5KHthY3Rpb246J3ZlcmlmeXBhc3N3b3JkcmVzZXQnLGVtYWlsLGNvZGUsbmV3UGFzc3dvcmQ6cGFzc30pfSk7IGNvbnN0IGo9YXdhaXQgci5qc29uKCk7IGlmKCFqLm9rKSB0aHJvdyBuZXcgRXJyb3Ioai5lcnJvcik7IGNsb3NlRm9yZ290KCk7IG9wZW5BdXRoRW1haWwoJ2xvZ2luJyk7IH1jYXRjaChlKXt9IH0KCi8vIEZJWCBERUZJTklUSVZPIC0gQ0FEQSBXQUxMRVQgQSBTVSBQQUdJTkEKY29uc3QgV0FMTEVUX0xJTktTID0gewogIG1ldGFtYXNrOiB7bmFtZTonTWV0YU1hc2snLCB1cmw6J2h0dHBzOi8vbWV0YW1hc2suaW8vZG93bmxvYWQvJywgZGVlcDonaHR0cHM6Ly9tZXRhbWFzay5hcHAubGluay9kYXBwL2dhbWVzLndhc2EuY2hhdC8nfSwKICB0cnVzdDoge25hbWU6J1RydXN0IFdhbGxldCcsIHVybDonaHR0cHM6Ly90cnVzdHdhbGxldC5jb20vZG93bmxvYWQnLCBkZWVwOidodHRwczovL2xpbmsudHJ1c3R3YWxsZXQuY29tL29wZW4/dXJsPWh0dHBzOi8vZ2FtZXMud2FzYS5jaGF0Lyd9LAogIHJhYmJ5OiB7bmFtZTonUmFiYnknLCB1cmw6J2h0dHBzOi8vcmFiYnkuaW8vJywgZGVlcDonaHR0cHM6Ly9yYWJieS5pby8nfSwKICBva3g6IHtuYW1lOidPS1ggV2FsbGV0JywgdXJsOidodHRwczovL3d3dy5va3guY29tL3dlYjMnLCBkZWVwOidodHRwczovL3d3dy5va3guY29tL2Rvd25sb2FkJ30KfTsKCmFzeW5jIGZ1bmN0aW9uIGNvbm5lY3RXaXRoKHR5cGUpewogIGNvbnN0IGluZm89ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3dhbGxldENvbm5lY3RlZEluZm8nKTsKICBjb25zdCBzaG93PShtLGMpPT57IGlmKGluZm8peyBpbmZvLnRleHRDb250ZW50PW07IGluZm8uY2xhc3NOYW1lPSdzdGF0dXMtYm94ICcrYzsgaW5mby5zdHlsZS5kaXNwbGF5PSdibG9jayc7IH0gfTsKICAKICBpZih0eXBlPT09J2VtYWlsJyB8fCB0eXBlPT09J0VtYWlsJyl7CiAgICBvcGVuQXV0aEVtYWlsKCdsb2dpbicpOwogICAgcmV0dXJuOwogIH0KCiAgaWYoIXdpbmRvdy5ldGhlcmV1bSl7CiAgICBjb25zdCB3ID0gV0FMTEVUX0xJTktTW3R5cGVdIHx8IFdBTExFVF9MSU5LUy5tZXRhbWFzazsKICAgIGNvbnN0IGlzTW9iaWxlID0gL2lQaG9uZXxpUGFkfGlQb2R8QW5kcm9pZC9pLnRlc3QobmF2aWdhdG9yLnVzZXJBZ2VudCk7CiAgICBpZihpc01vYmlsZSl7CiAgICAgIHNob3coYEFicmllbmRvICR7dy5uYW1lfS4uLiBTaSBubyB0ZW7DqXMgbGEgYXBwLCB0ZSBsbGV2YSBhIGluc3RhbGFybGFgLCAnc3RhdHVzLWluZm8nKTsKICAgICAgd2luZG93LmxvY2F0aW9uLmhyZWYgPSB3LmRlZXA7CiAgICAgIHNldFRpbWVvdXQoKCk9PndpbmRvdy5vcGVuKHcudXJsLCdfYmxhbmsnKSwgMjUwMCk7CiAgICB9IGVsc2UgewogICAgICBzaG93KGBObyBkZXRlY3RvICR7dy5uYW1lfS4gSW5zdGFsw6EgJHt3Lm5hbWV9IC0gUmVkaXJpZ2llbmRvLi4uYCwgJ3N0YXR1cy1lcnInKTsKICAgICAgc2V0VGltZW91dCgoKT0+d2luZG93Lm9wZW4ody51cmwsJ19ibGFuaycpLCAxMDAwKTsKICAgIH0KICAgIHJldHVybjsKICB9CgogIHRyeXsKICAgIHNob3coYOKPsyBDb25lY3RhbmRvIGNvbiAke1dBTExFVF9MSU5LU1t0eXBlXT8ubmFtZXx8J3dhbGxldCd9Li4uYCwgJ3N0YXR1cy1pbmZvJyk7CiAgICBjb25zdCBhY2NzPWF3YWl0IHdpbmRvdy5ldGhlcmV1bS5yZXF1ZXN0KHttZXRob2Q6J2V0aF9yZXF1ZXN0QWNjb3VudHMnfSk7CiAgICBjb25zdCB3YWxsZXQ9YWNjc1swXTsKICAgIGlmKCF3YWxsZXQpIHRocm93IG5ldyBFcnJvcignTm8gd2FsbGV0IHJldHVybmVkJyk7CiAgICBsb2NhbFN0b3JhZ2Uuc2V0SXRlbSgnd2FzYV93YWxsZXQnLHdhbGxldC50b0xvd2VyQ2FzZSgpKTsKICAgIHVwZGF0ZVdhbGxldFVJKCk7CiAgICBjb25zdCBlbWFpbD1nZXRTdG9yZWRFbWFpbCgpOwogICAgaWYoZW1haWwpeyB0cnl7IGF3YWl0IGZldGNoKFdBU0FfQ09ORklHLldPUktFUl9VUkwse21ldGhvZDonUE9TVCcsaGVhZGVyczp7J0NvbnRlbnQtVHlwZSc6J2FwcGxpY2F0aW9uL2pzb24nfSxib2R5OkpTT04uc3RyaW5naWZ5KHthY3Rpb246J2xpbmtfd2FsbGV0JyxlbWFpbCx3YWxsZXR9KX0pOyB9Y2F0Y2goZSl7fSB9CiAgICBjbG9zZVdhbGxldENob29zZXIoKTsKICAgIHNob3coJ+KchSBDb25lY3RhZG86ICcrd2FsbGV0LnNsaWNlKDAsNikrJy4uLicrd2FsbGV0LnNsaWNlKC00KSwnc3RhdHVzLW9rJyk7CiAgICBzZXRUaW1lb3V0KCgpPT57IGlmKGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCd3YXNhQnV5TW9kYWwnKSkgb3Blbldhc2FCdXkoKTsgfSwzMDApOwogIH1jYXRjaChlKXsKICAgIHNob3coJ+KdjCAnKyhlLm1lc3NhZ2V8fCdSZWNoYXphZG8nKSwnc3RhdHVzLWVycicpOwogIH0KfQoKYXN5bmMgZnVuY3Rpb24gYnV5V2FzYSh3YXNhQW1vdW50KXsgY29uc3QgdXNkdD1XQVNBX0NPTkZJRy5QUklDRVNbd2FzYUFtb3VudF07IGNvbnN0IGVsPWRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdidXlTdGF0dXMnKTsgaWYoZWwpeyBlbC50ZXh0Q29udGVudD0n4o+zIFBhZ28gJyt1c2R0KycgVVNEVCAtPiAnK3dhc2FBbW91bnQrJyBXQVNBLi4uJzsgZWwuY2xhc3NOYW1lPSdzdGF0dXMtYm94IHN0YXR1cy1pbmZvJzsgZWwuc3R5bGUuZGlzcGxheT0nYmxvY2snOyB9IH0KZnVuY3Rpb24gb3BlblZlcmlmeU1vZGFsKGVtYWlsKXsgY29uc3QgbT1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgndmVyaWZ5RW1haWxNb2RhbCcpOyBpZighbSkgcmV0dXJuOyBjb25zdCBsYmw9ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3ZlcmlmeUVtYWlsTGFiZWwnKTsgaWYobGJsKSBsYmwudGV4dENvbnRlbnQ9ZW1haWx8fHBlbmRpbmdWZXJpZnlFbWFpbHx8J3R1IGVtYWlsJzsgbS5jbGFzc0xpc3QuYWRkKCdvcGVuJyk7IHBlbmRpbmdWZXJpZnlFbWFpbD1lbWFpbHx8cGVuZGluZ1ZlcmlmeUVtYWlsOyB9CmZ1bmN0aW9uIGNsb3NlVmVyaWZ5TW9kYWwoKXsgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3ZlcmlmeUVtYWlsTW9kYWwnKT8uY2xhc3NMaXN0LnJlbW92ZSgnb3BlbicpOyB9CmFzeW5jIGZ1bmN0aW9uIGRvVmVyaWZ5RW1haWwoKXsgY29uc3QgY29kZT1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgndmVyaWZ5Q29kZUlucHV0Jyk/LnZhbHVlLnRyaW0oKXx8Jyc7IGNvbnN0IHN0YXR1c0VsPWRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCd2ZXJpZnlTdGF0dXMnKTsgY29uc3QgZW1haWw9cGVuZGluZ1ZlcmlmeUVtYWlsfHxsb2NhbFN0b3JhZ2UuZ2V0SXRlbSgnd2FzYV9lbWFpbF9wZW5kaW5nJyl8fGdldFN0b3JlZEVtYWlsKCk7IGlmKGNvZGUubGVuZ3RoIT09Nil7IGlmKHN0YXR1c0VsKXsgc3RhdHVzRWwudGV4dENvbnRlbnQ9J+KdjCBDw7NkaWdvIDYgZMOtZ2l0b3MnOyBzdGF0dXNFbC5jbGFzc05hbWU9J3N0YXR1cy1ib3ggc3RhdHVzLWVycic7IHN0YXR1c0VsLnN0eWxlLmRpc3BsYXk9J2Jsb2NrJzsgfSByZXR1cm47IH0gdHJ5eyBjb25zdCByPWF3YWl0IGZldGNoKFdBU0FfQ09ORklHLldPUktFUl9VUkwse21ldGhvZDonUE9TVCcsaGVhZGVyczp7J0NvbnRlbnQtVHlwZSc6J2FwcGxpY2F0aW9uL2pzb24nfSxib2R5OkpTT04uc3RyaW5naWZ5KHthY3Rpb246J3ZlcmlmeV9lbWFpbCcsZW1haWwsY29kZSxkZXZpY2VfaWQ6Z2V0RGV2aWNlSWQoKX0pfSk7IGNvbnN0IGo9YXdhaXQgci5qc29uKCk7IGlmKCFqLm9rKSB0aHJvdyBuZXcgRXJyb3Ioai5lcnJvcik7IGxvY2FsU3RvcmFnZS5zZXRJdGVtKCd3YXNhX2VtYWlsJyxlbWFpbCk7IGxvY2FsU3RvcmFnZS5yZW1vdmVJdGVtKCd3YXNhX2VtYWlsX3BlbmRpbmcnKTsgaWYoai5uaWNrbmFtZSkgbG9jYWxTdG9yYWdlLnNldEl0ZW0oJ3dhc2Ffbmljaycsai5uaWNrbmFtZSk7IGxvY2FsU3RvcmFnZS5zZXRJdGVtKCd3YXNhX2NvaW5zJyxqLndhc2FfYmFsYW5jZXx8MCk7IGxvY2FsU3RvcmFnZS5yZW1vdmVJdGVtKCd3YXNhX2NvaW5zX2d1ZXN0Jyk7IHNldENvaW5zVUkoai53YXNhX2JhbGFuY2V8fDApOyB1cGRhdGVXYWxsZXRVSSgpOyBpZihzdGF0dXNFbCl7IHN0YXR1c0VsLnRleHRDb250ZW50PSfinIUgVmVyaWZpY2FkbyEnOyBzdGF0dXNFbC5jbGFzc05hbWU9J3N0YXR1cy1ib3ggc3RhdHVzLW9rJzsgc3RhdHVzRWwuc3R5bGUuZGlzcGxheT0nYmxvY2snOyB9IHNldFRpbWVvdXQoKCk9PnsgY2xvc2VWZXJpZnlNb2RhbCgpOyBvcGVuVXNlclByb2ZpbGUoKTsgfSw4MDApOyB9Y2F0Y2goZSl7IGlmKHN0YXR1c0VsKXsgc3RhdHVzRWwudGV4dENvbnRlbnQ9J+KdjCAnK2UubWVzc2FnZTsgc3RhdHVzRWwuY2xhc3NOYW1lPSdzdGF0dXMtYm94IHN0YXR1cy1lcnInOyBzdGF0dXNFbC5zdHlsZS5kaXNwbGF5PSdibG9jayc7IH0gfSB9CmFzeW5jIGZ1bmN0aW9uIHJlc2VuZFZlcmlmeUNvZGUoKXsgY29uc3QgZW1haWw9cGVuZGluZ1ZlcmlmeUVtYWlsfHxsb2NhbFN0b3JhZ2UuZ2V0SXRlbSgnd2FzYV9lbWFpbF9wZW5kaW5nJyk7IGlmKCFlbWFpbCkgcmV0dXJuOyB0cnl7IGNvbnN0IHI9YXdhaXQgZmV0Y2goV0FTQV9DT05GSUcuV09SS0VSX1VSTCx7bWV0aG9kOidQT1NUJyxoZWFkZXJzOnsnQ29udGVudC1UeXBlJzonYXBwbGljYXRpb24vanNvbid9LGJvZHk6SlNPTi5zdHJpbmdpZnkoe2FjdGlvbjoncmVzZW5kX2NvZGUnLGVtYWlsLGRldmljZV9pZDpnZXREZXZpY2VJZCgpfSl9KTsgY29uc3Qgaj1hd2FpdCByLmpzb24oKTsgaWYoIWoub2spIHRocm93IG5ldyBFcnJvcihqLmVycm9yKTsgfWNhdGNoKGUpe30gfQpkb2N1bWVudC5hZGRFdmVudExpc3RlbmVyKCdjbGljaycsKGUpPT57IGNvbnN0IG1lbnU9ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3VzZXJEcm9wZG93bicpOyBjb25zdCBidG49ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3VzZXJCdG4nKTsgaWYoIW1lbnV8fCFidG4pIHJldHVybjsgaWYodXNlck1lbnVPcGVuJiYhbWVudS5jb250YWlucyhlLnRhcmdldCkmJiFidG4uY29udGFpbnMoZS50YXJnZXQpKXsgY2xvc2VVc2VyTWVudSgpOyB9IH0pOwp3aW5kb3cuYWRkRXZlbnRMaXN0ZW5lcignRE9NQ29udGVudExvYWRlZCcsYXN5bmMoKT0+ewogIGlmKGNsZWFuU3RvcmVkKGxvY2FsU3RvcmFnZS5nZXRJdGVtKCd3YXNhX3dhbGxldCcpKT09PW51bGwpIGxvY2FsU3RvcmFnZS5yZW1vdmVJdGVtKCd3YXNhX3dhbGxldCcpOwogIGlmKGNsZWFuU3RvcmVkKGxvY2FsU3RvcmFnZS5nZXRJdGVtKCd3YXNhX2VtYWlsJykpPT09bnVsbCkgbG9jYWxTdG9yYWdlLnJlbW92ZUl0ZW0oJ3dhc2FfZW1haWwnKTsKICBpZihjbGVhblN0b3JlZChsb2NhbFN0b3JhZ2UuZ2V0SXRlbSgnd2FzYV9uaWNrJykpPT09bnVsbCkgbG9jYWxTdG9yYWdlLnJlbW92ZUl0ZW0oJ3dhc2FfbmljaycpOwogIGdldERldmljZUlkKCk7IHVwZGF0ZVdhbGxldFVJKCk7IHNldENvaW5zVUkoZ2V0Q29pbnMoKSk7IGF3YWl0IGxvYWRXYXNhQ29uZmlnKCk7IGF3YWl0IHN5bmNCYWxhbmNlRnJvbUQxKCk7CiAgaWYod2luZG93LmV0aGVyZXVtKXsgd2luZG93LmV0aGVyZXVtLnJlcXVlc3Qoe21ldGhvZDonZXRoX2FjY291bnRzJ30pLnRoZW4oYT0+eyBpZihhWzBdJiYhZ2V0U3RvcmVkV2FsbGV0KCkpeyBsb2NhbFN0b3JhZ2Uuc2V0SXRlbSgnd2FzYV93YWxsZXQnLGFbMF0udG9Mb3dlckNhc2UoKSk7IHVwZGF0ZVdhbGxldFVJKCk7IHN5bmNCYWxhbmNlRnJvbUQxKCk7IH0gfSkuY2F0Y2goKCk9Pnt9KTsgd2luZG93LmV0aGVyZXVtLm9uJiZ3aW5kb3cuZXRoZXJldW0ub24oJ2FjY291bnRzQ2hhbmdlZCcsKGFjY3MpPT57IGlmKGFjY3MmJmFjY3NbMF0peyBsb2NhbFN0b3JhZ2Uuc2V0SXRlbSgnd2FzYV93YWxsZXQnLGFjY3NbMF0udG9Mb3dlckNhc2UoKSk7IHVwZGF0ZVdhbGxldFVJKCk7IH0gfSk7IH0KfSk7CndpbmRvdy5XQVNBX0NPTkZJRz1XQVNBX0NPTkZJRzt3aW5kb3cuZ2V0RGV2aWNlSWQ9Z2V0RGV2aWNlSWQ7d2luZG93LmhhbmRsZVVzZXJCdG49aGFuZGxlVXNlckJ0bjt3aW5kb3cub3BlblVzZXJNZW51PW9wZW5Vc2VyTWVudTt3aW5kb3cuY2xvc2VVc2VyTWVudT1jbG9zZVVzZXJNZW51O3dpbmRvdy5vcGVuVXNlclByb2ZpbGU9b3BlblVzZXJQcm9maWxlO3dpbmRvdy5jbG9zZVVzZXJQcm9maWxlPWNsb3NlVXNlclByb2ZpbGU7d2luZG93LnNhdmVQcm9maWxlPXNhdmVQcm9maWxlO3dpbmRvdy5sb2dvdXRVc2VyPWxvZ291dFVzZXI7d2luZG93LmxvYWRXYXNhQ29uZmlnPWxvYWRXYXNhQ29uZmlnO3dpbmRvdy51cGRhdGVXYWxsZXRVST11cGRhdGVXYWxsZXRVSTt3aW5kb3cuaGFuZGxlV2FsbGV0QnRuPWhhbmRsZVdhbGxldEJ0bjt3aW5kb3cub3BlbldhbGxldENob29zZXI9b3BlbldhbGxldENob29zZXI7d2luZG93LmNsb3NlV2FsbGV0Q2hvb3Nlcj1jbG9zZVdhbGxldENob29zZXI7d2luZG93Lm9wZW5XYXNhQnV5PW9wZW5XYXNhQnV5O3dpbmRvdy5jbG9zZVdhc2FCdXk9Y2xvc2VXYXNhQnV5O3dpbmRvdy5vcGVuQXV0aEVtYWlsPW9wZW5BdXRoRW1haWw7d2luZG93LmNsb3NlQXV0aEVtYWlsPWNsb3NlQXV0aEVtYWlsO3dpbmRvdy5zd2l0Y2hBdXRoVGFiPXN3aXRjaEF1dGhUYWI7d2luZG93LmRvTG9naW49ZG9Mb2dpbjt3aW5kb3cuZG9SZWdpc3Rlcj1kb1JlZ2lzdGVyO3dpbmRvdy5vcGVuRm9yZ290PW9wZW5Gb3Jnb3Q7d2luZG93LmNsb3NlRm9yZ290PWNsb3NlRm9yZ290O3dpbmRvdy5yZXF1ZXN0UGFzc3dvcmRSZXNldD1yZXF1ZXN0UGFzc3dvcmRSZXNldDt3aW5kb3cudmVyaWZ5UGFzc3dvcmRSZXNldD12ZXJpZnlQYXNzd29yZFJlc2V0O3dpbmRvdy5jb25uZWN0V2l0aD1jb25uZWN0V2l0aDt3aW5kb3cuYnV5V2FzYT1idXlXYXNhO3dpbmRvdy5zZXRDb2luc1VJPXNldENvaW5zVUk7d2luZG93LmdldENvaW5zPWdldENvaW5zO3dpbmRvdy5zZXRDb2lucz1zZXRDb2luczt3aW5kb3cuYWRkQ29pbnM9YWRkQ29pbnM7d2luZG93Lm9wZW5WZXJpZnlNb2RhbD1vcGVuVmVyaWZ5TW9kYWw7d2luZG93LmNsb3NlVmVyaWZ5TW9kYWw9Y2xvc2VWZXJpZnlNb2RhbDt3aW5kb3cuZG9WZXJpZnlFbWFpbD1kb1ZlcmlmeUVtYWlsO3dpbmRvdy5yZXNlbmRWZXJpZnlDb2RlPXJlc2VuZFZlcmlmeUNvZGU7Cg=="></script>
 </body>
 </html>
