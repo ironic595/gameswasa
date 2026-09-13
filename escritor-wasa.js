@@ -64,8 +64,8 @@ export async function crearWasaPassFinal({codeId, apodo, email, tx_hash, multipl
   const base=await loadImageObfuscated(BASE_IMG_URL);
   ctx.drawImage(base,0,0,W,H);
 
-  // 1. APODO - layout 12% x 85.2% w62% h8.8% - ESTILO EMBOSS REAL como founders
-  const nickRect={x:Math.floor(W*0.12), y:Math.floor(H*0.852), w:Math.floor(W*0.62), h:Math.floor(H*0.088)};
+  // 1. APODO - EXACTO del modelo YOUR NAME: 12.17% x 85.49% w47.8% h4.59% - ESTILO EMBOSS REAL
+  const nickRect={x:Math.floor(W*0.1217), y:Math.floor(H*0.8549), w:Math.floor(W*0.4782), h:Math.floor(H*0.0459)};
   const fontSize = Math.floor(nickRect.h*0.55);
   const yPos = nickRect.y + nickRect.h/2 + 2;
   const xPos = nickRect.x + nickRect.w/2;
@@ -89,8 +89,9 @@ export async function crearWasaPassFinal({codeId, apodo, email, tx_hash, multipl
 
   // 2. QR CUADRADO abajo der - 100% compatible (no rMQR)
   const qrValue=`https://games.wasa.chat/pass?id=${codeId}`;
-  const qrSize= Math.floor(H*0.095); // 148px aprox
-  const qrRect={x:Math.floor(W*0.79), y:Math.floor(H*0.846), w:qrSize, h:qrSize};
+  // QR EXACTO del modelo: 72.93% x 82.63% w19.13% - cuadrado asignado en ejemplo
+  const qrSize= Math.floor(W*0.1913); // ~196px square como en tu ejemplo
+  const qrRect={x:Math.floor(W*0.7293), y:Math.floor(H*0.8263), w:qrSize, h:qrSize};
   
   // Intentar con qrcodejs local si existe, sino qrserver
   let qrImg;
