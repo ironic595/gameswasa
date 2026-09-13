@@ -352,10 +352,24 @@ async function genFinalImage(apodo, passId){
   c.width=base.naturalWidth||base.width||1024; c.height=base.naturalHeight||base.height||1560;
   const ctx=c.getContext('2d');
   ctx.drawImage(base,0,0,c.width,c.height);
-  const x=c.width*0.14, y=c.height*0.82, fs=c.width*0.052;
-  ctx.fillStyle="#c67a2e"; ctx.font=`900 ${fs}px Inter, monospace`; ctx.fillText(apodo,x,y);
-  const qs=c.width*0.20, qx=c.width*0.68, qy=c.height*0.695;
-  ctx.fillStyle="#fff"; ctx.fillRect(qx-10,qy-10,qs+20,qs+20);
+  // Layout: apodo 12% x 85.2% w62% h8.8% - QR 79% x 84.6% 9.5% - EMBOSS REAL
+  const W=c.width, H=c.height;
+  const nickRect={x:Math.floor(W*0.12), y:Math.floor(H*0.852), w:Math.floor(W*0.62), h:Math.floor(H*0.088)};
+  const fs=nickRect.h*0.55;
+  const yPos=nickRect.y + nickRect.h/2 + 2;
+  const xPos=nickRect.x + nickRect.w/2;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  try{ ctx.font=`200 ${fs}px FixedsysTTF, Fixedsys, monospace`; }catch{ ctx.font=`200 ${fs}px Fixedsys, monospace`; }
+  try{ ctx.letterSpacing='4px'; }catch{}
+  const shadows=[
+    {dx:3,dy:3,color:'#091721'},{dx:2,dy:2,color:'#210d02'},{dx:1,dy:1,color:'#5e2a09'},
+    {dx:-1,dy:1,color:'#944d1a'},{dx:1,dy:-1,color:'#944d1a'},{dx:-1,dy:-1,color:'#ffcc99'}
+  ];
+  for(const s of shadows){ ctx.fillStyle=s.color; ctx.fillText(apodo,xPos+s.dx,yPos+s.dy); }
+  ctx.fillStyle="#d99152"; ctx.fillText(apodo,xPos,yPos);
+
+  const qs=W*0.095, qx=W*0.79, qy=H*0.846;
+  ctx.fillStyle="#fff"; ctx.fillRect(qx-3,qy-3,qs+6,qs+6);
   ctx.drawImage(qrImg,qx,qy,qs,qs);
   return c.toDataURL("image/png");
 }
@@ -374,20 +388,12 @@ payBtn.addEventListener('click', async()=>{
   }
   let w = getWalletForPay();
   if(!w){
-    try{
-      statusEl.style.display='block';
-      statusEl.style.background='rgba(56,189,248,.12)';
-      statusEl.style.color='#38bdf8';
-      statusEl.textContent='🔌 Conectando wallet...';
-      if(typeof openWalletChooser==='function'){
-        openWalletChooser();
-        for(let i=0;i<30;i++){ await new Promise(r=>setTimeout(r,1000)); w=getWalletForPay()||localStorage.getItem('wasa_wallet'); if(w) break; }
-      } else if(window.ethereum){
-        const acc=await window.ethereum.request({method:'eth_requestAccounts'}); w=acc[0]; wallet=w; localStorage.setItem('wasa_wallet', w.toLowerCase());
-      }
-      if(!w){ statusEl.style.background='rgba(239,68,68,.15)'; statusEl.style.color='#fca5a5'; statusEl.textContent='Conectá tu wallet desde el nav superior'; return; }
-      statusEl.textContent='✓ Wallet: '+w.slice(0,6)+'...'+w.slice(-4)+' - Pagando...';
-    }catch(e){ statusEl.style.display='block'; statusEl.style.background='rgba(239,68,68,.15)'; statusEl.style.color='#fca5a5'; statusEl.textContent='Error wallet: '+e.message; return; }
+    if(window.ethereum){
+      try{
+        const acc=await window.ethereum.request({method:'eth_requestAccounts'});
+        w=acc[0]; wallet=w;
+      }catch(e){ alert("Conectá la wallet del nav primero"); return; }
+    } else { alert("Conectá la wallet desde el nav superior"); if(typeof openWalletChooser==='function') openWalletChooser(); return; }
   }
 
   const apodo=apodoEl.value.trim().toUpperCase();
@@ -402,7 +408,7 @@ payBtn.addEventListener('click', async()=>{
     // switch BSC
     try{ await window.ethereum.request({method:'wallet_switchEthereumChain', params:[{chainId:BSC_CHAIN}]}); }catch(e){ if(e.code===4902){ await window.ethereum.request({method:'wallet_addEthereumChain', params:[{chainId:BSC_CHAIN, chainName:'BNB Smart Chain', rpcUrls:['https://bsc-dataseed.binance.org/'], nativeCurrency:{name:'BNB',symbol:'BNB',decimals:18}, blockExplorerUrls:['https://bscscan.com']}]}) } }
 
-    const amount=BigInt("10000000000000000")
+    const amount=BigInt(5)*BigInt(10**18);
     const amountHex=amount.toString(16);
     const pad=(h)=>h.replace(/^0x/,'').toLowerCase().padStart(64,'0');
     const data='0xa9059cbb'+pad(receiver)+pad(amountHex);
@@ -429,8 +435,19 @@ payBtn.addEventListener('click', async()=>{
       statusEl.textContent='¡Listo! ✅ PASS X5 activado • ID '+passId;
     }
 
-    const win=window.open();
-    win.document.write(`<div style="font-family:Inter,sans-serif;text-align:center;padding:20px;background:#0a1020;color:white;min-height:100vh"><h2 style="color:#fcd34d">WASA PASS X5 - ${apodo}</h2><p style="color:#94a3b8">ID: ${passId}</p><img src="${imgData}" style="max-width:600px;width:100%;border-radius:12px;border:2px solid #fcd34d;margin:16px 0"><br><a href="${imgData}" download="WASA_PASS_${apodo}_${passId}.png" style="display:inline-block;margin-top:12px;background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#000;padding:12px 24px;border-radius:9999px;font-weight:900;text-decoration:none">⬇️ DESCARGAR PASS PNG</a><p style="margin-top:16px"><a href="https://games.wasa.chat/pass?id=${passId}" style="color:#38bdf8">games.wasa.chat/pass?id=${passId}</a></p><p style="margin-top:8px;font-size:12px;color:#64748b">Enviado a ${finalEmail||w}</p></div>`);
+    try{
+      const htmlContent = `<div style="font-family:Inter,sans-serif;text-align:center;padding:20px;background:#0a1020;color:white;min-height:100vh"><h2 style="color:#fcd34d">WASA PASS X5 - ${apodo}</h2><p style="color:#94a3b8">ID: ${passId}</p><img src="${imgData}" style="max-width:600px;width:100%;border-radius:12px;border:2px solid #fcd34d;margin:16px 0"><br><a href="${imgData}" download="WASA_PASS_${apodo}_${passId}.png" style="display:inline-block;margin-top:12px;background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#000;padding:12px 24px;border-radius:9999px;font-weight:900;text-decoration:none">⬇️ DESCARGAR PASS PNG</a><p style="margin-top:16px"><a href="https://games.wasa.chat/pass?id=${passId}" style="color:#38bdf8">games.wasa.chat/pass?id=${passId}</a></p><p style="margin-top:8px;font-size:12px;color:#64748b">Enviado a ${finalEmail||w}</p></div>`;
+      const win=window.open();
+      if(win && win.document){
+        win.document.write(htmlContent);
+        win.document.close();
+      } else {
+        // popup bloqueado - descarga directa + mostrar en esta misma pestaña
+        const a=document.createElement('a'); a.href=imgData; a.download=`WASA_PASS_${apodo}_${passId}.png`; document.body.appendChild(a); a.click(); a.remove();
+        // mostrar preview en el status tambien
+        statusEl.innerHTML = '¡Listo! ✅ PASS enviado a '+finalEmail+' • ID '+passId+' • Ahora ganas x5<br><br><img src="'+imgData+'" style="max-width:100%;border-radius:12px;margin-top:10px"><br><a href="'+imgData+'" download="WASA_PASS_'+apodo+'_'+passId+'.png" style="display:inline-block;margin-top:12px;background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#000;padding:12px 24px;border-radius:9999px;font-weight:900;text-decoration:none">⬇️ DESCARGAR PASS PNG</a>';
+      }
+    }catch(e){ console.log('popup error', e); }
   }catch(e){
     statusEl.style.display='block';
     statusEl.style.background='rgba(239,68,68,.15)'; statusEl.style.borderColor='#ef4444'; statusEl.style.color='#fca5a5';
