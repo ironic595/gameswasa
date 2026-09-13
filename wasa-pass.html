@@ -111,7 +111,7 @@
 <div>
 <div style="font-size:9px;letter-spacing:0.14em;color:#fcd34d;border:1px solid rgba(252,211,77,0.3);display:inline-block;padding:3px 10px;border-radius:9999px;margin-bottom:8px">LIMITED EDITION 2026 • 500 UNIDADES</div>
 <h1 style="font-size:44px;font-weight:900;line-height:0.9;text-transform:uppercase"><span style="font-size:12px;display:block;color:rgba(255,255,255,0.7);letter-spacing:0.2em">WASA PASS</span><span style="background:linear-gradient(135deg,#fde68a,#f59e0b);-webkit-background-clip:text;color:transparent">Multiplica tus $WASA</span> <span style="color:#fcd34d">x5</span></h1>
-<p style="margin-top:10px;font-size:12px;color:rgba(207,250,254,0.7)">Sobre todas las recompensas de tus juegos.</p>
+<p style="margin-top:10px;font-size:12px;color:rgba(207,250,254,0.7)">De 0.0003 a 0.0015 $WASA por partida. Solo 500 unidades. Pago verificado en BSC.</p>
 <button style="margin-top:14px;height:40px;padding:0 18px;border-radius:9999px;background:linear-gradient(135deg,#fcd34d,#f59e0b);border:0;font-weight:900;cursor:pointer" onclick="document.getElementById('compra').scrollIntoView({behavior:'smooth'})">COMPRAR POR 5 USDT →</button>
 </div>
 <div class="hero-right"><img src="img/wasapasshero.png" class="float" alt="WASA PASS" onerror="this.src='img/founderswasa.png'"></div>
@@ -126,7 +126,7 @@
 
 <div>
   <label style="font-size:10px;color:#cbd5e1">TU APODO (GRABADO EN EL PASS) *</label>
-  <input id="apodo" class="input" placeholder="Escribe aquí tu apodo..." maxlength="12" autocomplete="off">
+  <input id="apodo" class="input" placeholder="PEPERTRULS" maxlength="12" autocomplete="off">
   <div id="cnt" style="font-size:9px;color:#64748b;margin-top:4px">0/12 - Min 3, Max 12 (A-Z 0-9 _)</div>
   <div id="apodoError" class="error-msg">⚠️ Apodo obligatorio - 3 a 12 caracteres (A-Z 0-9 _)</div>
 </div>
@@ -374,12 +374,37 @@ payBtn.addEventListener('click', async()=>{
   }
   let w = getWalletForPay();
   if(!w){
-    if(window.ethereum){
-      try{
+    // AUTO-CONECTAR - si no hay wallet, abrir chooser y conectar
+    try{
+      statusEl.style.display='block';
+      statusEl.style.background='rgba(56,189,248,.12)'; statusEl.style.borderColor='#38bdf8'; statusEl.style.color='#38bdf8';
+      statusEl.textContent='🔌 Conectando wallet...';
+      if(typeof openWalletChooser==='function'){
+        openWalletChooser();
+        // esperar 30s a que el usuario conecte desde el modal
+        for(let i=0;i<30;i++){
+          await new Promise(r=>setTimeout(r,1000));
+          w = getWalletForPay() || localStorage.getItem('wasa_wallet');
+          if(w) break;
+        }
+      } else if(window.ethereum){
         const acc=await window.ethereum.request({method:'eth_requestAccounts'});
         w=acc[0]; wallet=w;
-      }catch(e){ alert("Conectá la wallet del nav primero"); return; }
-    } else { alert("Conectá la wallet desde el nav superior"); if(typeof openWalletChooser==='function') openWalletChooser(); return; }
+        localStorage.setItem('wasa_wallet', w.toLowerCase());
+      }
+      if(!w){
+        statusEl.style.background='rgba(239,68,68,.15)'; statusEl.style.borderColor='#ef4444'; statusEl.style.color='#fca5a5';
+        statusEl.textContent='Conectá tu wallet para pagar. Usá el popup de wallets.';
+        return;
+      }
+      statusEl.textContent='✓ Wallet conectada: '+w.slice(0,6)+'...'+w.slice(-4)+' - Continuando pago...';
+      await new Promise(r=>setTimeout(r,600));
+    }catch(e){
+      statusEl.style.display='block';
+      statusEl.style.background='rgba(239,68,68,.15)'; statusEl.style.borderColor='#ef4444'; statusEl.style.color='#fca5a5';
+      statusEl.textContent='No se pudo conectar wallet: '+e.message;
+      return;
+    }
   }
 
   const apodo=apodoEl.value.trim().toUpperCase();
@@ -431,5 +456,62 @@ payBtn.addEventListener('click', async()=>{
 });
 </script>
 <script src="./wasa-conection.js"></script>
+<script>
+// FIX WALLET MODAL - cada boton a su wallet, no todo a MetaMask
+(function(){
+  const WALLET_LINKS = {
+    metamask: {name:'MetaMask', url:'https://metamask.io/download/', deep:'https://metamask.app.link/dapp/games.wasa.chat/wasa-pass.html'},
+    trust: {name:'Trust Wallet', url:'https://trustwallet.com/download', deep:'https://link.trustwallet.com/open?url=https://games.wasa.chat/wasa-pass.html'},
+    rabby: {name:'Rabby', url:'https://rabby.io/', deep:'https://rabby.io/'},
+    okx: {name:'OKX Wallet', url:'https://www.okx.com/download', deep:'https://www.okx.com/download'}
+  };
+
+  window.connectWith = async function(type){
+    const infoEl = document.getElementById('walletConnectedInfo');
+    const show = (msg, isErr)=>{
+      if(!infoEl) return;
+      infoEl.style.display='block';
+      infoEl.textContent=msg;
+      infoEl.className='status-box '+(isErr?'status-err':'status-info');
+    };
+
+    if(type==='email' || type==='Email'){
+      if(typeof openAuthEmail==='function') openAuthEmail();
+      return;
+    }
+
+    // Si no hay ethereum
+    if(!window.ethereum){
+      const w = WALLET_LINKS[type]||WALLET_LINKS.metamask;
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if(isMobile){
+        show(`Abriendo ${w.name}... Si no tenés la app, se te llevará a instalarla`, false);
+        window.location.href = w.deep;
+        setTimeout(()=>window.open(w.url,'_blank'), 2000);
+      } else {
+        show(`No detecto billetera. Instalá ${w.name} - Redirigiendo a ${w.name}...`, true);
+        setTimeout(()=>window.open(w.url,'_blank'), 1200);
+      }
+      return;
+    }
+
+    try{
+      show(`Conectando con ${WALLET_LINKS[type]?.name||'wallet'}...`, false);
+      const accounts = await window.ethereum.request({method:'eth_requestAccounts'});
+      const addr = accounts[0];
+      if(addr){
+        localStorage.setItem('wasa_wallet', addr.toLowerCase());
+        if(infoEl){ infoEl.style.display='none'; }
+        if(typeof closeWalletChooser==='function') closeWalletChooser();
+        // Actualizar nav sin recargar
+        if(typeof window.updateWalletUI==='function') window.updateWalletUI();
+        else location.reload();
+      }
+    }catch(e){
+      show('Conexión rechazada o error: '+(e.message||e), true);
+    }
+  };
+})();
+</script>
 </body>
 </html>
