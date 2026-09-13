@@ -374,14 +374,12 @@ payBtn.addEventListener('click', async()=>{
   }
   let w = getWalletForPay();
   if(!w){
-    // AUTO-CONECTAR - si no hay wallet, abrir chooser y conectar
     try{
       statusEl.style.display='block';
       statusEl.style.background='rgba(56,189,248,.12)'; statusEl.style.borderColor='#38bdf8'; statusEl.style.color='#38bdf8';
-      statusEl.textContent='🔌 Conectando wallet...';
+      statusEl.textContent='🔌 Conectando wallet... Abrí tu wallet desde el popup';
       if(typeof openWalletChooser==='function'){
         openWalletChooser();
-        // esperar 30s a que el usuario conecte desde el modal
         for(let i=0;i<30;i++){
           await new Promise(r=>setTimeout(r,1000));
           w = getWalletForPay() || localStorage.getItem('wasa_wallet');
@@ -394,7 +392,7 @@ payBtn.addEventListener('click', async()=>{
       }
       if(!w){
         statusEl.style.background='rgba(239,68,68,.15)'; statusEl.style.borderColor='#ef4444'; statusEl.style.color='#fca5a5';
-        statusEl.textContent='Conectá tu wallet para pagar. Usá el popup de wallets.';
+        statusEl.textContent='Conectá tu wallet para pagar. Usa el popup de wallets del nav.';
         return;
       }
       statusEl.textContent='✓ Wallet conectada: '+w.slice(0,6)+'...'+w.slice(-4)+' - Continuando pago...';
@@ -406,6 +404,54 @@ payBtn.addEventListener('click', async()=>{
       return;
     }
   }
+
+  const apodo=apodoEl.value.trim().toUpperCase();
+  const finalEmail = (emailEl.value.trim().toLowerCase() || getSavedEmail() || "").toLowerCase();
+  
+  try{
+    statusEl.style.display='block';
+    statusEl.style.background='rgba(252,211,77,.15)'; statusEl.style.borderColor='#fcd34d'; statusEl.style.color='#fde68a';
+    statusEl.textContent='Enviando 5 USDT en BSC... confirmá en tu wallet';
+
+    if(!receiver){ const cfg=await fetch(WORKER+"/?action=get_wasa_config").then(r=>r.json()); receiver=cfg.receiver||cfg.receiver_wallet; }
+    try{ await window.ethereum.request({method:'wallet_switchEthereumChain', params:[{chainId:BSC_CHAIN}]}); }catch(e){ if(e.code===4902){ await window.ethereum.request({method:'wallet_addEthereumChain', params:[{chainId:BSC_CHAIN, chainName:'BNB Smart Chain', rpcUrls:['https://bsc-dataseed.binance.org/'], nativeCurrency:{name:'BNB',symbol:'BNB',decimals:18}, blockExplorerUrls:['https://bscscan.com']}]}) } }
+
+    const amount=BigInt(5)*BigInt(10**18);
+    const amountHex=amount.toString(16);
+    const pad=(h)=>h.replace(/^0x/,'').toLowerCase().padStart(64,'0');
+    const data='0xa9059cbb'+pad(receiver)+pad(amountHex);
+    const txHash=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:w,to:USDT,data}]});
+
+    statusEl.textContent='Tx '+txHash.slice(0,10)+'... verificando pago 5 USDT en BSC (5-8s)...';
+
+    const body={action:'confirm_wasa_pass_payment',wallet_address:w,email:finalEmail,apodo,tx_hash:txHash,price:5,tier:'X5',chain:'BSC'};
+    const r=await fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const j=await r.json();
+    if(!j.ok) throw new Error(j.error);
+    const passId=j.wasa_pass_id;
+
+    statusEl.textContent='Generando PASS con QR... ID '+passId;
+    const imgData=await genFinalImage(apodo, passId);
+
+    if(finalEmail){
+      statusEl.textContent='Enviando PASS a '+finalEmail+'...';
+      await fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send_wasa_pass_email',wasa_pass_id:passId,image_base64:imgData,email:finalEmail,apodo})});
+      statusEl.style.background='rgba(34,197,94,.15)'; statusEl.style.borderColor='#22c55e'; statusEl.style.color='#86efac';
+      statusEl.textContent='¡Listo! ✅ PASS enviado a '+finalEmail+' • ID '+passId+' • Ahora ganas x5';
+    } else {
+      statusEl.style.background='rgba(34,197,94,.15)'; statusEl.style.borderColor='#22c55e'; statusEl.style.color='#86efac';
+      statusEl.textContent='¡Listo! ✅ PASS X5 activado • ID '+passId;
+    }
+
+    const win=window.open();
+    win.document.write(`<div style="font-family:Inter,sans-serif;text-align:center;padding:20px;background:#0a1020;color:white;min-height:100vh"><h2 style="color:#fcd34d">WASA PASS X5 - ${apodo}</h2><p style="color:#94a3b8">ID: ${passId}</p><img src="${imgData}" style="max-width:600px;width:100%;border-radius:12px;border:2px solid #fcd34d;margin:16px 0"><br><a href="${imgData}" download="WASA_PASS_${apodo}_${passId}.png" style="display:inline-block;margin-top:12px;background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#000;padding:12px 24px;border-radius:9999px;font-weight:900;text-decoration:none">⬇️ DESCARGAR PASS PNG</a><p style="margin-top:16px"><a href="https://games.wasa.chat/pass?id=${passId}" style="color:#38bdf8">games.wasa.chat/pass?id=${passId}</a></p><p style="margin-top:8px;font-size:12px;color:#64748b">Enviado a ${finalEmail||w}</p></div>`);
+  }catch(e){
+    statusEl.style.display='block';
+    statusEl.style.background='rgba(239,68,68,.15)'; statusEl.style.borderColor='#ef4444'; statusEl.style.color='#fca5a5';
+    statusEl.textContent='Error: '+e.message;
+  }
+});
+
 
   const apodo=apodoEl.value.trim().toUpperCase();
   const finalEmail = (emailEl.value.trim().toLowerCase() || getSavedEmail() || "").toLowerCase();
@@ -456,62 +502,5 @@ payBtn.addEventListener('click', async()=>{
 });
 </script>
 <script src="./wasa-conection.js"></script>
-<script>
-// FIX WALLET MODAL - cada boton a su wallet, no todo a MetaMask
-(function(){
-  const WALLET_LINKS = {
-    metamask: {name:'MetaMask', url:'https://metamask.io/download/', deep:'https://metamask.app.link/dapp/games.wasa.chat/wasa-pass.html'},
-    trust: {name:'Trust Wallet', url:'https://trustwallet.com/download', deep:'https://link.trustwallet.com/open?url=https://games.wasa.chat/wasa-pass.html'},
-    rabby: {name:'Rabby', url:'https://rabby.io/', deep:'https://rabby.io/'},
-    okx: {name:'OKX Wallet', url:'https://www.okx.com/download', deep:'https://www.okx.com/download'}
-  };
-
-  window.connectWith = async function(type){
-    const infoEl = document.getElementById('walletConnectedInfo');
-    const show = (msg, isErr)=>{
-      if(!infoEl) return;
-      infoEl.style.display='block';
-      infoEl.textContent=msg;
-      infoEl.className='status-box '+(isErr?'status-err':'status-info');
-    };
-
-    if(type==='email' || type==='Email'){
-      if(typeof openAuthEmail==='function') openAuthEmail();
-      return;
-    }
-
-    // Si no hay ethereum
-    if(!window.ethereum){
-      const w = WALLET_LINKS[type]||WALLET_LINKS.metamask;
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if(isMobile){
-        show(`Abriendo ${w.name}... Si no tenés la app, se te llevará a instalarla`, false);
-        window.location.href = w.deep;
-        setTimeout(()=>window.open(w.url,'_blank'), 2000);
-      } else {
-        show(`No detecto billetera. Instalá ${w.name} - Redirigiendo a ${w.name}...`, true);
-        setTimeout(()=>window.open(w.url,'_blank'), 1200);
-      }
-      return;
-    }
-
-    try{
-      show(`Conectando con ${WALLET_LINKS[type]?.name||'wallet'}...`, false);
-      const accounts = await window.ethereum.request({method:'eth_requestAccounts'});
-      const addr = accounts[0];
-      if(addr){
-        localStorage.setItem('wasa_wallet', addr.toLowerCase());
-        if(infoEl){ infoEl.style.display='none'; }
-        if(typeof closeWalletChooser==='function') closeWalletChooser();
-        // Actualizar nav sin recargar
-        if(typeof window.updateWalletUI==='function') window.updateWalletUI();
-        else location.reload();
-      }
-    }catch(e){
-      show('Conexión rechazada o error: '+(e.message||e), true);
-    }
-  };
-})();
-</script>
 </body>
 </html>
