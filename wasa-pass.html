@@ -371,8 +371,8 @@ async function genFinalImage(apodo, passId){
   for(const s of shadows){ ctx.fillStyle=s.color; ctx.fillText(apodo,xPos+s.dx,yPos+s.dy); }
   ctx.fillStyle="#d99152"; ctx.fillText(apodo,xPos,yPos);
 
-  // QR achicado FINAL 15.2% para encajar perfecto en recuadro gris (tu captura 265352 muestra que 16.2% aún roza)
-  const qs=W*0.152, qx=W*0.745, qy=H*0.843;
+  // QR FINAL: más arriba y más a la izq (tu captura BOCAJUNIORS9 muestra que estaba abajo-der)
+  const qs=W*0.148, qx=W*0.737, qy=H*0.834;
   ctx.fillStyle="#fff"; ctx.fillRect(qx-3,qy-3,qs+6,qs+6);
   ctx.drawImage(qrImg,qx,qy,qs,qs);
   return c.toDataURL("image/png");
