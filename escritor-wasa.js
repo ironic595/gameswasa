@@ -63,7 +63,7 @@ export async function crearWasaPassFinal({codeId, apodo, email, tx_hash, multipl
   ctx.imageSmoothingQuality='high';
   const base=await loadImageObfuscated(BASE_IMG_URL);
   ctx.drawImage(base,0,0,W,H);
-  const nickRect={x:Math.floor(W*0.155), y:Math.floor(H*0.8549), w:Math.floor(W*0.50), h:Math.floor(H*0.0459)}; // corrido +3.3% a la derecha para centrar entre borde y QR - fix tu captura ANDRYZEN5600
+  const nickRect={x:Math.floor(W*0.149), y:Math.floor(H*0.8549), w:Math.floor(W*0.49), h:Math.floor(H*0.0459)}; // corrido +3.3% a la derecha para centrar entre borde y QR - fix tu captura ANDRYZEN5600
   const chars = cleanApodo.split('');
   const charImgs = [];
   for(const c of chars){
@@ -102,7 +102,7 @@ export async function crearWasaPassFinal({codeId, apodo, email, tx_hash, multipl
   }
   const qrValue=`https://games.wasa.chat/pass?id=${codeId}`;
   const qrSize= Math.floor(W*0.146);
-  const qrRect={x:Math.floor(W*0.735), y:Math.floor(H*0.828), w:qrSize, h:qrSize}; // subido - no pisa 2026
+  const qrRect={x:Math.floor(W*0.729), y:Math.floor(H*0.832), w:qrSize, h:qrSize}; // subido - no pisa 2026
   let qrImg;
   if(window.QRCode){
     const div=document.createElement('div'); div.style.position='fixed'; div.style.left='-9999px'; document.body.appendChild(div);
