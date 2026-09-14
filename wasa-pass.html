@@ -424,7 +424,34 @@ payBtn.addEventListener('click', async()=>{
     const amountHex=amount.toString(16);
     const pad=(h)=>h.replace(/^0x/,'').toLowerCase().padStart(64,'0');
     const data='0xa9059cbb'+pad(receiver)+pad(amountHex);
-    const txHash=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:w,to:USDT,data}]});
+    let txHash;
+    try{
+      txHash=await window.ethereum.request({method:'eth_sendTransaction',params:[{from:w,to:USDT,data}]});
+    }catch(e){
+      // Trust Wallet a veces descuenta pero no devuelve hash - dejamos pegar manual
+      statusEl.style.background='rgba(239,68,68,.15)'; statusEl.style.borderColor='#ef4444'; statusEl.style.color='#fca5a5';
+      statusEl.innerHTML=`⚠️ Wallet no devolvió hash pero la plata puede haberse descontado.<br>Error: ${e.message}<br><br>Si se descontó (como en tu captura), pegá el hash de BscScan acá:<br><input id="manualTx" class="input-wasa" placeholder="0xabc..." style="margin-top:8px"><button id="btnManual" class="btn-wasa btn-wasa-primary" style="margin-top:8px">Verificar tx manual → email</button><div style="font-size:10px;margin-top:6px;color:#94a3b8">Buscá la tx en <a href="https://bscscan.com/address/${w}" target="_blank" style="color:#38bdf8">BscScan ${w.slice(0,6)}...</a></div>`;
+      document.getElementById('btnManual').onclick=async()=>{
+        const mh=document.getElementById('manualTx').value.trim();
+        if(!mh || !mh.startsWith('0x')){ alert('Hash inválido'); return; }
+        statusEl.textContent='Tx '+mh.slice(0,10)+'... verificando manual...';
+        try{
+          const body2={action:'confirm_wasa_pass_payment',wallet_address:w,email:finalEmail,apodo,tx_hash:mh,price:0.01,tier:'X5',chain:'BSC'};
+          const r2=await fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body2)});
+          const j2=await r2.json(); if(!j2.ok) throw new Error(j2.error);
+          const passId2=j2.wasa_pass_id;
+          statusEl.textContent='Generando PASS con QR... ID '+passId2;
+          const imgData2=await genFinalImage(apodo, passId2);
+          if(finalEmail){
+            statusEl.textContent='Enviando PASS a '+finalEmail+'...';
+            await fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send_wasa_pass_email',wasa_pass_id:passId2,image_base64:imgData2,email:finalEmail,apodo})});
+          }
+          statusEl.style.background='rgba(34,197,94,.15)'; statusEl.style.borderColor='#22c55e'; statusEl.style.color='#86efac';
+          statusEl.textContent='¡Listo! ✅ PASS enviado a '+finalEmail+' • ID '+passId2;
+        }catch(err){ statusEl.textContent='❌ '+err.message; }
+      };
+      return;
+    }
 
     statusEl.textContent='Tx '+txHash.slice(0,10)+'... verificando pago 0,01 USDT en BSC (5-8s)...';
 
