@@ -87,11 +87,11 @@ export async function crearWasaPassFinal({codeId, apodo, email, tx_hash, multipl
   ctx.fillStyle = '#d99152';
   ctx.fillText(cleanApodo, xPos, yPos);
 
-  // 2. QR CUADRADO abajo der - ACHICADO FINAL 15.2% para encajar perfecto en recuadro gris (tu captura muestra que 16.2% aún roza)
+  // 2. QR CUADRADO abajo der - AJUSTE FINAL: más arriba y más a la izq (tu captura BOCAJUNIORS9 muestra QR abajo-der tocando borde)
   const qrValue=`https://games.wasa.chat/pass?id=${codeId}`;
-  // QR final: 15.2% entra holgado dentro del marco, centrado
-  const qrSize= Math.floor(W*0.152); // 15.2% ~155px - entra perfecto
-  const qrRect={x:Math.floor(W*0.745), y:Math.floor(H*0.843), w:qrSize, h:qrSize};
+  // QR: 14.8% + movido -0.8% X y -0.8% Y para centrar perfecto en recuadro gris y no tapar 2026
+  const qrSize= Math.floor(W*0.148); // 14.8% ~151px - entra holgado
+  const qrRect={x:Math.floor(W*0.737), y:Math.floor(H*0.834), w:qrSize, h:qrSize};
   
   // Intentar con qrcodejs local si existe, sino qrserver
   let qrImg;
