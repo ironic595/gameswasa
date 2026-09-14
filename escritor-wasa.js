@@ -44,10 +44,10 @@ async function ensureFixedsys(){
     await fontFace.load();
     document.fonts.add(fontFace);
     await document.fonts.ready;
-    await document.fonts.load(`200 14px FixedsysTTF`);
+    await document.fonts.load(`200 19px FixedsysTTF`);
   } catch(e) {
     console.warn('FixedsysTTF no cargo, fallback', e);
-    try { await document.fonts.load(`200 14px Fixedsys`); await document.fonts.ready; } catch {}
+    try { await document.fonts.load(`200 19px Fixedsys`); await document.fonts.ready; } catch {}
   }
 }
 
