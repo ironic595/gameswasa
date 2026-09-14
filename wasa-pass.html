@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WASA PASS X5 $wasa</title>
+<title>WASA PASS X5 - games.wasa.chat</title>
 <link rel="icon" type="image/png" href="img/founderswasa.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@800;900&display=swap" rel="stylesheet">
 <style>
@@ -344,6 +344,23 @@ function getWalletForPay(){
 
 async function genFinalImage(apodo, passId){
   function loadImg(src){return new Promise((res,rej)=>{const i=new Image();i.crossOrigin="anonymous";i.onload=()=>res(i);i.onerror=rej;i.src=src;});}
+  async function loadCharImg(char){
+    const safe = char.toUpperCase();
+    try{
+      const url = `./img/${safe}.png`;
+      const resp = await fetch(url+'?v='+Date.now(), {cache:'no-store'});
+      if(!resp.ok) return null;
+      const blob = await resp.blob();
+      const objUrl = URL.createObjectURL(blob);
+      const img = await new Promise((res,rej)=>{
+        const im=new Image(); im.crossOrigin='anonymous';
+        im.onload=()=>{ URL.revokeObjectURL(objUrl); res(im); };
+        im.onerror=(e)=>{ URL.revokeObjectURL(objUrl); rej(e); };
+        im.src=objUrl;
+      });
+      return img;
+    }catch{ return null; }
+  }
   const base=await loadImg("./xc32487hfd.klf");
   const div=document.createElement('div'); div.style.position='fixed'; div.style.left='-9999px'; document.body.appendChild(div);
   new QRCode(div,{text:`https://games.wasa.chat/pass?id=${passId}`,width:512,height:512,correctLevel:QRCode.CorrectLevel.H});
@@ -355,23 +372,32 @@ async function genFinalImage(apodo, passId){
   c.width=base.naturalWidth||base.width||1024; c.height=base.naturalHeight||base.height||1560;
   const ctx=c.getContext('2d');
   ctx.drawImage(base,0,0,c.width,c.height);
-  // Layout EXACTO modelo YOUR NAME: 12.17% x 85.49% w47.8% - QR achicado 16.2% para entrar en recuadro - 19px (antes 14px)
   const W=c.width, H=c.height;
+  // APODO POR IMÁGENES PNG - /img/A.png .. Z,0..9 - igual que LIMITED EDITION y 456
   const nickRect={x:Math.floor(W*0.1217), y:Math.floor(H*0.8549), w:Math.floor(W*0.4782), h:Math.floor(H*0.0459)};
-  const fs=nickRect.h*0.72; // 19px pedido, antes 0.55 (14px)
-  const yPos=nickRect.y + nickRect.h/2 + 2;
-  const xPos=nickRect.x + nickRect.w/2;
-  ctx.textAlign='center'; ctx.textBaseline='middle';
-  try{ ctx.font=`200 ${fs}px FixedsysTTF, Fixedsys, monospace`; }catch{ ctx.font=`200 ${fs}px Fixedsys, monospace`; }
-  try{ ctx.letterSpacing='4px'; }catch{}
-  const shadows=[
-    {dx:3,dy:3,color:'#091721'},{dx:2,dy:2,color:'#210d02'},{dx:1,dy:1,color:'#5e2a09'},
-    {dx:-1,dy:1,color:'#944d1a'},{dx:1,dy:-1,color:'#944d1a'},{dx:-1,dy:-1,color:'#ffcc99'}
-  ];
-  for(const s of shadows){ ctx.fillStyle=s.color; ctx.fillText(apodo,xPos+s.dx,yPos+s.dy); }
-  ctx.fillStyle="#d99152"; ctx.fillText(apodo,xPos,yPos);
+  const cleanApodo = (apodo||'').toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,12);
+  const charImgs=[];
+  for(const ch of cleanApodo){
+    const im = await loadCharImg(ch);
+    if(im) charImgs.push({im, isSpace:false});
+    else if(ch==='_'||ch===' ') charImgs.push({im:null, isSpace:true});
+  }
+  const targetH = Math.floor(nickRect.h * 0.88);
+  let totalW=0; const scaled=[];
+  for(const {im,isSpace} of charImgs){
+    if(isSpace){ const w=Math.floor(targetH*0.4); scaled.push({w,h:targetH,im:null,isSpace:true}); totalW+=w; }
+    else if(im){ const sc=targetH/im.height; const w=Math.floor(im.width*sc); scaled.push({w,h:targetH,im}); totalW+=w; }
+  }
+  const letterSpacing = Math.floor(W*0.003);
+  totalW+= Math.max(0, scaled.length-1)*letterSpacing;
+  let curX = nickRect.x + Math.floor((nickRect.w - totalW)/2);
+  const curY = nickRect.y + Math.floor((nickRect.h - targetH)/2);
+  for(const s of scaled){
+    if(!s.isSpace && s.im) ctx.drawImage(s.im, curX, curY, s.w, s.h);
+    curX+= s.w + letterSpacing;
+  }
 
-  // QR FINO: más arriba-izq (BOLUDOSSONNN falta 1mm)
+  // QR 73.3% x 82.8% 14.6% - más arriba-izq (fix BOLUDOSSONNN)
   const qs=W*0.146, qx=W*0.733, qy=H*0.828;
   ctx.fillStyle="#fff"; ctx.fillRect(qx-3,qy-3,qs+6,qs+6);
   ctx.drawImage(qrImg,qx,qy,qs,qs);
