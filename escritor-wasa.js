@@ -101,7 +101,7 @@ export async function crearWasaPassFinal({codeId, apodo, email, tx_hash, multipl
   }
   const qrValue=`https://games.wasa.chat/pass?id=${codeId}`;
   const qrSize= Math.floor(W*0.149);
-  const qrRect={x:Math.floor(W*0.727), y:Math.floor(H*0.831), w:qrSize, h:qrSize};
+  const qrRect={x:Math.floor(W*0.727), y:Math.floor(H*0.836), w:qrSize, h:qrSize};
   
   let qrImg;
   if(window.QRCode){
