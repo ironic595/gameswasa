@@ -374,7 +374,7 @@ async function genFinalImage(apodo, passId){
   ctx.drawImage(base,0,0,c.width,c.height);
   const W=c.width, H=c.height;
   // APODO POR IMÁGENES PNG - /img/A.png .. Z,0..9 - igual que LIMITED EDITION y 456
-  const nickRect={x:Math.floor(W*0.155), y:Math.floor(H*0.8549), w:Math.floor(W*0.50), h:Math.floor(H*0.0459)}; // corrido +3.3% derecha para centrar entre borde y QR
+  const nickRect={x:Math.floor(W*0.149), y:Math.floor(H*0.8549), w:Math.floor(W*0.49), h:Math.floor(H*0.0459)}; // ajustado a escritor v11 - 14.9% x 49% - centrado borde-QR
   const cleanApodo = (apodo||'').toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,12);
   const charImgs=[];
   for(const ch of cleanApodo){
@@ -399,7 +399,7 @@ async function genFinalImage(apodo, passId){
   }
 
   // QR bajado a 84% como pediste - un poco más
-  const qs=W*0.146, qx=W*0.735, qy=H*0.828; // subido para no pisar 2026
+  const qs=W*0.146, qx=W*0.729, qy=H*0.832; // ajustado a escritor v11 - 72.9% x 83.2%
   ctx.fillStyle="#fff"; ctx.fillRect(qx-3,qy-3,qs+6,qs+6);
   ctx.drawImage(qrImg,qx,qy,qs,qs);
   return c.toDataURL("image/png");
