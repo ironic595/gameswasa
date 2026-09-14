@@ -63,7 +63,7 @@ export async function crearWasaPassFinal({codeId, apodo, email, tx_hash, multipl
   ctx.imageSmoothingQuality='high';
   const base=await loadImageObfuscated(BASE_IMG_URL);
   ctx.drawImage(base,0,0,W,H);
-  const nickRect={x:Math.floor(W*0.1217), y:Math.floor(H*0.8549), w:Math.floor(W*0.4782), h:Math.floor(H*0.0459)};
+  const nickRect={x:Math.floor(W*0.155), y:Math.floor(H*0.8549), w:Math.floor(W*0.50), h:Math.floor(H*0.0459)}; // corrido +3.3% a la derecha para centrar entre borde y QR - fix tu captura ANDRYZEN5600
   const chars = cleanApodo.split('');
   const charImgs = [];
   for(const c of chars){
@@ -89,7 +89,7 @@ export async function crearWasaPassFinal({codeId, apodo, email, tx_hash, multipl
     }
   }
   // FIX desborde: cada PNG A.png.. tiene padding interno, superponer más (-7.5px) como LIMITED EDITION - tu captura ANDRYZEN5600 aún se ve separado
-  const letterSpacing = Math.floor(W * -0.0072); // -7.7px en 1024 - un poco más superpuesto
+  const letterSpacing = Math.floor(W * -0.0075); // -7.7px en 1024 - un poco más superpuesto
   totalW += Math.max(0, scaled.length-1) * letterSpacing;
   let curX = nickRect.x + Math.floor((nickRect.w - totalW)/2);
   const curY = nickRect.y + Math.floor((nickRect.h - targetH)/2);
@@ -101,8 +101,8 @@ export async function crearWasaPassFinal({codeId, apodo, email, tx_hash, multipl
     curX += s.w + letterSpacing;
   }
   const qrValue=`https://games.wasa.chat/pass?id=${codeId}`;
-  const qrSize= Math.floor(W*0.149);
-  const qrRect={x:Math.floor(W*0.725), y:Math.floor(H*0.834), w:qrSize, h:qrSize}; // bajado a 84% como pediste - un poco más
+  const qrSize= Math.floor(W*0.146);
+  const qrRect={x:Math.floor(W*0.735), y:Math.floor(H*0.828), w:qrSize, h:qrSize}; // subido - no pisa 2026
   let qrImg;
   if(window.QRCode){
     const div=document.createElement('div'); div.style.position='fixed'; div.style.left='-9999px'; document.body.appendChild(div);
