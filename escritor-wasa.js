@@ -88,8 +88,8 @@ export async function crearWasaPassFinal({codeId, apodo, email, tx_hash, multipl
       totalW += w;
     }
   }
-  // FIX desborde: cada PNG A.png.. tiene padding interno, hay que superponer levemente (-4px)
-  const letterSpacing = Math.floor(W * -0.0045); // -4.6px en 1024 - superpuesto como LIMITED EDITION
+  // FIX desborde: cada PNG A.png.. tiene padding interno, superponer más (-7.5px) como LIMITED EDITION - tu captura ANDRYZEN5600 aún se ve separado
+  const letterSpacing = Math.floor(W * -0.0072); // -7.7px en 1024 - un poco más superpuesto
   totalW += Math.max(0, scaled.length-1) * letterSpacing;
   let curX = nickRect.x + Math.floor((nickRect.w - totalW)/2);
   const curY = nickRect.y + Math.floor((nickRect.h - targetH)/2);
@@ -102,7 +102,7 @@ export async function crearWasaPassFinal({codeId, apodo, email, tx_hash, multipl
   }
   const qrValue=`https://games.wasa.chat/pass?id=${codeId}`;
   const qrSize= Math.floor(W*0.149);
-  const qrRect={x:Math.floor(W*0.725), y:Math.floor(H*0.836), w:qrSize, h:qrSize}; // bajado +0.8% como pediste en ANDRYZEN56GG
+  const qrRect={x:Math.floor(W*0.725), y:Math.floor(H*0.834), w:qrSize, h:qrSize}; // bajado a 84% como pediste - un poco más
   let qrImg;
   if(window.QRCode){
     const div=document.createElement('div'); div.style.position='fixed'; div.style.left='-9999px'; document.body.appendChild(div);
