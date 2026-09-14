@@ -249,7 +249,7 @@ function getSavedEmail(){ return (localStorage.getItem('wasa_email')||'').toLowe
 function getSavedWallet(){ return (localStorage.getItem('wasa_wallet')||'').toLowerCase().trim(); }
 function getSavedNick(){ return (localStorage.getItem('wasa_nickname')||'').toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,12); }
 
-// CARGAR DATOS REALES DE D1 - FUENTE DE VERDAD
+// CARGAR DATOS REALES DE D1 - SUGERENCIA, PERO EDITABLE (ilustrativo)
 async function cargarDatosDeD1(){
   try{
     const email = getSavedEmail();
@@ -262,25 +262,30 @@ async function cargarDatosDeD1(){
     const r = await fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const j = await r.json();
     if(j.ok && j.nickname){
-      apodoDeD1 = j.nickname.toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,12);
-      apodoEl.value = apodoDeD1;
-      apodoEl.readOnly = true;
+      const nickD1 = j.nickname.toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,12);
+      // solo sugerir si el input esta vacio - NO bloquear, es ilustrativo y puede ser lo que quiera (max 12)
+      if(!apodoEl.value) {
+        apodoEl.value = nickD1;
+        prevApodo.textContent = nickD1;
+        prevTitle.textContent = nickD1 + ' • X5';
+        payBtn.textContent=`Pagar 5 USDT — ${nickD1} → X5 ⚡`;
+      }
+      apodoDeD1 = ""; // no bloqueamos, es solo ilustrativo
+      apodoEl.readOnly = false;
       apodoEl.classList.add('input-ok');
       apodoEl.classList.remove('input-error');
-      cnt.textContent = `${apodoDeD1.length}/12 - Apodo de tu cuenta en D1 (bloqueado)`;
-      cnt.style.color = '#22c55e';
-      prevApodo.textContent = apodoDeD1;
-      prevTitle.textContent = apodoDeD1 + ' • X5';
+      cnt.textContent = `${apodoEl.value.length}/12 - Sugerido de tu cuenta D1 (${nickD1}) - podés cambiarlo, max 12`;
+      cnt.style.color = '#94a3b8';
       
       if(j.email || email){
         emailBox.style.display = 'none';
-        userInfoBox.innerHTML = `<div class="info-msg">✓ D1: <b>${j.email||email}</b> • Apodo: <b>${j.nickname}</b> - PASS se grabará con ese apodo y se enviará a ese email</div>`;
+        userInfoBox.innerHTML = `<div class="info-msg">✓ D1: <b>${j.email||email}</b> • Apodo cuenta: <b>${j.nickname}</b> - PASS ilustrativo: podés poner lo que quieras (max 12) y se enviará a ese email</div>`;
         wallet = w||'';
       } else {
         emailReq.textContent = "* obligatorio para recibir imagen con QR";
         emailInfo.textContent = `Wallet en D1 como ${j.nickname} - Email obligatorio para enviarte el PASS`;
         emailInfo.style.color = '#fcd34d';
-        userInfoBox.innerHTML = `<div class="info-msg">✓ Wallet D1: <b>${j.nickname}</b> - Apodo de tu cuenta</div>`;
+        userInfoBox.innerHTML = `<div class="info-msg">✓ Wallet D1: <b>${j.nickname}</b> - Apodo del PASS es ilustrativo, podés editarlo</div>`;
       }
       if(j.email) localStorage.setItem('wasa_email', j.email.toLowerCase());
       if(j.nickname) localStorage.setItem('wasa_nickname', j.nickname);
@@ -293,10 +298,9 @@ async function cargarDatosDeD1(){
 setTimeout(cargarDatosDeD1, 800);
 
 apodoEl.addEventListener('input',()=>{
-  if(apodoEl.readOnly) return;
   let v=apodoEl.value.toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,12);
   apodoEl.value=v;
-  cnt.textContent=v.length+"/12 - Min 3, Max 12 (A-Z 0-9 _)";
+  cnt.textContent=v.length+"/12 - Min 3, Max 12 (A-Z 0-9 _) - ilustrativo, podés poner lo que quieras";
   prevApodo.textContent=v||"YOUR NICKNAME";
   prevTitle.textContent=(v||"NICKNAME")+" • X5";
   payBtn.textContent=`Pagar 5 USDT — ${v||'APODO'} → X5 ⚡`;
@@ -314,7 +318,6 @@ emailEl.addEventListener('input',()=>{
 });
 function validateApodo(){
   const v = apodoEl.value.trim();
-  if(apodoDeD1 && v===apodoDeD1) return true;
   return /^[A-Z0-9_]{3,12}$/.test(v);
 }
 function validateEmail(){
