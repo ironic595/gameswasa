@@ -388,7 +388,8 @@ async function genFinalImage(apodo, passId){
     if(isSpace){ const w=Math.floor(targetH*0.4); scaled.push({w,h:targetH,im:null,isSpace:true}); totalW+=w; }
     else if(im){ const sc=targetH/im.height; const w=Math.floor(im.width*sc); scaled.push({w,h:targetH,im}); totalW+=w; }
   }
-  const letterSpacing = Math.floor(W*0.003);
+  // FIX desborde: cada PNG trae padding, superponer -4.5px como LIMITED EDITION
+  const letterSpacing = Math.floor(W * -0.0045);
   totalW+= Math.max(0, scaled.length-1)*letterSpacing;
   let curX = nickRect.x + Math.floor((nickRect.w - totalW)/2);
   const curY = nickRect.y + Math.floor((nickRect.h - targetH)/2);
@@ -397,8 +398,8 @@ async function genFinalImage(apodo, passId){
     curX+= s.w + letterSpacing;
   }
 
-  // QR 73.3% x 82.8% 14.6% - más arriba-izq (fix BOLUDOSSONNN)
-  const qs=W*0.146, qx=W*0.733, qy=H*0.828;
+  // QR bajado +0.8% como pediste en ANDRYZEN56GG
+  const qs=W*0.146, qx=W*0.733, qy=H*0.836;
   ctx.fillStyle="#fff"; ctx.fillRect(qx-3,qy-3,qs+6,qs+6);
   ctx.drawImage(qrImg,qx,qy,qs,qs);
   return c.toDataURL("image/png");
