@@ -399,7 +399,7 @@ async function genFinalImage(apodo, passId){
   }
 
   // QR bajado a 84% como pediste - un poco más
-  const qs=W*0.149, qx=W*0.7325, qy=H*0.832; // ajustado a escritor v11 - 72.9% x 83.2%
+  const qs=W*0.149, qx=W*0.7319, qy=H*0.830; // ajustado a escritor v11 - 72.9% x 83.2%
   ctx.fillStyle="#fff"; ctx.fillRect(qx-3,qy-3,qs+6,qs+6);
   ctx.drawImage(qrImg,qx,qy,qs,qs);
   return c.toDataURL("image/png");
