@@ -31,11 +31,26 @@
   /* WASA PASS LAYOUT */
   .page{width:80%;margin:0 auto}
   @media(max-width:768px){.page{width:95%}}
-  .hero{padding:24px 0;min-height:240px;display:flex;align-items:center;border-bottom:1px solid rgba(103,232,249,0.10);position:relative}
-  .hero-inner{display:flex;justify-content:space-between;align-items:center;gap:24px;width:100%}
-  .hero-right{width:280px}
-  .hero-right img{width:80%;object-fit:contain;background:transparent;filter:drop-shadow(0 20px 40px rgba(0,0,0,0.5))}
-  @media(max-width:768px){.hero-right{width:140px}.hero{padding:16px 0;min-height:180px}}
+  .hero{padding:28px 0;min-height:320px;display:flex;align-items:center;border-bottom:1px solid rgba(103,232,249,0.10);position:relative}
+  .hero-inner{display:grid;grid-template-columns:1.1fr 0.9fr;align-items:center;gap:32px;width:100%}
+  .hero-left{width:100%}
+  .hero-right{width:100%;display:flex;justify-content:center;align-items:center}
+  .hero-right img{width:100%;max-width:380px;object-fit:contain;background:transparent;filter:drop-shadow(0 20px 40px rgba(0,0,0,0.5))}
+  .hero-title{font-size:clamp(28px,3.2vw,42px);font-weight:900;line-height:0.95;text-transform:uppercase}
+  .hero-subtitle{margin-top:10px;font-size:13px;color:rgba(207,250,254,0.75);line-height:1.4;max-width:460px}
+  @media(max-width:768px){
+    .hero{padding:18px 0 22px;min-height:260px}
+    .hero-inner{grid-template-columns:1fr 0.85fr;gap:12px;align-items:center}
+    .hero-right{width:100%}
+    .hero-right img{max-width:220px;width:100%}
+    .hero-title{font-size:22px;line-height:1.0}
+    .hero-subtitle{font-size:11px}
+  }
+  @media(max-width:480px){
+    .hero-inner{gap:10px}
+    .hero-right img{max-width:170px}
+    .hero-title{font-size:19px}
+  }
   @keyframes float{0%{transform:translateY(0)}50%{transform:translateY(-12px)}100%{transform:translateY(0)}}
   .float{animation:float 4.2s ease-in-out infinite}
   .layout{display:grid;grid-template-columns:1fr 380px;gap:24px;padding:24px 0 60px;align-items:start}
@@ -116,14 +131,15 @@
 <div class="page">
 <section class="hero">
 <div style="position:absolute;top:14px;left:0;z-index:2"><a href="https://games.wasa.chat" class="back-btn">← VOLVER A INICIO</a></div>
-<div class="hero-inner" style="margin-top:28px">
-<div>
-<div style="font-size:9px;letter-spacing:0.14em;color:#fcd34d;border:1px solid rgba(252,211,77,0.3);display:inline-block;padding:3px 10px;border-radius:9999px;margin-bottom:8px">LIMITED EDITION 2026 • 500 UNIDADES</div>
-<h1 style="font-size:44px;font-weight:900;line-height:0.9;text-transform:uppercase"><span style="font-size:12px;display:block;color:rgba(255,255,255,0.7);letter-spacing:0.2em">WASA PASS</span><span style="background:linear-gradient(135deg,#fde68a,#f59e0b);-webkit-background-clip:text;color:transparent">Multiplica tus $WASA</span> <span style="color:#fcd34d">x5</span></h1>
-<p style="margin-top:10px;font-size:12px;color:rgba(207,250,254,0.7)">De 0.0003 a 0.0015 $WASA por partida. Solo 500 unidades. Pago verificado en BSC.</p>
-<button style="margin-top:14px;height:40px;padding:0 18px;border-radius:9999px;background:linear-gradient(135deg,#fcd34d,#f59e0b);border:0;font-weight:900;cursor:pointer" onclick="document.getElementById('compra').scrollIntoView({behavior:'smooth'})">COMPRAR POR 5 USDT →</button>
+<div class="hero-inner" style="margin-top:32px">
+<div class="hero-left">
+<div style="font-size:9px;letter-spacing:0.14em;color:#fcd34d;border:1px solid rgba(252,211,77,0.3);display:inline-block;padding:3px 10px;border-radius:9999px;margin-bottom:10px">EDICION LIMITADA SEPTIEMBRE 2026 • 500 UNIDADES</div>
+<div style="font-size:11px;color:rgba(255,255,255,0.6);letter-spacing:0.18em;margin-bottom:4px;font-weight:700">WASA PASS</div>
+<h1 class="hero-title"><span style="background:linear-gradient(135deg,#fde68a,#f59e0b);-webkit-background-clip:text;color:transparent">MULTIPLICA POR SIEMPRE LAS RECOMPENSAS DE $WASA EN TODOS LOS JUEGOS</span> <span style="color:#fcd34d">X5</span></h1>
+<p class="hero-subtitle">Compra el WASAPASS por solo 5 USDT y recibe un regalo extra en $WASA</p>
+<button style="margin-top:16px;height:42px;padding:0 20px;border-radius:9999px;background:linear-gradient(135deg,#fcd34d,#f59e0b);border:0;font-weight:900;cursor:pointer;font-size:13px" onclick="document.getElementById('compra').scrollIntoView({behavior:'smooth'})">COMPRAR POR 5 USDT →</button>
 </div>
-<div class="hero-right"><img src="img/wasapasshero.png" class="float" alt="WASA PASS" onerror="this.src='img/founderswasa.png'"></div>
+<div class="hero-right"><img src="img/wasapasshero.png" class="float" alt="WASA PASS X5" onerror="this.src='img/founderswasa.png'"></div>
 </div>
 </section>
 
