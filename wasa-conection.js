@@ -108,7 +108,37 @@ async function connectWith(type){
   }
 }
 
-async function buyWasa(wasaAmount){ const usdt=WASA_CONFIG.PRICES[wasaAmount]; const el=document.getElementById('buyStatus'); if(el){ el.textContent='⏳ Pago '+usdt+' USDT -> '+wasaAmount+' WASA...'; el.className='status-box status-info'; el.style.display='block'; } }
+async function buyWasa(wasaAmount){
+  const PRICES_MAP = {200:2, 1000:10, 2000:19, 10:2, 50:10, 100:19}; // compatibilidad con valores viejos
+  const usdt = WASA_CONFIG.PRICES[wasaAmount] || PRICES_MAP[wasaAmount] || (wasaAmount===200?2:wasaAmount===1000?10:19);
+  const el=document.getElementById('buyStatus');
+  const wallet = getStoredWallet() || (window.ethereum&&window.ethereum.selectedAddress?window.ethereum.selectedAddress.toLowerCase():'');
+  if(!wallet){
+    if(el){ el.textContent='🔌 Conectá tu wallet primero'; el.className='status-box status-err'; el.style.display='block'; }
+    openWalletChooser(); return;
+  }
+  try{
+    if(el){ el.textContent='⏳ Preparando pago '+usdt+' USDT -> '+wasaAmount+' $WASA... confirmá en tu wallet'; el.className='status-box status-info'; el.style.display='block'; }
+    if(!WASA_CONFIG.RECEIVER){ await loadWasaConfig(); }
+    const receiver = WASA_CONFIG.RECEIVER;
+    if(!receiver) throw new Error('Receiver no configurado');
+    try{ await window.ethereum.request({method:'wallet_switchEthereumChain', params:[{chainId:'0x38'}]}); }catch(e){ if(e.code===4902){ await window.ethereum.request({method:'wallet_addEthereumChain', params:[{chainId:'0x38', chainName:'BNB Smart Chain', rpcUrls:['https://bsc-dataseed.binance.org/'], nativeCurrency:{name:'BNB',symbol:'BNB',decimals:18}, blockExplorerUrls:['https://bscscan.com']}]}) } }
+    const amount = BigInt(usdt) * BigInt("1000000000000000000"); // usdt * 1e18
+    const pad = (h)=>h.replace(/^0x/,'').toLowerCase().padStart(64,'0');
+    const data='0xa9059cbb'+pad(receiver)+pad(amount.toString(16));
+    const txHash = await window.ethereum.request({method:'eth_sendTransaction', params:[{from:wallet, to:WASA_CONFIG.USDT_CONTRACT, data}]});
+    if(el){ el.textContent='⏳ Tx '+txHash.slice(0,10)+'... verificando pago BSC...'; el.className='status-box status-info'; }
+    const r = await fetch(WASA_CONFIG.WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'confirm_wasa_purchase', wallet_address:wallet, tx_hash:txHash, wasa_amount:wasaAmount, usdt_amount:usdt, email:getStoredEmail()})});
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.error||'Error verificando compra');
+    localStorage.setItem('wasa_coins', j.wasa_balance);
+    setCoinsUI(j.wasa_balance);
+    if(el){ el.textContent='✅ ¡Listo! +'+wasaAmount+' $WASA acreditados. Saldo: '+j.wasa_balance; el.className='status-box status-ok'; }
+    setTimeout(()=>closeWasaBuy(), 1800);
+  }catch(e){
+    if(el){ el.textContent='❌ '+(e.message||'Rechazado'); el.className='status-box status-err'; el.style.display='block'; }
+  }
+}
 function openVerifyModal(email){ const m=document.getElementById('verifyEmailModal'); if(!m) return; const lbl=document.getElementById('verifyEmailLabel'); if(lbl) lbl.textContent=email||pendingVerifyEmail||'tu email'; m.classList.add('open'); pendingVerifyEmail=email||pendingVerifyEmail; }
 function closeVerifyModal(){ document.getElementById('verifyEmailModal')?.classList.remove('open'); }
 async function doVerifyEmail(){ const code=document.getElementById('verifyCodeInput')?.value.trim()||''; const statusEl=document.getElementById('verifyStatus'); const email=pendingVerifyEmail||localStorage.getItem('wasa_email_pending')||getStoredEmail(); if(code.length!==6){ if(statusEl){ statusEl.textContent='❌ Código 6 dígitos'; statusEl.className='status-box status-err'; statusEl.style.display='block'; } return; } try{ const r=await fetch(WASA_CONFIG.WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'verify_email',email,code,device_id:getDeviceId()})}); const j=await r.json(); if(!j.ok) throw new Error(j.error); localStorage.setItem('wasa_email',email); localStorage.removeItem('wasa_email_pending'); if(j.nickname) localStorage.setItem('wasa_nick',j.nickname); localStorage.setItem('wasa_coins',j.wasa_balance||0); localStorage.removeItem('wasa_coins_guest'); setCoinsUI(j.wasa_balance||0); updateWalletUI(); if(statusEl){ statusEl.textContent='✅ Verificado!'; statusEl.className='status-box status-ok'; statusEl.style.display='block'; } setTimeout(()=>{ closeVerifyModal(); openUserProfile(); },800); }catch(e){ if(statusEl){ statusEl.textContent='❌ '+e.message; statusEl.className='status-box status-err'; statusEl.style.display='block'; } } }
