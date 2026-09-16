@@ -71,11 +71,30 @@ aside{width:100%;height:auto;position:static;border-right:0;padding:0 16px 8px;b
 .hero-mobile .hero-cta{font-size:12px;padding:10px 16px}
 .grid{grid-template-columns:1fr;gap:16px}
 }
+
+/* SECCIONES NUEVAS */
+.section-block{margin-bottom:28px}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(56,189,248,0.12)}
+.section-head h2{font-size:13px;font-weight:900;letter-spacing:.04em;color:#f8fafc;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.section-head .count{font-size:11px;color:#94a3b8;font-weight:600}
+.section-new{background:linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(30,27,75,0.6) 50%, rgba(49,46,129,0.5) 100%);border:1px solid rgba(251,191,36,0.18);border-radius:18px;padding:16px 16px 18px;box-shadow:0 8px 24px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,0.06);position:relative;overflow:hidden}
+.section-new::before{content:'';position:absolute;top:-50%;right:-20%;width:300px;height:300px;background:radial-gradient(circle, rgba(251,191,36,0.12) 0%, transparent 70%);pointer-events:none}
+.section-new .section-head{border-bottom-color:rgba(251,191,36,0.18)}
+.section-new h2{color:#fde68a}
+.view-all-wrap{text-align:right;margin-top:14px}
+.view-all-link{color:#38bdf8;cursor:pointer;font-size:12px;font-weight:700;text-decoration:none;border:1px solid rgba(56,189,248,0.25);padding:6px 14px;border-radius:9999px;background:rgba(56,189,248,0.08);transition:.2s;display:inline-flex;align-items:center;gap:6px}
+.view-all-link:hover{background:rgba(56,189,248,0.15);border-color:#38bdf8;color:#7dd3fc}
+#searchResults{animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
 .card{border:1px solid rgba(56,189,248,0.15);border-radius:12px;overflow:hidden;background:rgba(15,23,42,0.6);backdrop-filter:blur(8px);position:relative;transition:all .2s ease;cursor:pointer}
 .card:hover{border-color:#38bdf8;transform:translateY(-2px);box-shadow:0 8px 24px -6px rgba(56,189,248,0.3)}
+.card.new{border-color:rgba(251,191,36,0.35);box-shadow:0 0 0 1px rgba(251,191,36,0.15), 0 8px 24px rgba(0,0,0,.3)}
+.card.new:hover{border-color:#fbbf24;box-shadow:0 0 0 1px rgba(251,191,36,0.4), 0 8px 24px rgba(251,191,36,0.15)}
 .thumb{aspect-ratio:16/10;background:#0b1329;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
 .badge{position:absolute;top:8px;left:8px;font-size:9px;padding:2px 6px;border-radius:20px;background:#050814;border:1px solid rgba(56,189,248,0.2);color:#94a3b8;z-index:2}
 .badge.live{background:linear-gradient(135deg,#38bdf8,#818cf8);color:#0f172a;font-weight:700;border:none}
+.badge.new{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-weight:800;border:none}
 .info{padding:10px 12px}
 .title{font-size:13px;font-weight:600;text-transform:uppercase;color:#f1f5f9}
 .meta{font-size:11px;color:#94a3b8;margin-top:2px}
@@ -190,8 +209,29 @@ aside{width:100%;height:auto;position:static;border-right:0;padding:0 16px 8px;b
       </div>
       <div class="hero-dots"><div class="hero-dot active" onclick="setHero(0)"></div><div class="hero-dot" onclick="setHero(1)"></div></div>
     </div>
-    <div class="topbar"><div class="subtitle" id="count">Loading...</div></div>
-    <div class="grid" id="grid"></div>
+
+    <!-- BUSQUEDA: solo resultados -->
+    <div id="searchResults" style="display:none">
+      <div class="section-block">
+        <div class="section-head"><h2>🔍 RESULTADOS</h2><span class="count" id="searchCount"></span></div>
+        <div class="grid" id="searchGrid"></div>
+      </div>
+    </div>
+
+    <!-- INDEX NORMAL: nuevos + todos -->
+    <div id="indexContent">
+      <div id="newSection" class="section-block section-new" style="display:none">
+        <div class="section-head"><h2>🆕 NUEVOS JUEGOS</h2><span class="count">Últimos agregados</span></div>
+        <div class="grid" id="newGrid"></div>
+      </div>
+
+      <div id="allSection" class="section-block">
+        <div class="section-head"><h2>🎮 TODOS LOS JUEGOS</h2><span class="count" id="count">Loading...</span></div>
+        <div class="grid" id="grid"></div>
+        <div class="view-all-wrap" id="viewAllWrap" style="display:none"><a class="view-all-link" id="viewAllLink" onclick="showAllGames()">VER TODOS LOS JUEGOS →</a></div>
+      </div>
+    </div>
+
   </main>
 </div>
 <div id="modal"><div id="modalTop"><div style="display:flex;align-items:center;gap:12px"><div id="modalTitle">WASA</div><div class="pill hd" id="modalQuality">HD</div></div><div id="modalMeta"><div class="pill coins" id="modalCoins">0 $WASA</div><button id="modalClose" onclick="closeGame()">✕ Close</button></div></div><div id="modalContainer"></div></div>
@@ -257,7 +297,7 @@ aside{width:100%;height:auto;position:static;border-right:0;padding:0 16px 8px;b
 </div>
 
 <script>
-let GAMES=[]; let currentCat='all';
+let GAMES=[]; let currentCat='all'; let showAll=false;
 let heroIdx=0;
 function setHero(i){
   heroIdx=i%2;
@@ -282,27 +322,77 @@ function addCoins(n){ return window.addCoins? window.addCoins(n) : setCoins(getC
 function setCoinsUI(n){ return window.setCoinsUI? window.setCoinsUI(n) : null; }
 function setCat(cat){currentCat=cat;document.querySelectorAll('#catFilter button').forEach(b=>b.classList.toggle('active',b.dataset.cat===cat));renderGrid();}
 function filterGames(){renderGrid();}
-async function loadGames(){ try{const r=await fetch('/games.json?t='+Date.now());GAMES=await r.json();}catch(e){GAMES=[{slug:'space-invaders',title:'SPACE INVADERS',cat:'arcade action',live:true},{slug:'banatron',title:'BANATRON REVELATION',cat:'arcade',live:true},{slug:'roadfighter',title:'ROAD FIGHTER',cat:'arcade action',live:true}];} renderGrid(); }
+function gameCardHTML(g, isNew=false){
+  return `
+    <div class="card ${g.live?'live':''} ${isNew?'new':''}" onclick="openGame('${g.slug}')">
+      <div class="thumb" id="thumb-${g.slug}">
+        <img src="/img/${g.slug}.png" alt="${g.title}" loading="lazy" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;z-index:1">
+        <span class="badge ${isNew?'new':(g.live?'live':'')}">${isNew?'NUEVO':(g.live?'LIVE':'SOON')}</span>
+      </div>
+      <div class="info"><div class="title">${g.title}</div><div class="meta"><span>${(g.cat||'').split(' ')[0]}</span></div></div>
+      <div class="play"><span>Play Now</span></div>
+    </div>`;
+}
+async function loadGames(){
+  try{const r=await fetch('/games.json?t='+Date.now());GAMES=await r.json();}catch(e){GAMES=[{slug:'space-invaders',title:'SPACE INVADERS',cat:'arcade action',live:true},{slug:'banatron',title:'BANATRON REVELATION',cat:'arcade',live:true},{slug:'roadfighter',title:'ROAD FIGHTER',cat:'arcade action',live:true},{slug:'2048-madera',title:'2048 MADERA',cat:'puzzle',live:true}];}
+  renderGrid();
+}
+function showAllGames(){showAll=true; renderGrid(); document.getElementById('viewAllWrap').style.display='none';}
 function renderGrid(){
-  const grid=document.getElementById('grid');
-  const q=(document.getElementById('q').value||'').toLowerCase();
+  const q=(document.getElementById('q').value||'').toLowerCase().trim();
+  const isSearching = q!=='' || currentCat!=='all';
+  const searchResultsEl = document.getElementById('searchResults');
+  const indexContentEl = document.getElementById('indexContent');
+  const newSectionEl = document.getElementById('newSection');
+  const newGridEl = document.getElementById('newGrid');
+  const gridEl = document.getElementById('grid');
+  const searchGridEl = document.getElementById('searchGrid');
+  const countEl = document.getElementById('count');
+  const searchCountEl = document.getElementById('searchCount');
+  const viewAllWrapEl = document.getElementById('viewAllWrap');
+
   const filtered=GAMES.filter(g=>{
     const mq=!q||g.slug.includes(q)||g.title.toLowerCase().includes(q)||(g.cat||'').includes(q);
     const mc=currentCat==='all'||(g.cat||'').includes(currentCat);
     return mq&&mc;
   });
-  document.getElementById('count').textContent=filtered.length+' GAMES';
-  grid.innerHTML=filtered.map(g=>`
-    <div class="card ${g.live?'live':''}" onclick="openGame('${g.slug}')">
-      <div class="thumb" id="thumb-${g.slug}">
-        <img src="/img/${g.slug}.png" alt="${g.title}" loading="lazy" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;z-index:1">
-        <span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>
-      </div>
-      <div class="info"><div class="title">${g.title}</div><div class="meta"><span>${(g.cat||'').split(' ')[0]}</span></div></div>
-      <div class="play"><span>Play Now</span></div>
-    </div>
-  `).join('');
-}async function openGame(slug){ const modal=document.getElementById('modal'); const container=document.getElementById('modalContainer'); const titleEl=document.getElementById('modalTitle'); const qualityEl=document.getElementById('modalQuality'); const isLow=(navigator.deviceMemory||4)<=2; const isMob=innerWidth<900; const quality=isLow||isMob?'lite':'hd'; const game=GAMES.find(g=>g.slug===slug); titleEl.textContent=(game?.title||slug).toUpperCase(); qualityEl.textContent=quality.toUpperCase(); setCoins(getCoins()); modal.classList.add('open'); document.body.style.overflow='hidden'; history.pushState({},'',`/play?game=${slug}`); container.innerHTML=`Loading ${slug}...`; window.vrAd=0; try{ const mod=await import(`/games/${slug}/game.js?v=6&t=${Date.now()}`, { cache: 'no-store' }); container.innerHTML=''; if(mod.init){ mod.init(container,{quality,getCoins,addCoins,setCoins,slug}); } }catch(e){container.innerHTML=`No encontrado /games/${slug}/game.js`;} }
+
+  if(isSearching){
+    // MODO BUSQUEDA: ocultar index, mostrar solo resultados
+    indexContentEl.style.display='none';
+    searchResultsEl.style.display='block';
+    searchCountEl.textContent=filtered.length+' GAMES';
+    searchGridEl.innerHTML=filtered.map(g=>gameCardHTML(g,false)).join('') || '<div style="color:#94a3b8;padding:20px">No se encontraron juegos</div>';
+    return;
+  }
+
+  // MODO INDEX NORMAL
+  searchResultsEl.style.display='none';
+  indexContentEl.style.display='block';
+
+  // NUEVOS JUEGOS: ultimos 3 del json (asume orden cronologico de agregado, ultimos al final)
+  if(GAMES.length>0){
+    const lastThree = [...GAMES].slice(-3).reverse(); // ultimos 3, mas nuevo primero
+    if(lastThree.length>0){
+      newSectionEl.style.display='block';
+      newGridEl.innerHTML=lastThree.map(g=>gameCardHTML(g,true)).join('');
+    } else {
+      newSectionEl.style.display='none';
+    }
+  }
+
+  // TODOS LOS JUEGOS: solo 15 por defecto
+  countEl.textContent=GAMES.length+' GAMES';
+  const toShow = showAll ? filtered : filtered.slice(0,15);
+  gridEl.innerHTML=toShow.map(g=>gameCardHTML(g,false)).join('');
+
+  if(!showAll && filtered.length>15){
+    viewAllWrapEl.style.display='block';
+  } else {
+    viewAllWrapEl.style.display='none';
+  }
+}
+async function openGame(slug){ const modal=document.getElementById('modal'); const container=document.getElementById('modalContainer'); const titleEl=document.getElementById('modalTitle'); const qualityEl=document.getElementById('modalQuality'); const isLow=(navigator.deviceMemory||4)<=2; const isMob=innerWidth<900; const quality=isLow||isMob?'lite':'hd'; const game=GAMES.find(g=>g.slug===slug); titleEl.textContent=(game?.title||slug).toUpperCase(); qualityEl.textContent=quality.toUpperCase(); setCoins(getCoins()); modal.classList.add('open'); document.body.style.overflow='hidden'; history.pushState({},'',`/play?game=${slug}`); container.innerHTML=`Loading ${slug}...`; window.vrAd=0; try{ const mod=await import(`/games/${slug}/game.js?v=6&t=${Date.now()}`, { cache: 'no-store' }); container.innerHTML=''; if(mod.init){ mod.init(container,{quality,getCoins,addCoins,setCoins,slug}); } }catch(e){container.innerHTML=`No encontrado /games/${slug}/game.js`;} }
 function closeGame(){ document.getElementById('modal').classList.remove('open'); document.getElementById('modalContainer').innerHTML=''; document.body.style.overflow=''; history.pushState({},'',`/`); }
 addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeGame(); closeWalletChooser(); closeWasaBuy(); closeAuthEmail(); closeUserProfile(); const m=document.getElementById('userDropdown'); if(m) m.classList.remove('open'); }});
 addEventListener('DOMContentLoaded',()=>{ if(!localStorage.getItem('wasa_device_id')) localStorage.setItem('wasa_device_id','dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36)); setCoins(getCoins()); loadGames(); });
