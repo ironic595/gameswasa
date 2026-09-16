@@ -77,11 +77,9 @@ main{padding:14px 12px}
 .card .meta{font-size:10px}
 .card .info{padding:8px 9px}
 }
-@media(max-width:380px){
-.grid{grid-template-columns:repeat(2,1fr);gap:8px}
-}
+@media(max-width:380px){.grid{grid-template-columns:repeat(2,1fr);gap:8px}}
 
-/* SECCIONES NUEVAS */
+/* SECCIONES */
 .section-block{margin-bottom:28px}
 .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(56,189,248,0.12)}
 .section-head h2{font-size:13px;font-weight:900;letter-spacing:.04em;color:#f8fafc;text-transform:uppercase;display:flex;align-items:center;gap:8px}
@@ -150,6 +148,27 @@ main{padding:14px 12px}
 .profile-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:12px}
 .profile-row b{color:#94a3b8;font-weight:500}
 .profile-row span{color:white;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* FOOTER */
+footer.wasa-footer{background:rgba(5,8,20,0.85);backdrop-filter:blur(12px);border-top:1px solid rgba(56,189,248,0.15);margin-top:32px;padding:0}
+.footer-inner{max-width:1400px;margin:0 auto;padding:28px 20px 20px;display:grid;grid-template-columns:1.4fr 0.8fr 0.8fr 0.9fr;gap:28px}
+.footer-brand .logo{margin-bottom:12px}
+.footer-desc{font-size:11px;color:#94a3b8;line-height:1.5;max-width:320px}
+.footer-col h4{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#f8fafc;margin-bottom:12px}
+.footer-col a, .footer-col button{display:block;text-align:left;font-size:11px;color:#94a3b8;padding:4px 0;transition:.15s;text-decoration:none}
+.footer-col a:hover, .footer-col button:hover{color:#38bdf8}
+.footer-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.footer-badge{font-size:9px;padding:4px 8px;border-radius:20px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:#94a3b8}
+.footer-bottom{border-top:1px solid rgba(255,255,255,0.06);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;max-width:1400px;margin:0 auto}
+.footer-copy{font-size:10px;color:#64748b}
+.footer-links{display:flex;gap:14px;flex-wrap:wrap}
+.footer-links a{font-size:10px;color:#64748b;text-decoration:none}
+.footer-links a:hover{color:#38bdf8}
+@media(max-width:900px){.footer-inner{grid-template-columns:1fr 1fr;gap:20px;padding:20px 16px}}
+@media(max-width:600px){
+.footer-inner{grid-template-columns:1fr;gap:18px}
+.footer-bottom{flex-direction:column;align-items:flex-start;padding:12px 16px}
+}
 </style>
 </head>
 <body>
@@ -243,6 +262,55 @@ main{padding:14px 12px}
 
   </main>
 </div>
+
+<!-- FOOTER -->
+<footer class="wasa-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="logo"></div>
+      <div class="footer-desc">Juga arcade onchain y farmeá $WASA. Juegos gratis en el navegador, sin descargas. WASA PASS X5 multiplica tus ganancias x5 para siempre. En BSC, con USDT.</div>
+      <div class="footer-badges">
+        <span class="footer-badge">⚡ BSC BEP20</span>
+        <span class="footer-badge">💰 USDT Payments</span>
+        <span class="footer-badge">🎮 No download</span>
+        <span class="footer-badge">🔗 Onchain rewards</span>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Jugar</h4>
+      <a onclick="setCat('all');window.scrollTo({top:0,behavior:'smooth'})">Todos los juegos</a>
+      <a onclick="document.getElementById('newSection')?.scrollIntoView({behavior:'smooth'})">Nuevos juegos</a>
+      <a onclick="setCat('arcade')">Arcade</a>
+      <a onclick="setCat('puzzle')">Puzzle</a>
+      <a onclick="setCat('action')">Action</a>
+    </div>
+    <div class="footer-col">
+      <h4>WASA</h4>
+      <a href="/wasa-pass.html">WASA PASS X5 - 5 USDT</a>
+      <button onclick="openWasaBuy()">Comprar $WASA</button>
+      <button onclick="openReferral()">Programa referidos 20%</button>
+      <a href="https://bscscan.com/token/0x55d398326f99059fF775485246999027B3197955" target="_blank">Contrato USDT BSC</a>
+    </div>
+    <div class="footer-col">
+      <h4>Soporte</h4>
+      <button onclick="openAuthEmail('register')">Crear cuenta</button>
+      <button onclick="openUserProfile()">Mi perfil</button>
+      <button onclick="handleWalletBtn()">Conectar wallet</button>
+      <a href="mailto:support@wasa.chat">support@wasa.chat</a>
+      <a href="https://games.wasa.chat/" target="_blank">games.wasa.chat</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2026 WASA GAMES • Play Free, Farm $WASA • Built on BSC • v9.6</div>
+    <div class="footer-links">
+      <a href="/wasa-pass.html">WASA PASS</a>
+      <a onclick="openWasaBuy()" style="cursor:pointer">Buy $WASA</a>
+      <a href="#" onclick="openReferral();return false">Referidos</a>
+      <span style="color:#475569;font-size:10px">USDT BSC • transfer() verified</span>
+    </div>
+  </div>
+</footer>
+
 <div id="modal"><div id="modalTop"><div style="display:flex;align-items:center;gap:12px"><div id="modalTitle">WASA</div><div class="pill hd" id="modalQuality">HD</div></div><div id="modalMeta"><div class="pill coins" id="modalCoins">0 $WASA</div><button id="modalClose" onclick="closeGame()">✕ Close</button></div></div><div id="modalContainer"></div></div>
 
 <div id="walletChooser" class="wasa-overlay" onclick="if(event.target===this) closeWalletChooser()">
@@ -343,7 +411,7 @@ function gameCardHTML(g, isNew=false){
     </div>`;
 }
 async function loadGames(){
-  try{const r=await fetch('/games.json?t='+Date.now());GAMES=await r.json();}catch(e){GAMES=[{slug:'space-invaders',title:'SPACE INVADERS',cat:'arcade action',live:true},{slug:'banatron',title:'BANATRON REVELATION',cat:'arcade',live:true},{slug:'roadfighter',title:'ROAD FIGHTER',cat:'arcade action',live:true},{slug:'2048-madera',title:'2048 MADERA',cat:'puzzle',live:true}];}
+  try{const r=await fetch('/games.json?t='+Date.now());GAMES=await r.json();}catch(e){GAMES=[{slug:'banatron',title:'BANATRON REVELATION',cat:'arcade',live:true},{slug:'ahorcado',title:'AHORCADO',cat:'puzzle',live:true},{slug:'2048-madera',title:'2048 GAME',cat:'puzzle',live:true},{slug:'ruzzle-bubble',title:'RUZZLE BUBBLE',cat:'puzzle',live:true}];}
   renderGrid();
 }
 function showAllGames(){showAll=true; renderGrid(); document.getElementById('viewAllWrap').style.display='none';}
@@ -367,7 +435,6 @@ function renderGrid(){
   });
 
   if(isSearching){
-    // MODO BUSQUEDA: ocultar index, mostrar solo resultados
     indexContentEl.style.display='none';
     searchResultsEl.style.display='block';
     searchCountEl.textContent=filtered.length+' GAMES';
@@ -375,13 +442,11 @@ function renderGrid(){
     return;
   }
 
-  // MODO INDEX NORMAL
   searchResultsEl.style.display='none';
   indexContentEl.style.display='block';
 
-  // NUEVOS JUEGOS: ultimos 3 del json (asume orden cronologico de agregado, ultimos al final)
   if(GAMES.length>0){
-    const lastThree = [...GAMES].slice(-3).reverse(); // ultimos 3, mas nuevo primero
+    const lastThree = [...GAMES].slice(-3).reverse();
     if(lastThree.length>0){
       newSectionEl.style.display='block';
       newGridEl.innerHTML=lastThree.map(g=>gameCardHTML(g,true)).join('');
@@ -390,7 +455,6 @@ function renderGrid(){
     }
   }
 
-  // TODOS LOS JUEGOS: solo 15 por defecto
   countEl.textContent=GAMES.length+' GAMES';
   const toShow = showAll ? filtered : filtered.slice(0,15);
   gridEl.innerHTML=toShow.map(g=>gameCardHTML(g,false)).join('');
