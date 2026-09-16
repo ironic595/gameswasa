@@ -132,7 +132,7 @@
 </div>
 
 <div id="emailBox">
-  <label style="font-size:10px;color:#cbd5e1">TU EMAIL <span id="emailReq" style="color:#fcd34d">(opcional)</span></label>
+  <label style="font-size:10px;color:#cbd5e1">TU EMAIL (opcional backup) <span id="emailReq" style="color:#fcd34d">(opcional)</span></label>
   <input id="email" class="input" placeholder="tu@email.com" type="email" autocomplete="email">
   <div id="emailInfo" style="font-size:9px;color:#64748b;margin-top:4px"></div>
   <div id="emailError" class="error-msg">⚠️ Email obligatorio - ahí te llega la imagen del PASS con tu apodo y QR</div>
@@ -152,7 +152,7 @@
 <img id="base" src="./xc32487hfd.klf" alt="base" onerror="this.src='img/wasapasshero.png'">
 <div id="prevApodo" class="apodo">YOUR NICKNAME</div>
 </div>
-<div style="margin-top:8px;font-size:9px;color:#64748b">Layout: apodo 12% x 85.2% • QR 79% x 84.6% • 1024x1560 • Email obligatorio para wallet/guest</div>
+<div style="margin-top:8px;font-size:9px;color:#94a3b8;text-align:center">IMAGEN ILUSTRATIVA. El WasaPass real, incluye código único QR, para canjear el regalo 🎁</div>
 </div>
 </div>
 <canvas id="cvs" style="display:none"></canvas>
@@ -321,10 +321,10 @@ function validateEmail(){
 }
 function checkForm(){
   const apOk = validateApodo();
-  const emOk = validateEmail();
-  // wallet viene del nav (wasa-conection.js) o del ethereum
+  const emVal = emailEl.value.trim();
+  const emOk = emVal === '' || validateEmail(); // WEB3 PURO: email opcional
   const w = getSavedWallet() || wallet || (window.ethereum? window.ethereum.selectedAddress||'' : '');
-  payBtn.disabled = !(apOk && emOk);
+  payBtn.disabled = !apOk || !emOk;
   // no bloqueamos por wallet aqui porque wasa-conection se encarga, pero si no hay wallet mostramos mensaje
   if(!w) {
     // no deshabilitamos, pero el click pedirá conectar
