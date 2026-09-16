@@ -52,7 +52,7 @@
   .preview{position:relative;border-radius:12px;overflow:hidden;background:#0b1020;border:1px solid rgba(255,255,255,0.10);aspect-ratio:1/1}
   .preview img{width:100%;height:100%;object-fit:contain}
   @font-face{font-family:'Fixedsys';src:url('fnts/Fixedsys.ttf') format('truetype');}
-  .apodo{position:absolute;left:26%;bottom:10%;font-family:Fixedsys;font-size:19px;font-weight:200;letter-spacing:4px;text-transform:uppercase;color:#d99152;text-shadow:1px 1px 0 #091721,2px 2px 0 #210d02,1px 1px 0 #5e2a09,-1px 1px 0 #944d1a,1px -1px 0 #944d1a,-1px -1px 0 #ffcc99;}
+  .apodo{position:absolute;left:26%;bottom:10%;font-family:Fixedsys;font-size:19px;font-weight:200;letter-spacing:4px;text-transform:uppercase;border-style:outset;color:#d99152;text-shadow:1px 1px 0 #091721,2px 2px 0 #210d02,1px 1px 0 #5e2a09,-1px 1px 0 #944d1a,1px -1px 0 #944d1a,-1px -1px 0 #ffcc99;}
   .btn{height:44px;border-radius:10px;border:1px solid rgba(103,232,249,0.15);background:rgba(255,255,255,0.03);color:white;width:100%;cursor:pointer;font-weight:700;transition:.2s}
   .btn-gold{background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#000;border:0;font-weight:900}
   .btn:disabled{opacity:.4;cursor:not-allowed}
@@ -149,10 +149,10 @@
 <div class="card-h"><div style="font-size:10px;color:#67e8f9">PREVIEW EN VIVO (QR solo al comprar)</div><div id="prevTitle" style="font-size:12px;font-weight:900;color:white">NICKNAME • X5</div></div>
 <div style="padding:14px">
 <div class="preview">
-<img id="base" src="img/wasapasshero.png" alt="base" onerror="this.src='img/wasapasshero.png'">
+<img id="base" src="./xc32487hfd.klf" alt="base" onerror="this.src='img/wasapasshero.png'">
 <div id="prevApodo" class="apodo">YOUR NICKNAME</div>
 </div>
-<div style="margin-top:8px;font-size:12px;color:#D4E38F">IMAGEN ILUSTRATIVA. El WasaPass real, incluye código único QR, para canjear el regalo 🎁</div>
+<div style="margin-top:8px;font-size:9px;color:#64748b">Layout: apodo 12% x 85.2% • QR 79% x 84.6% • 1024x1560 • Email obligatorio para wallet/guest</div>
 </div>
 </div>
 <canvas id="cvs" style="display:none"></canvas>
@@ -374,7 +374,7 @@ async function genFinalImage(apodo, passId){
   ctx.drawImage(base,0,0,c.width,c.height);
   const W=c.width, H=c.height;
   // APODO POR IMÁGENES PNG - /img/A.png .. Z,0..9 - igual que LIMITED EDITION y 456
-  const nickRect={x:Math.floor(W*0.14), y:Math.floor(H*0.8549), w:Math.floor(W*0.49), h:Math.floor(H*0.0459)}; // ajustado a escritor v11 - 14.9% x 49% - centrado borde-QR
+  const nickRect={x:Math.floor(W*0.149), y:Math.floor(H*0.8549), w:Math.floor(W*0.49), h:Math.floor(H*0.0459)}; // ajustado a escritor v11 - 14.9% x 49% - centrado borde-QR
   const cleanApodo = (apodo||'').toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,12);
   const charImgs=[];
   for(const ch of cleanApodo){
@@ -399,7 +399,7 @@ async function genFinalImage(apodo, passId){
   }
 
   // QR bajado a 84% como pediste - un poco más
-  const qs=W*0.149, qx=W*0.7319, qy=H*0.830; // ajustado a escritor v11 - 72.9% x 83.2%
+  const qs=W*0.146, qx=W*0.729, qy=H*0.832; // ajustado a escritor v11 - 72.9% x 83.2%
   ctx.fillStyle="#fff"; ctx.fillRect(qx-3,qy-3,qs+6,qs+6);
   ctx.drawImage(qrImg,qx,qy,qs,qs);
   return c.toDataURL("image/png");
@@ -412,9 +412,10 @@ payBtn.addEventListener('click', async()=>{
     apodoError.textContent = !apodoEl.value ? "⚠️ El apodo es obligatorio (3-12)" : "⚠️ Min 3, max 12, solo A-Z 0-9 _";
     apodoError.classList.add('show'); apodoEl.focus(); return;
   }
-  if(!validateEmail()){
+  // WEB3 PURO: email opcional - solo valida si lo escribe
+  if(emailEl.value.trim() && !validateEmail()){
     emailEl.classList.add('input-error');
-    emailError.textContent = !emailEl.value.trim() ? "⚠️ Email obligatorio - ahí te llega la imagen del PASS con tu apodo y QR" : "⚠️ Email inválido";
+    emailError.textContent = "⚠️ Email inválido";
     emailError.classList.add('show'); emailEl.focus(); return;
   }
   let w = getWalletForPay();
@@ -491,12 +492,24 @@ payBtn.addEventListener('click', async()=>{
     statusEl.textContent='Generando PASS con QR... ID '+passId;
     const imgData=await genFinalImage(apodo, passId);
 
-    if(finalEmail){
-      statusEl.textContent='Enviando PASS a '+finalEmail+'...';
-      await fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send_wasa_pass_email',wasa_pass_id:passId,image_base64:imgData,email:finalEmail,apodo})});
-      statusEl.style.background='rgba(34,197,94,.15)'; statusEl.style.borderColor='#22c55e'; statusEl.style.color='#86efac';
-      statusEl.textContent='¡Listo! ✅ PASS enviado a '+finalEmail+' • ID '+passId+' • Ahora ganas x5';
-    } else {
+    // MODAL UNIFICADO WEB3 + HIBRIDO - imagen + descarga + QR gift (obligatorio via link)
+    // mostrar imagen generada en modal (asume que existe #passModal / #passImg - si no, usa statusEl)
+    try{
+      const passUrl = `https://games.wasa.chat/pass?id=${passId}`;
+      // si hay email, envio en background opcional (no bloquea)
+      if(finalEmail){
+        statusEl.textContent='Enviando copia a '+finalEmail+'...';
+        fetch(WORKER+'/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send_wasa_pass_email',wasa_pass_id:passId,image_base64:imgData,email:finalEmail,apodo})}).catch(()=>{});
+      }
+      // modal unificado
+      if(typeof window.openPassModal === 'function'){
+        window.openPassModal({imgData, passId, apodo, passUrl});
+      } else {
+        // fallback simple
+        statusEl.style.background='rgba(34,197,94,.15)'; statusEl.style.borderColor='#22c55e'; statusEl.style.color='#86efac';
+        statusEl.innerHTML = `¡Listo! ✅ PASS X5 ${passId} - <a href="${passUrl}" target="_blank" style="color:#fbbf24;text-decoration:underline">Ver PASS y reclamar tu regalo de 10 $WASA → escaneá el QR</a> <br><a href="${imgData}" download="${passId}-WASA-PASS-X5.png" style="display:inline-block;margin-top:8px;background:#fbbf24;color:#000;padding:8px 12px;border-radius:8px;font-weight:800">DESCARGAR PASS</a>`;
+      }
+    }catch(e){
       statusEl.style.background='rgba(34,197,94,.15)'; statusEl.style.borderColor='#22c55e'; statusEl.style.color='#86efac';
       statusEl.textContent='¡Listo! ✅ PASS X5 activado • ID '+passId;
     }
