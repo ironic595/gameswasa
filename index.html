@@ -70,11 +70,12 @@ aside{width:100%;height:auto;position:static;border-right:0;padding:0 16px 8px;b
 .hero-mobile .hero-sub{font-size:12px;margin-bottom:14px}
 .hero-mobile .hero-cta{font-size:12px;padding:10px 16px}
 .grid{grid-template-columns:repeat(2,1fr);gap:10px}
+#newGrid{grid-template-columns:1fr;gap:14px}
+#searchGrid{grid-template-columns:repeat(2,1fr);gap:10px}
 main{padding:14px 12px}
 .card .title{font-size:11px;line-height:1.2}
 .card .meta{font-size:10px}
 .card .info{padding:8px 9px}
-#newGrid{grid-template-columns:repeat(2,1fr)}
 }
 @media(max-width:380px){
 .grid{grid-template-columns:repeat(2,1fr);gap:8px}
@@ -261,9 +262,9 @@ main{padding:14px 12px}
     <div class="wasa-head"><b>Comprar $WASA con USDT</b><button class="wasa-close" onclick="closeWasaBuy()">✕</button></div>
     <div style="font-size:11px;color:#94a3b8;margin-bottom:12px">Red: BSC (BEP20) • Pago con USDT</div>
     <div id="buyStatus" class="status-box"></div>
-    <div class="buy-opt" onclick="buyWasa(200)"><div style="display:flex;gap:12px;align-items:center"><img src="img/wasa-1000.png" style="width:44px;height:36px;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.25))"><div><b>200 WASA</b><br><small>Pack inicial • montículo</small></div></div><div style="text-align:right"><b>2 USDT</b></div></div>
-    <div class="buy-opt" onclick="buyWasa(1000)"><div style="display:flex;gap:12px;align-items:center"><img src="img/wasa-2000.png" style="width:52px;height:42px;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.3))"><div><b>1000 WASA</b><br><small>Más popular • pila grande</small></div></div><div style="text-align:right"><b>10 USDT</b></div></div>
-    <div class="buy-opt" onclick="buyWasa(2000)"><div style="display:flex;gap:12px;align-items:center"><img src="img/wasa-5000.png" style="width:60px;height:48px;object-fit:contain;filter:drop-shadow(0 6px 12px rgba(0,0,0,0.35))"><div><b>2000 WASA</b><br><small>Pro gamer • pila gigante</small></div></div><div style="text-align:right"><b>19 USDT</b></div></div>
+    <div class="buy-opt" onclick="buyWasa(200)"><div style="display:flex;gap:12px;align-items:center"><img src="img/wasa-100.png" style="width:44px;height:36px;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.25))"><div><b>200 WASA</b><br><small>Pack inicial • montículo</small></div></div><div style="text-align:right"><b>2 USDT</b></div></div>
+    <div class="buy-opt" onclick="buyWasa(1000)"><div style="display:flex;gap:12px;align-items:center"><img src="img/wasa-1000.png" style="width:52px;height:42px;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.3))"><div><b>1000 WASA</b><br><small>Más popular • pila grande</small></div></div><div style="text-align:right"><b>10 USDT</b></div></div>
+    <div class="buy-opt" onclick="buyWasa(2000)"><div style="display:flex;gap:12px;align-items:center"><img src="img/wasa-2000.png" style="width:60px;height:48px;object-fit:contain;filter:drop-shadow(0 6px 12px rgba(0,0,0,0.35))"><div><b>2000 WASA</b><br><small>Pro gamer • pila gigante</small></div></div><div style="text-align:right"><b>19 USDT</b></div></div>
     <div style="margin-top:12px"><button class="btn-wasa btn-wasa-secondary" onclick="closeWasaBuy();openWalletChooser()">🔌 Conectar otra billetera</button></div>
     <div style="font-size:10px;color:#64748b;margin-top:10px;text-align:center" id="configFooter">USDT BSC: cargando config...</div>
   </div>
