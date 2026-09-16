@@ -69,7 +69,15 @@ aside{width:100%;height:auto;position:static;border-right:0;padding:0 16px 8px;b
 .hero-mobile .hero-title{font-size:17px;margin-bottom:6px}
 .hero-mobile .hero-sub{font-size:12px;margin-bottom:14px}
 .hero-mobile .hero-cta{font-size:12px;padding:10px 16px}
-.grid{grid-template-columns:1fr;gap:16px}
+.grid{grid-template-columns:repeat(2,1fr);gap:10px}
+main{padding:14px 12px}
+.card .title{font-size:11px;line-height:1.2}
+.card .meta{font-size:10px}
+.card .info{padding:8px 9px}
+#newGrid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:380px){
+.grid{grid-template-columns:repeat(2,1fr);gap:8px}
 }
 
 /* SECCIONES NUEVAS */
