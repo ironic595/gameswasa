@@ -54,8 +54,17 @@
 
   @keyframes float{0%{transform:translateY(0)}50%{transform:translateY(-12px)}100%{transform:translateY(0)}}
   .float{animation:float 4.2s ease-in-out infinite}
-  .layout{display:grid;grid-template-columns:1fr 380px;gap:24px;padding:24px 0 60px;align-items:start}
-  @media(max-width:900px){.layout{grid-template-columns:1fr}}
+  .layout{display:block;padding:24px 0 60px}
+  .unified-card{border-radius:18px;border:1px solid rgba(103,232,249,0.15);background:rgba(15,23,42,0.78);overflow:hidden;backdrop-filter:blur(10px)}
+  .unified-body{display:grid;grid-template-columns:1fr 360px;gap:0;align-items:stretch}
+  .checkout-side{padding:18px;display:flex;flex-direction:column;gap:14px;border-right:1px solid rgba(255,255,255,0.06)}
+  .preview-side{padding:14px;background:rgba(0,0,0,0.18);display:flex;flex-direction:column}
+  .preview-side .preview{flex:1}
+  @media(max-width:900px){
+    .unified-body{grid-template-columns:1fr}
+    .checkout-side{border-right:0;border-bottom:1px solid rgba(255,255,255,0.06)}
+    .preview-side{order:2}
+  }
   .card{border-radius:18px;border:1px solid rgba(103,232,249,0.15);background:rgba(15,23,42,0.75);overflow:hidden;backdrop-filter:blur(8px)}
   .card-h{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;align-items:center}
   .card-b{padding:18px;display:flex;flex-direction:column;gap:14px}
@@ -145,40 +154,35 @@
 </section>
 
 <section id="compra" class="layout">
-<div class="card">
-<div class="card-h"><div><div style="font-size:10px;color:#67e8f9;letter-spacing:0.1em">CHECKOUT</div><div style="font-weight:900;color:white">Personalizá tu WASA PASS</div></div><div style="font-weight:900;color:#fcd34d">5 USDT</div></div>
-<div class="card-b">
-<div id="userInfoBox"></div>
-
-<div>
-  <label style="font-size:10px;color:#cbd5e1">TU APODO (GRABADO EN EL PASS) *</label>
-  <input id="apodo" class="input" placeholder="PEPERTRULS" maxlength="12" autocomplete="off">
-  <div id="cnt" style="font-size:9px;color:#64748b;margin-top:4px">0/12 - Min 3, Max 12 (A-Z 0-9 _)</div>
-  <div id="apodoError" class="error-msg">⚠️ Apodo obligatorio - 3 a 12 caracteres (A-Z 0-9 _)</div>
-</div>
-
-<div id="emailBox">
-  <label style="font-size:10px;color:#cbd5e1">TU EMAIL (opcional backup) <span id="emailReq" style="color:#fcd34d">(opcional)</span></label>
-  <input id="email" class="input" placeholder="tu@email.com" type="email" autocomplete="email">
-  <div id="emailInfo" style="font-size:9px;color:#64748b;margin-top:4px"></div>
-  <div id="emailError" class="error-msg">⚠️ Email obligatorio - ahí te llega la imagen del PASS con tu apodo y QR</div>
-</div>
-
-<button id="conn" class="btn" style="display:none">Conectar Wallet BSC (interno)</button>
-<div id="status" style="display:none;font-size:11px;padding:10px;border-radius:10px"></div>
-<button id="pay" class="btn btn-gold">Pagar 5 USDT → X5 ⚡</button>
-<div style="font-size:9px;color:#64748b;text-align:center">BSC BEP20 • transfer(receiver, 5e18) • X5 en todos los juegos • Verificado on-chain</div>
-</div>
-</div>
-
-<div class="card">
-<div class="card-h"><div style="font-size:10px;color:#67e8f9">PREVIEW EN VIVO (QR solo al comprar)</div><div id="prevTitle" style="font-size:12px;font-weight:900;color:white">NICKNAME • X5</div></div>
-<div style="padding:14px">
-<div class="preview">
-<img id="base" src="./xc32487hfd.klf" alt="base" onerror="this.src='img/wasapasshero.png'">
-<div id="prevApodo" class="apodo">YOUR NICKNAME</div>
-</div>
-<div style="margin-top:8px;font-size:9px;color:#94a3b8;text-align:center">IMAGEN ILUSTRATIVA. El WasaPass real, incluye código único QR, para canjear el regalo 🎁</div>
+<div class="unified-card">
+<div class="card-h"><div><div style="font-size:10px;color:#67e8f9;letter-spacing:0.1em">CHECKOUT</div><div style="font-weight:900;color:white">Personalizá tu WASA PASS</div></div><div style="display:flex;gap:12px;align-items:center"><span style="font-size:10px;color:#67e8f9">PREVIEW EN VIVO</span><span id="prevTitle" style="font-size:12px;font-weight:900;color:white">NICKNAME • X5</span><span style="font-weight:900;color:#fcd34d">5 USDT</span></div></div>
+<div class="unified-body">
+  <div class="checkout-side">
+    <div id="userInfoBox"></div>
+    <div>
+      <label style="font-size:10px;color:#cbd5e1">TU APODO (GRABADO EN EL PASS) *</label>
+      <input id="apodo" class="input" placeholder="PEPERTRULS" maxlength="12" autocomplete="off">
+      <div id="cnt" style="font-size:9px;color:#64748b;margin-top:4px">0/12 - Min 3, Max 12 (A-Z 0-9 _)</div>
+      <div id="apodoError" class="error-msg">⚠️ Apodo obligatorio - 3 a 12 caracteres (A-Z 0-9 _)</div>
+    </div>
+    <div id="emailBox">
+      <label style="font-size:10px;color:#cbd5e1">TU EMAIL (opcional backup) <span id="emailReq" style="color:#fcd34d">(opcional)</span></label>
+      <input id="email" class="input" placeholder="tu@email.com" type="email" autocomplete="email">
+      <div id="emailInfo" style="font-size:9px;color:#64748b;margin-top:4px"></div>
+      <div id="emailError" class="error-msg">⚠️ Email obligatorio - ahí te llega la imagen del PASS con tu apodo y QR</div>
+    </div>
+    <button id="conn" class="btn" style="display:none">Conectar Wallet BSC (interno)</button>
+    <div id="status" style="display:none;font-size:11px;padding:10px;border-radius:10px"></div>
+    <button id="pay" class="btn btn-gold">Pagar 5 USDT → X5 ⚡</button>
+    <div style="font-size:9px;color:#64748b;text-align:center">BSC BEP20 • transfer(receiver, 5e18) • X5 en todos los juegos • Verificado on-chain</div>
+  </div>
+  <div class="preview-side">
+    <div class="preview">
+      <img id="base" src="./xc32487hfd.klf" alt="base" onerror="this.src='img/wasapasshero.png'">
+      <div id="prevApodo" class="apodo">YOUR NICKNAME</div>
+    </div>
+    <div style="margin-top:10px;font-size:9px;color:#94a3b8;text-align:center">IMAGEN ILUSTRATIVA. El WasaPass real, incluye código único QR, para canjear el regalo 🎁</div>
+  </div>
 </div>
 </div>
 <canvas id="cvs" style="display:none"></canvas>
