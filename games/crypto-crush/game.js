@@ -1,4 +1,4 @@
-// games/crypto-crush/game.js - v7.0 MENU + TUTORIAL BOMBA/RAYO + TIENDA BOOSTERS + BOMBA emoji 💣 + MEME FACES
+// games/crypto-crush/game.js - v7.1 WASA PASS X5 integrado + MENU + BOMBA 💣 + RAYO ⚡
 export function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javisimes.workers.dev/';
   function getDeviceId(){ let id=localStorage.getItem('wasa_device_id'); if(!id){ id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id; }
@@ -36,6 +36,79 @@ export function init(container, args){
   const BASE_REWARD = 0.0001;
   const MEME_LAUGH_FILES = ['doge_laugh.png','shiba_laugh.png','pepe_laugh.png','floki_laugh.png'];
   const MEME_CRY_FILES   = ['doge_cry.png','pepe_cry.png','shiba_cry.png','floki_cry.png'];
+
+  // ---- WASA PASS STATE ----
+  let hasPass = localStorage.getItem('wasa_pass_active')==='1';
+  let passMultiplier = hasPass ? 5 : 1;
+  let checkingPass = false;
+
+  async function checkWasaPass(showToast=false){
+    if(checkingPass) return hasPass;
+    checkingPass=true;
+    try{
+      const email = localStorage.getItem('wasa_email')||'';
+      const wallet = localStorage.getItem('wasa_wallet')||'';
+      const device_id = getDeviceId();
+      // probamos varios actions que usaste en el worker
+      const actionsToTry = ['check_pass','get_pass_status','has_pass','get_balance','check_wasa_pass'];
+      for(const act of actionsToTry){
+        try{
+          const r = await fetch(WORKER_URL,{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({action:act, email, wallet, device_id, game_slug:'crypto-crush'})
+          });
+          const j = await r.json();
+          // diferentes workers devuelven distinto formato, normalizamos
+          const found = j.has_pass || j.hasPass || j.pass_active || j.passActive || j.wasa_pass || j.is_pass_holder || (j.balance && j.balance.pass) || j.pass;
+          if(j.ok && found){
+            hasPass=true; passMultiplier=5;
+            localStorage.setItem('wasa_pass_active','1');
+            if(showToast) debugInfo.textContent='✅ WASA PASS X5 ACTIVO';
+            checkingPass=false;
+            updatePassUI();
+            return true;
+          }
+          // si el endpoint existe y dice que no tiene, seguimos
+          if(j.ok && (j.has_pass===false || j.hasPass===false || j.pass_active===false)){
+            // no tiene pass, pero endpoint válido
+            break;
+          }
+        }catch{}
+      }
+      // si llegamos acá, no tiene
+      if(showToast){
+        // no forzamos false si ya lo tenía cacheado, solo si nunca lo tuvo
+        if(!hasPass) debugInfo.textContent='❌ Sin WASA PASS - Compra en wasa-pass.html';
+      }
+    }catch(e){
+      console.log('check pass err',e);
+    }
+    checkingPass=false;
+    // si no encontramos endpoint, mantenemos lo que había en localStorage
+    updatePassUI();
+    return hasPass;
+  }
+
+  function updatePassUI(){
+    const badge = root.querySelector('#passBadge');
+    if(badge){
+      if(hasPass){
+        badge.style.display='flex';
+        badge.innerHTML=`<span style="font-size:10px">💎</span> PASS X5`;
+      } else {
+        badge.style.display='none';
+      }
+    }
+    const shopBtn = root.querySelector('#cReward');
+    if(shopBtn){
+      // el reward total ya muestra x5 acumulado
+    }
+  }
+
+  function getRewardForLevel(base){
+    return base * passMultiplier;
+  }
 
   function getUnlockedTokens(level){ const count=Math.min(11, 5+Math.floor((level-1)/3)); return ALL_TOKENS.slice(0, count); }
   function getActiveTokensForLevel(level){
@@ -96,6 +169,8 @@ export function init(container, args){
 .cc-level-badge span{font-size:9px;opacity:.7;font-weight:700;display:block}
 .cc-level-badge.timed{background:linear-gradient(135deg,#EF4444,#DC2626); animation:pulse 1s infinite}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.cc-pass-badge{display:none;background:linear-gradient(135deg,#A855F7,#7E22CE);color:#fff;border-radius:8px;padding:3px 8px;font-weight:900;font-size:9px;gap:4px;align-items:center;box-shadow:0 0 10px #A855F7;animation:passGlow 1.2s infinite alternate}
+@keyframes passGlow{0%{box-shadow:0 0 6px #A855F7}100%{box-shadow:0 0 14px #A855F7, 0 0 20px #38BDF8}}
 .cc-tokens{display:flex;gap:4px;align-items:center}
 .cc-token-chip{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-weight:900;font-size:12px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.2);flex-shrink:0;transition:all .2s;overflow:hidden;background:#fff}
 .cc-token-chip img{width:82%;height:82%;object-fit:contain;display:block}
@@ -127,19 +202,13 @@ export function init(container, args){
 .cc-candy.wasa-candy{background:linear-gradient(180deg, #38BDF8 0%, #0EA5E9 25%, #A855F7 70%, #9333EA 100%) !important; border-color:#7E22CE !important; box-shadow:0 4px 0 rgba(126,34,206,.35), inset 0 2px 0 rgba(255,255,255,.95), 0 0 16px rgba(168,85,247,.55) !important}
 .cc-candy.wasa-candy img{filter:drop-shadow(0 2px 3px rgba(0,0,0,.3)) brightness(1.08) contrast(1.1)}
 .cc-candy.dash-candy{background:linear-gradient(180deg, #42A5F5 0%, #1E88E5 100%) !important; border-color:#1565C0 !important; box-shadow:0 4px 0 rgba(21,101,192,.3), inset 0 2px 0 rgba(255,255,255,.9), 0 0 10px rgba(30,136,229,.4) !important}
-.cc-candy::before{content:'';position:absolute;top:8%;left:14%;width:34%;height:26%;background:rgba(255,255,255,.9);border-radius:50%;pointer-events:none;z-index:1}
 .cc-candy.bomb{box-shadow:0 0 0 2.5px #000, 0 4px 0 rgba(0,0,0,.35), 0 0 16px #EF4444 !important; border-color:#000 !important}
-.cc-candy.bomb::after{content:'💣';position:absolute;font-size:18px;z-index:4;bottom:-2px;right:-2px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6));}
 .cc-candy.bomb .bomb-wrap{position:absolute;inset:-2px;border:2.5px dashed #000;border-radius:13px;pointer-events:none;z-index:3}
 .cc-candy.striped-h{box-shadow:0 0 0 2px #fff, 0 4px 0 rgba(0,0,0,.2), 0 0 14px #38BDF8 !important}
-.cc-candy.striped-h::after{content:'↔️';position:absolute;font-size:11px;z-index:4;top:2px;right:2px}
-.cc-candy.striped-h::before{content:'';position:absolute;left:-3px;right:-3px;top:50%;height:5px;background:repeating-linear-gradient(90deg, #fff 0 5px, #38BDF8 5px 10px);transform:translateY(-50%);border-radius:999px;z-index:2;box-shadow:0 0 6px #fff; top:8%; left:14%; width:34%; height:26%; background:rgba(255,255,255,.9); border-radius:50%}
 .cc-candy.striped-v{box-shadow:0 0 0 2px #fff, 0 4px 0 rgba(0,0,0,.2), 0 0 14px #A855F7 !important}
-.cc-candy.striped-v::after{content:'↕️';position:absolute;font-size:11px;z-index:4;top:2px;right:2px}
 .cc-candy.color-bomb{background:radial-gradient(circle at 30% 30%, #FEF08A, #FACC15 25%, #EAB308 55%, #854D0E 100%) !important;border:2.5px solid #fff !important;box-shadow:0 0 28px #FACC15, 0 0 16px #fff, inset 0 0 14px rgba(255,255,255,.9) !important;animation:thunderPulse 0.8s ease-in-out infinite}
 .cc-candy.color-bomb::before{content:'⚡';position:absolute;font-size:26px;z-index:3;filter:drop-shadow(0 0 6px #fff) drop-shadow(0 0 10px #FACC15);animation:thunderFlash .2s ease-in-out infinite alternate}
 .cc-candy.color-bomb img{display:none}
-.cc-candy.color-bomb::after{content:none}
 @keyframes thunderPulse{0%,100%{transform:scale(1);box-shadow:0 0 28px #FACC15, 0 0 16px #fff}50%{transform:scale(1.08);box-shadow:0 0 36px #FDE047, 0 0 24px #fff, 0 0 40px #FACC15}}
 @keyframes thunderFlash{0%{filter:drop-shadow(0 0 6px #fff) drop-shadow(0 0 10px #FACC15) brightness(1)}100%{filter:drop-shadow(0 0 10px #fff) drop-shadow(0 0 16px #FDE047) brightness(1.4)}}
 .cc-cell.matched{animation:pop .38s cubic-bezier(.34,1.56,.64,1) forwards}
@@ -187,6 +256,7 @@ export function init(container, args){
       <div class="cc-header-left">
         <button class="cc-icon-btn" id="btnMenu" title="Menú">☰</button>
         <div class="cc-level-badge" id="lvlBadge"><b id="lvlNum">N1</b><span id="lvlUnlock">5/11</span></div>
+        <div class="cc-pass-badge" id="passBadge" style="display:${hasPass?'flex':'none'}"><span style="font-size:10px">💎</span> PASS X5</div>
         <div class="cc-tokens" id="activeTokens"></div>
         <div style="font-weight:900;font-size:11px;opacity:.8"><span id="moves">25</span> <span id="movesLabel" style="font-size:8px;opacity:.6">MOVS</span></div>
       </div>
@@ -200,7 +270,7 @@ export function init(container, args){
     </div>
   </div>
   <div class="cc-main" id="mainArea"><div class="cc-board" id="board"><div class="cc-grid" id="grid"></div><div class="cc-thunder-fx" id="thunderFx"></div></div></div>
-  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">v7.0 MENU + BOMBA 💣 + RAYO ⚡</div></div>
+  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">v7.1 WASA PASS X5 ${hasPass?'✅ ACTIVO':'⏳ verificando...'}</div></div>
   <div id="ui"></div>
 </div>`;
 
@@ -214,12 +284,11 @@ export function init(container, args){
   function getMemeUrl(fileName){ const base = workingBase || '/games/crypto-crush/assets/'; return base + fileName; }
   function pickRandomMeme(type){ const list = type==='laugh' ? MEME_LAUGH_FILES : MEME_CRY_FILES; return list[Math.floor(Math.random()*list.length)]; }
   async function startSession(){ try{ const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'start_game_session', email:localStorage.getItem('wasa_email'), wallet:localStorage.getItem('wasa_wallet'), device_id:getDeviceId(), game_slug:'crypto-crush', level:currentLevelNum})}); const j=await r.json(); if(j.ok) session=j.session_id; }catch{} }
-  async function claim(isDouble, ad){ if(claiming) return {ok:false}; if(!session) await startSession(); if(!session) return {ok:false}; claiming=true; try{ const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward', session_id:session, email:localStorage.getItem('wasa_email'), wallet:localStorage.getItem('wasa_wallet'), device_id:getDeviceId(), game_slug:'crypto-crush', level:currentLevelNum, ad_watched:ad, double_reward:isDouble, time_taken:(Date.now()-startTime)/1000})}); const j=await r.json(); if(j.ok){ const b=j.wasa_balance??j.guest_balance??0; localStorage.setItem(j.is_guest?'wasa_coins_guest':'wasa_coins',b); if(window.setCoinsUI) window.setCoinsUI(b); session=null; claiming=false; return j; } claiming=false; return {ok:false, error:j.error}; }catch{ claiming=false; return {ok:false}; } }
+  async function claim(isDouble, ad, rewardToClaim){ if(claiming) return {ok:false}; if(!session) await startSession(); if(!session) return {ok:false}; claiming=true; try{ const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward', session_id:session, email:localStorage.getItem('wasa_email'), wallet:localStorage.getItem('wasa_wallet'), device_id:getDeviceId(), game_slug:'crypto-crush', level:currentLevelNum, ad_watched:ad, double_reward:isDouble, reward_amount:rewardToClaim, has_pass:hasPass, pass_multiplier:passMultiplier, time_taken:(Date.now()-startTime)/1000})}); const j=await r.json(); if(j.ok){ const b=j.wasa_balance??j.guest_balance??0; localStorage.setItem(j.is_guest?'wasa_coins_guest':'wasa_coins',b); if(window.setCoinsUI) window.setCoinsUI(b); session=null; claiming=false; return j; } claiming=false; return {ok:false, error:j.error}; }catch{ claiming=false; return {ok:false}; } }
   function openAd(t){ if(window.vrAd!==0 && window.vrAd!==undefined) return; pendingAd=t; window.vrAdType=t; window.vrAd=1; ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(0,0,0,.7);display:grid;place-items:center;z-index:50;color:white;font-weight:800">Cargando anuncio...</div>`; }
   function randColorFromActive(active){ const tok=active[Math.floor(Math.random()*active.length)]; return ALL_TOKENS.indexOf(tok); }
   function makeCell(color, special=null){ return {c:color, s:special}; }
   function saveBoosters(){ localStorage.setItem('wcrush_boosters', JSON.stringify(boosters)); }
-
   function createTokenImg(token, fallbackText){
     const wrapper=document.createElement('div'); wrapper.style.width='100%'; wrapper.style.height='100%'; wrapper.style.display='grid'; wrapper.style.placeItems='center';
     const img=document.createElement('img'); img.alt=token.name; img.loading='lazy'; img.style.width='76%'; img.style.height='76%'; img.style.objectFit='contain';
@@ -238,121 +307,61 @@ export function init(container, args){
   }
 
   function showMainMenu(){
-    gameStarted=false; busy=true;
-    if(timerInt) clearInterval(timerInt);
+    gameStarted=false; busy=true; if(timerInt) clearInterval(timerInt);
+    checkWasaPass(false);
+    const passInfo = hasPass ? `<div style="background:linear-gradient(135deg,#A855F7,#7E22CE);color:#fff;border-radius:12px;padding:10px;font-weight:900;font-size:12px;margin-top:10px;box-shadow:0 0 14px #A855F7">💎 WASA PASS X5 ACTIVO<br><span style="font-size:10px;opacity:.9;font-weight:700">Tu recompensa se multiplica x5 en cada nivel</span></div>` : `<div style="background:#FEF2F2;border:1.5px solid #FECACA;border-radius:12px;padding:10px;font-size:11px;margin-top:10px"><b>💎 ¿Tenés WASA PASS?</b><br>Multiplica x5 todas tus recompensas<br><a href="/wasa-pass.html" target="_blank" style="color:#7E22CE;font-weight:900">Comprar PASS por 5 USDT →</a><br><button id="btnCheckPass" style="margin-top:8px;height:32px;padding:0 12px;border-radius:8px;border:0;background:#2a1a5e;color:#fff;font-weight:800;font-size:11px;cursor:pointer">🔄 Verificar mi PASS</button></div>`;
     ui.innerHTML=`<div class="cc-menu" id="mainMenu">
       <div class="cc-menu-card">
         <div style="font-size:48px">💎</div>
         <div class="cc-menu-title">CRYPTO CRUSH</div>
-        <div class="cc-menu-sub">NIVEL ${currentLevelNum} • ${getUnlockedTokens(currentLevelNum).length}/11 TOKENS</div>
-        <button class="cc-menu-btn" id="mPlay" style="background:linear-gradient(135deg,#22C55E,#16A34A);color:#000">▶ JUGAR NIVEL ${currentLevelNum}</button>
+        <div class="cc-menu-sub">NIVEL ${currentLevelNum} • ${getUnlockedTokens(currentLevelNum).length}/11 TOKENS ${hasPass?'• 💎 PASS X5':''}</div>
+        ${passInfo}
+        <button class="cc-menu-btn" id="mPlay" style="background:linear-gradient(135deg,#22C55E,#16A34A);color:#000">▶ JUGAR NIVEL ${currentLevelNum} ${hasPass?'(x5)':''}</button>
         <div class="cc-menu-grid">
           <button class="cc-menu-btn" id="mHow" style="background:#fff;border:2px solid #DDD6FE;color:#2a1a5e">❓ COMO JUGAR</button>
           <button class="cc-menu-btn" id="mShop" style="background:linear-gradient(135deg,#FEF08A,#FACC15);color:#000">🛒 BOOSTERS</button>
         </div>
         <div style="margin-top:14px;display:flex;gap:6px;justify-content:center">
-          <div style="background:#F5F3FF;border:1.5px solid #DDD6FE;border-radius:10px;padding:6px 10px;font-size:10px;font-weight:900">🔨 ${boosters.hammer} MARTILLOS</div>
-          <div style="background:#FEF2F2;border:1.5px solid #FECACA;border-radius:10px;padding:6px 10px;font-size:10px;font-weight:900">💣 ${boosters.bomb} BOMBAS</div>
-          <div style="background:#FFFBEB;border:1.5px solid #FDE68A;border-radius:10px;padding:6px 10px;font-size:10px;font-weight:900">⚡ ${boosters.rayo} RAYOS</div>
+          <div style="background:#F5F3FF;border:1.5px solid #DDD6FE;border-radius:10px;padding:6px 10px;font-size:10px;font-weight:900">🔨 ${boosters.hammer}</div>
+          <div style="background:#FEF2F2;border:1.5px solid #FECACA;border-radius:10px;padding:6px 10px;font-size:10px;font-weight:900">💣 ${boosters.bomb}</div>
+          <div style="background:#FFFBEB;border:1.5px solid #FDE68A;border-radius:10px;padding:6px 10px;font-size:10px;font-weight:900">⚡ ${boosters.rayo}</div>
         </div>
-        <div style="font-size:9px;opacity:.5;margin-top:10px">WASA: ${fmt(totalReward)} • BEST: ${best}</div>
+        <div style="font-size:9px;opacity:.5;margin-top:10px">WASA: ${fmt(totalReward)} • BEST: ${best} ${hasPass?'• PASS X5':''}</div>
       </div>
     </div>`;
     ui.querySelector('#mPlay').onclick=()=>{ ui.innerHTML=''; showLevelIntro(); };
     ui.querySelector('#mHow').onclick=()=>showHowToPlay();
     ui.querySelector('#mShop').onclick=()=>showBoosterShop();
+    const btnCheck = ui.querySelector('#btnCheckPass');
+    if(btnCheck){ btnCheck.onclick=async()=>{ btnCheck.textContent='Verificando...'; await checkWasaPass(true); showMainMenu(); }; }
   }
 
   function showHowToPlay(){
-    ui.innerHTML=`<div class="cc-howto" id="howto">
-      <div class="cc-howto-card">
-        <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:18px">❓ CÓMO JUGAR</b><button id="closeHow" style="width:32px;height:32px;border-radius:10px;border:1.5px solid #E5E7EB;background:#fff;cursor:pointer">✕</button></div>
-        
+    ui.innerHTML=`<div class="cc-howto" id="howto"><div class="cc-howto-card"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:18px">❓ CÓMO JUGAR</b><button id="closeHow" style="width:32px;height:32px;border-radius:10px;border:1.5px solid #E5E7EB;background:#fff;cursor:pointer">✕</button></div>
         <div style="background:#FEF9C3;border:2px solid #FDE047;border-radius:14px;padding:12px;margin-top:12px;font-size:13px"><b>🎯 Objetivo:</b> Junta los tokens que te pide cada nivel antes de quedarte sin movimientos o tiempo.</div>
-
-        <div class="cc-howto-item">
-          <div class="cc-howto-icon">💣</div>
-          <div><b style="font-size:14px">BOMBA (T o L)</b><br><span style="font-size:12px;opacity:.8">Hace 5 fichas en forma de T o L (ej: 3 horizontal + 2 vertical cruzadas).<br><b>Explota 3x3</b> a su alrededor. Toca para activarla.</span><br><div style="margin-top:6px;font-family:monospace;font-size:12px;background:#000;color:#0f0;padding:6px;border-radius:8px">🟦🟦🟦<br>🟦💣🟦<br>🟦🟦 → 💥 BOOM 3x3</div></div>
-        </div>
-
-        <div class="cc-howto-item">
-          <div class="cc-howto-icon" style="background:linear-gradient(180deg,#FEF08A,#FACC15)">↔️</div>
-          <div><b style="font-size:14px">RAYADA (4 en línea)</b><br><span style="font-size:12px;opacity:.8">Hace 4 iguales en línea.<br>Horizontal <b>↔️ barre toda la fila</b>, Vertical <b>↕️ barre columna</b>.</span><br><div style="margin-top:6px;font-family:monospace;font-size:12px;background:#000;color:#38BDF8;padding:6px;border-radius:8px">🟦🟦🟦🟦 → ↔️ RAYADA<br>Toca → ¡PUM toda la fila!</div></div>
-        </div>
-
-        <div class="cc-howto-item" style="border-color:#EAB308;background:linear-gradient(180deg,#FFFBEB,#FEF9C3)">
-          <div class="cc-howto-icon" style="background:radial-gradient(circle,#FEF08A,#FACC15);border-color:#EAB308">⚡</div>
-          <div><b style="font-size:14px">RAYO (5 en línea)</b><br><span style="font-size:12px;opacity:.8">Hace <b>5 iguales en línea</b>.<br>Crea un <b>RAYO ⚡</b> que elimina <b>TODOS los tokens del color que elijas</b>.<br>Arrastra el RAYO hacia un token para elegir color.<br><b>Animación:</b> lanza rayos eléctricos a cada ficha.</span><br><div style="margin-top:6px;font-family:monospace;font-size:12px;background:#000;color:#FACC15;padding:6px;border-radius:8px">🟦🟦🟦🟦🟦 → ⚡<br>⚡ + 🟨 = elimina TODOS los 🟨<br>⚡⚡⚡→💥💥💥</div></div>
-        </div>
-
-        <div class="cc-howto-item">
-          <div class="cc-howto-icon">🎯</div>
-          <div><b style="font-size:14px">COMBOS</b><br><span style="font-size:12px;opacity:.8">Si al caer caen más de 3, se crean más bombas/rayadas automáticas.<br>¡Encadena COMBO x2, x3 para más puntos!</span></div>
-        </div>
-
-        <button id="btnGotIt" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:#2a1a5e;color:#fff;margin-top:14px;cursor:pointer">¡ENTENDIDO! ▶</button>
-      </div>
-    </div>`;
-    const close = ()=>{ const el=ui.querySelector('#howto'); if(el) el.remove(); };
-    ui.querySelector('#closeHow').onclick=close;
-    ui.querySelector('#btnGotIt').onclick=close;
+        <div class="cc-howto-item"><div class="cc-howto-icon">💣</div><div><b style="font-size:14px">BOMBA (T o L) - 5 fichas</b><br><span style="font-size:12px;opacity:.8">Hace 5 fichas en forma de T o L. Explota 3x3. Toca para activarla.</span><br><div style="margin-top:6px;font-family:monospace;font-size:12px;background:#000;color:#0f0;padding:6px;border-radius:8px">🟦🟦🟦<br>🟦💣🟦<br>🟦🟦 → 💥 BOOM 3x3</div></div></div>
+        <div class="cc-howto-item"><div class="cc-howto-icon" style="background:linear-gradient(180deg,#FEF08A,#FACC15)">↔️</div><div><b style="font-size:14px">RAYADA (4 en línea)</b><br><span style="font-size:12px;opacity:.8">4 iguales en línea. Horizontal barre fila, Vertical barre columna.</span></div></div>
+        <div class="cc-howto-item" style="border-color:#EAB308;background:linear-gradient(180deg,#FFFBEB,#FEF9C3)"><div class="cc-howto-icon" style="background:radial-gradient(circle,#FEF08A,#FACC15);border-color:#EAB308">⚡</div><div><b style="font-size:14px">RAYO (5 en línea)</b><br><span style="font-size:12px;opacity:.8">5 iguales. Crea RAYO ⚡ que elimina TODOS los del color que elijas. Animación eléctrica.</span></div></div>
+        <div class="cc-howto-item" style="border-color:#A855F7;background:linear-gradient(180deg,#F5F3FF,#EDE9FE)"><div class="cc-howto-icon" style="background:linear-gradient(135deg,#A855F7,#7E22CE);color:#fff">💎</div><div><b style="font-size:14px">WASA PASS X5</b><br><span style="font-size:12px;opacity:.8">Si tenés PASS, tu recompensa base se multiplica x5.<br>Si además ves anuncio, x5 x2 = x10 total.<br><a href="/wasa-pass.html" target="_blank" style="color:#7E22CE;font-weight:900">Comprar PASS →</a></span></div></div>
+        <button id="btnGotIt" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:#2a1a5e;color:#fff;margin-top:14px;cursor:pointer">¡ENTENDIDO! ▶</button></div></div>`;
+    ui.querySelector('#closeHow').onclick=()=>{ const el=ui.querySelector('#howto'); if(el) el.remove(); };
+    ui.querySelector('#btnGotIt').onclick=()=>{ const el=ui.querySelector('#howto'); if(el) el.remove(); };
   }
 
   function showBoosterShop(){
-    ui.innerHTML=`<div class="cc-howto" id="shop">
-      <div class="cc-howto-card">
-        <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:18px">🛒 TIENDA BOOSTERS</b><button id="closeShop" style="width:32px;height:32px;border-radius:10px;border:1.5px solid #E5E7EB;background:#fff;cursor:pointer">✕</button></div>
-        <div style="background:#F5F3FF;border:1.5px solid #DDD6FE;border-radius:12px;padding:10px;margin-top:12px;font-size:11px;text-align:center">Tu WASA: <b>${fmt(totalReward)}</b> • Usa boosters al inicio del nivel para ventaja</div>
-
-        <div class="cc-booster">
-          <div class="cc-booster-icon">🔨</div>
-          <div style="flex:1"><b>Martillo</b><br><span style="font-size:11px;opacity:.7">Rompe 1 ficha sin gastar movimiento. Ideal para destrabar.</span><br><span style="font-size:10px;font-weight:900">Tenés: ${boosters.hammer}</span></div>
-          <div style="text-align:right"><button class="buyBtn" data-type="hammer" style="height:36px;padding:0 14px;border-radius:10px;border:0;background:#2a1a5e;color:#fff;font-weight:900;cursor:pointer">0.0001 WASA</button><br><button class="useBtn" data-type="hammer" style="margin-top:6px;height:28px;padding:0 10px;border-radius:8px;border:1.5px solid #22C55E;background:#DCFCE7;color:#065F46;font-weight:800;font-size:10px;cursor:pointer">USAR +1</button></div>
-        </div>
-
-        <div class="cc-booster">
-          <div class="cc-booster-icon" style="background:linear-gradient(180deg,#FECACA,#EF4444)">💣</div>
-          <div style="flex:1"><b>Bomba Inicial</b><br><span style="font-size:11px;opacity:.7">Empieza el nivel con 1 bomba 💣 ya en el tablero. Explota 3x3.</span><br><span style="font-size:10px;font-weight:900">Tenés: ${boosters.bomb}</span></div>
-          <div style="text-align:right"><button class="buyBtn" data-type="bomb" style="height:36px;padding:0 14px;border-radius:10px;border:0;background:#2a1a5e;color:#fff;font-weight:900;cursor:pointer">0.0002 WASA</button><br><button class="useBtn" data-type="bomb" style="margin-top:6px;height:28px;padding:0 10px;border-radius:8px;border:1.5px solid #EF4444;background:#FEE2E2;color:#991B1B;font-weight:800;font-size:10px;cursor:pointer">USAR +1</button></div>
-        </div>
-
-        <div class="cc-booster">
-          <div class="cc-booster-icon">⚡</div>
-          <div style="flex:1"><b>Rayo Inicial</b><br><span style="font-size:11px;opacity:.7">Empieza con 1 rayo ⚡. Elimina todo un color. ¡El más poderoso!</span><br><span style="font-size:10px;font-weight:900">Tenés: ${boosters.rayo}</span></div>
-          <div style="text-align:right"><button class="buyBtn" data-type="rayo" style="height:36px;padding:0 14px;border-radius:10px;border:0;background:#2a1a5e;color:#fff;font-weight:900;cursor:pointer">0.0005 WASA</button><br><button class="useBtn" data-type="rayo" style="margin-top:6px;height:28px;padding:0 10px;border-radius:8px;border:1.5px solid #EAB308;background:#FEF9C3;color:#854D0E;font-weight:800;font-size:10px;cursor:pointer">USAR +1</button></div>
-        </div>
-
-        <button id="btnShopPlay" style="width:100%;height:48px;border-radius:14px;font-weight:900;border:0;background:linear-gradient(135deg,#22C55E,#16A34A);color:#000;margin-top:14px;cursor:pointer">▶ JUGAR CON BOOSTERS</button>
-      </div>
-    </div>`;
+    ui.innerHTML=`<div class="cc-howto" id="shop"><div class="cc-howto-card"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:18px">🛒 TIENDA BOOSTERS</b><button id="closeShop" style="width:32px;height:32px;border-radius:10px;border:1.5px solid #E5E7EB;background:#fff;cursor:pointer">✕</button></div>
+        <div style="background:#F5F3FF;border:1.5px solid #DDD6FE;border-radius:12px;padding:10px;margin-top:12px;font-size:11px;text-align:center">Tu WASA: <b>${fmt(totalReward)}</b> ${hasPass?'<span style="background:#A855F7;color:#fff;padding:2px 6px;border-radius:6px;font-size:9px">PASS X5</span>':''}</div>
+        <div class="cc-booster"><div class="cc-booster-icon">🔨</div><div style="flex:1"><b>Martillo</b><br><span style="font-size:11px;opacity:.7">Rompe 1 ficha sin gastar movimiento.</span><br><span style="font-size:10px;font-weight:900">Tenés: ${boosters.hammer}</span></div><div style="text-align:right"><button class="buyBtn" data-type="hammer" style="height:36px;padding:0 14px;border-radius:10px;border:0;background:#2a1a5e;color:#fff;font-weight:900;cursor:pointer">0.0001 WASA</button><br><button class="useBtn" data-type="hammer" style="margin-top:6px;height:28px;padding:0 10px;border-radius:8px;border:1.5px solid #22C55E;background:#DCFCE7;color:#065F46;font-weight:800;font-size:10px;cursor:pointer">USAR +1</button></div></div>
+        <div class="cc-booster"><div class="cc-booster-icon" style="background:linear-gradient(180deg,#FECACA,#EF4444)">💣</div><div style="flex:1"><b>Bomba Inicial</b><br><span style="font-size:11px;opacity:.7">Empieza con 1 bomba 💣 en tablero.</span><br><span style="font-size:10px;font-weight:900">Tenés: ${boosters.bomb}</span></div><div style="text-align:right"><button class="buyBtn" data-type="bomb" style="height:36px;padding:0 14px;border-radius:10px;border:0;background:#2a1a5e;color:#fff;font-weight:900;cursor:pointer">0.0002 WASA</button><br><button class="useBtn" data-type="bomb" style="margin-top:6px;height:28px;padding:0 10px;border-radius:8px;border:1.5px solid #EF4444;background:#FEE2E2;color:#991B1B;font-weight:800;font-size:10px;cursor:pointer">USAR +1</button></div></div>
+        <div class="cc-booster"><div class="cc-booster-icon">⚡</div><div style="flex:1"><b>Rayo Inicial</b><br><span style="font-size:11px;opacity:.7">Empieza con 1 rayo ⚡. ¡El más poderoso!</span><br><span style="font-size:10px;font-weight:900">Tenés: ${boosters.rayo}</span></div><div style="text-align:right"><button class="buyBtn" data-type="rayo" style="height:36px;padding:0 14px;border-radius:10px;border:0;background:#2a1a5e;color:#fff;font-weight:900;cursor:pointer">0.0005 WASA</button><br><button class="useBtn" data-type="rayo" style="margin-top:6px;height:28px;padding:0 10px;border-radius:8px;border:1.5px solid #EAB308;background:#FEF9C3;color:#854D0E;font-weight:800;font-size:10px;cursor:pointer">USAR +1</button></div></div>
+        <div class="cc-booster" style="border-color:#A855F7;background:linear-gradient(180deg,#F5F3FF,#EDE9FE)"><div class="cc-booster-icon" style="background:linear-gradient(135deg,#A855F7,#7E22CE);color:#fff">💎</div><div style="flex:1"><b>WASA PASS X5</b><br><span style="font-size:11px;opacity:.7">Multiplica x5 tu recompensa SIEMPRE. ${hasPass?'<b style="color:#22C55E">¡YA LO TENÉS ACTIVO!</b>':'¡Compra y se activa solo!'}</span></div><div style="text-align:right"><a href="/wasa-pass.html" target="_blank" style="height:36px;padding:0 14px;border-radius:10px;background:${hasPass?'#22C55E':'#7E22CE'};color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;text-decoration:none">${hasPass?'✅ ACTIVO':'5 USDT'}</a><br><button id="btnVerifyPass" style="margin-top:6px;height:28px;padding:0 10px;border-radius:8px;border:1.5px solid #A855F7;background:#fff;color:#7E22CE;font-weight:800;font-size:10px;cursor:pointer">🔄 VERIFICAR</button></div></div>
+        <button id="btnShopPlay" style="width:100%;height:48px;border-radius:14px;font-weight:900;border:0;background:linear-gradient(135deg,#22C55E,#16A34A);color:#000;margin-top:14px;cursor:pointer">▶ JUGAR CON BOOSTERS ${hasPass?'(X5)':''}</button></div></div>`;
     ui.querySelector('#closeShop').onclick=()=>{ const el=ui.querySelector('#shop'); if(el) el.remove(); };
     ui.querySelector('#btnShopPlay').onclick=()=>{ ui.innerHTML=''; showLevelIntro(true); };
-    ui.querySelectorAll('.buyBtn').forEach(btn=>{
-      btn.onclick=()=>{
-        const type=btn.dataset.type;
-        const costs={hammer:0.0001,bomb:0.0002,rayo:0.0005};
-        const cost=costs[type];
-        if(totalReward>=cost){
-          totalReward-=cost; localStorage.setItem('wcrush_wasa', totalReward);
-          boosters[type]=(boosters[type]||0)+1; saveBoosters();
-          showBoosterShop();
-        } else { btn.textContent='¡Sin WASA!'; setTimeout(()=>btn.textContent=cost+' WASA',1200); }
-      };
-    });
-    ui.querySelectorAll('.useBtn').forEach(btn=>{
-      btn.onclick=()=>{
-        const type=btn.dataset.type;
-        if((boosters[type]||0)>0){
-          // marcar para usar en próximo nivel - por ahora solo suma visual
-          btn.textContent='✓ ACTIVADO';
-          btn.style.background='#22C55E'; btn.style.color='#fff';
-          // guardamos en session que quiere usar
-          let pending = JSON.parse(localStorage.getItem('wcrush_pending_boosters')||'{}');
-          pending[type]=(pending[type]||0)+1;
-          localStorage.setItem('wcrush_pending_boosters', JSON.stringify(pending));
-        }
-      };
-    });
+    const btnVerify = ui.querySelector('#btnVerifyPass');
+    if(btnVerify){ btnVerify.onclick=async()=>{ btnVerify.textContent='Verificando...'; await checkWasaPass(true); showBoosterShop(); }; }
+    ui.querySelectorAll('.buyBtn').forEach(btn=>{ btn.onclick=()=>{ const type=btn.dataset.type; const costs={hammer:0.0001,bomb:0.0002,rayo:0.0005}; const cost=costs[type]; if(totalReward>=cost){ totalReward-=cost; localStorage.setItem('wcrush_wasa', totalReward); boosters[type]=(boosters[type]||0)+1; saveBoosters(); showBoosterShop(); } else { btn.textContent='¡Sin WASA!'; setTimeout(()=>btn.textContent=cost+' WASA',1200); } }; });
+    ui.querySelectorAll('.useBtn').forEach(btn=>{ btn.onclick=()=>{ const type=btn.dataset.type; if((boosters[type]||0)>0){ btn.textContent='✓ ACTIVADO'; btn.style.background='#22C55E'; btn.style.color='#fff'; let pending = JSON.parse(localStorage.getItem('wcrush_pending_boosters')||'{}'); pending[type]=(pending[type]||0)+1; localStorage.setItem('wcrush_pending_boosters', JSON.stringify(pending)); } }; });
   }
 
   function animateThunder(originR, originC, targetKeys){
@@ -376,8 +385,8 @@ export function init(container, args){
     if(busy) return; busy=true; gameStarted=false; if(timerInt) clearInterval(timerInt);
     const laughFile = pickRandomMeme('laugh'); const laughUrl = getMemeUrl(laughFile);
     const completeOverlay = document.createElement('div'); completeOverlay.className='cc-obj-complete';
-    completeOverlay.innerHTML=`<div style="text-align:center;padding:12px"><img class="cc-obj-complete-meme" src="${laughUrl}" alt="laugh" onerror="this.style.display='none'"><div class="cc-obj-complete-text">⚡ OBJETIVOS<br>COMPLETADOS ⚡</div><div class="cc-obj-complete-sub">¡NIVEL ${currentLevelNum} SUPERADO!</div></div>`;
-    boardEl.appendChild(completeOverlay); debugInfo.textContent=`¡N${currentLevelNum} COMPLETADO! ${laughFile}`;
+    completeOverlay.innerHTML=`<div style="text-align:center;padding:12px"><img class="cc-obj-complete-meme" src="${laughUrl}" alt="laugh" onerror="this.style.display='none'"><div class="cc-obj-complete-text">⚡ OBJETIVOS<br>COMPLETADOS ⚡</div><div class="cc-obj-complete-sub">¡NIVEL ${currentLevelNum} SUPERADO! ${hasPass?'<br><span style="background:#A855F7;color:#fff;padding:2px 8px;border-radius:8px;font-size:11px">💎 PASS X5 ACTIVO</span>':''}</div></div>`;
+    boardEl.appendChild(completeOverlay); debugInfo.textContent=`¡N${currentLevelNum} COMPLETADO! ${hasPass?'PASS X5':''} ${laughFile}`;
     const objMinis = root.querySelectorAll('.cc-obj-mini'); objMinis.forEach(el=>{ el.style.animation='objBlink .3s ease-in-out 6 alternate'; });
     setTimeout(()=>{ if(completeOverlay.parentNode) completeOverlay.remove(); showWin(laughFile); }, 3000);
   }
@@ -396,15 +405,18 @@ export function init(container, args){
       return `<div style="min-height:48px;background:linear-gradient(180deg,#FEF9C3,#FDE047);border:2px solid #EAB308;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:12px"><div style="width:32px;height:32px;flex-shrink:0;border-radius:9px;background:radial-gradient(circle at 30% 30%, #FEF08A, #FACC15 30%, #CA8A04 100%);border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 14px #FACC15, inset 0 0 8px rgba(255,255,255,.9)">⚡</div><div style="flex:1;display:flex;align-items:center"><b style="font-size:13px;line-height:32px;color:#854D0E">${o.name} ${o.target}</b></div></div>`;
     }).join('');
 
+    const passBanner = hasPass ? `<div style="background:linear-gradient(135deg,#A855F7,#7E22CE);color:#fff;border-radius:12px;padding:10px;font-weight:900;font-size:12px;text-align:center;margin-bottom:10px;box-shadow:0 0 14px #A855F7">💎 WASA PASS X5 ACTIVO<br><span style="font-size:10px;font-weight:700;opacity:.9">Recompensa base x5 = ${fmt(getRewardForLevel(level.reward))} WASA (sin anuncio)</span></div>` : `<div style="background:#F5F3FF;border:1.5px dashed #A855F7;border-radius:12px;padding:8px;font-size:11px;text-align:center;margin-bottom:10px">💎 ¿Tenés WASA PASS? Multiplica x5<br><a href="/wasa-pass.html" target="_blank" style="color:#7E22CE;font-weight:900">Comprar por 5 USDT →</a></div>`;
+
     ui.innerHTML=`<div id="introModal" style="position:fixed;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(16px);display:grid;place-items:center;z-index:50;padding:16px">
       <div style="background:linear-gradient(180deg,#fff,#FFFBEB);border:3px solid ${isTimeLevel?'#EF4444':'#EAB308'};border-radius:22px;padding:20px;text-align:center;width:min(380px,94vw);color:#0F172A;box-shadow:0 20px 60px rgba(0,0,0,.5)">
         <div style="font-size:11px;font-weight:900;letter-spacing:.12em;opacity:.6;text-transform:uppercase">${title}</div>
         <div style="font-size:32px;font-weight:900;margin:8px 0;color:${isTimeLevel?'#DC2626':'#854D0E'};line-height:1">NIVEL ${currentLevelNum}</div>
+        ${passBanner}
         <div style="background:${isTimeLevel?'#FEF2F2':'#FEF9C3'};border:1.5px solid ${isTimeLevel?'#FECACA':'#FDE047'};border-radius:12px;padding:12px;margin:12px 0;font-size:13px;line-height:1.4">${desc}</div>
         <div style="display:grid;gap:8px;margin:14px 0;text-align:left">${objsHtml}</div>
         ${hasPending?`<div style="background:#DCFCE7;border:2px solid #22C55E;border-radius:12px;padding:8px;font-size:11px;font-weight:800;margin-bottom:10px">🚀 BOOSTERS ACTIVOS: ${Object.entries(pending).filter(([k,v])=>v>0).map(([k,v])=>k+':'+v).join(', ')}</div>`:''}
         <div style="font-size:10px;opacity:.5;margin:10px 0;letter-spacing:.02em">Tokens: ${level.activeTokens.map(t=>t.name).join(', ')}</div>
-        <button id="btnStart" style="width:100%;height:52px;border-radius:14px;font-weight:900;font-size:15px;border:0;background:${isTimeLevel?'linear-gradient(135deg,#EF4444,#DC2626)':'linear-gradient(135deg,#EAB308,#CA8A04)'};color:#fff;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;gap:8px">▶ ACEPTAR Y EMPEZAR</button>
+        <button id="btnStart" style="width:100%;height:52px;border-radius:14px;font-weight:900;font-size:15px;border:0;background:${isTimeLevel?'linear-gradient(135deg,#EF4444,#DC2626)':'linear-gradient(135deg,#EAB308,#CA8A04)'};color:#fff;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;gap:8px">▶ ACEPTAR Y EMPEZAR ${hasPass?'💎 X5':''}</button>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
           <button id="btnIntroHow" style="height:38px;border-radius:10px;border:1.5px solid #DDD6FE;background:#fff;font-weight:800;font-size:11px;cursor:pointer">❓ COMO JUGAR</button>
           <button id="btnIntroShop" style="height:38px;border-radius:10px;border:1.5px solid #EAB308;background:#FFFBEB;font-weight:800;font-size:11px;cursor:pointer">🛒 BOOSTERS</button>
@@ -420,17 +432,15 @@ export function init(container, args){
   function applyPendingBoosters(){
     const pending = JSON.parse(localStorage.getItem('wcrush_pending_boosters')||'{}');
     if(Object.keys(pending).length===0) return;
-    // aplicar bomba y rayo al tablero
     let applied=[];
     if(pending.bomb){ for(let i=0;i<pending.bomb;i++){ const r=Math.floor(Math.random()*SZ), c=Math.floor(Math.random()*SZ); board[r][c]=makeCell(board[r][c].c, 'bomb'); applied.push('💣'); } boosters.bomb=Math.max(0,(boosters.bomb||0)-pending.bomb); }
     if(pending.rayo){ for(let i=0;i<pending.rayo;i++){ const r=Math.floor(Math.random()*SZ), c=Math.floor(Math.random()*SZ); board[r][c]=makeCell(board[r][c].c, 'color'); applied.push('⚡'); } boosters.rayo=Math.max(0,(boosters.rayo||0)-pending.rayo); }
-    saveBoosters();
-    localStorage.removeItem('wcrush_pending_boosters');
+    saveBoosters(); localStorage.removeItem('wcrush_pending_boosters');
     if(applied.length) debugInfo.textContent=`Boosters aplicados: ${applied.join(' ')}`;
     draw();
   }
 
-  function startGameTimer(){ gameStarted=true; busy=false; startTime=Date.now(); debugInfo.textContent=`N${currentLevelNum} ${level.type==='time'?'⏰ '+level.time+'s':'🎯 '+level.moves+' movs'} 💣⚡`; if(level.type==='time'){ if(timerInt) clearInterval(timerInt); timerInt=setInterval(()=>{ if(!gameStarted) return; timeLeft--; if(timeLeft<=0){ timeLeft=0; clearInterval(timerInt); checkFail(); } updateUI(); },1000); } updateUI(); }
+  function startGameTimer(){ gameStarted=true; busy=false; startTime=Date.now(); debugInfo.textContent=`N${currentLevelNum} ${level.type==='time'?'⏰ '+level.time+'s':'🎯 '+level.moves+' movs'} ${hasPass?'💎X5':''} 💣⚡`; if(level.type==='time'){ if(timerInt) clearInterval(timerInt); timerInt=setInterval(()=>{ if(!gameStarted) return; timeLeft--; if(timeLeft<=0){ timeLeft=0; clearInterval(timerInt); checkFail(); } updateUI(); },1000); } updateUI(); }
   function loadLevel(n){
     currentLevelNum=n; localStorage.setItem('wcrush_level', n);
     const activeTokens=getActiveTokensForLevel(n); level=generateLevel(n, activeTokens);
@@ -439,7 +449,7 @@ export function init(container, args){
     gridEl.innerHTML=''; for(let r=0;r<SZ;r++) for(let c=0;c<SZ;c++){ const cell=document.createElement('div'); cell.className='cc-cell'; cell.dataset.r=r; cell.dataset.c=c; gridEl.appendChild(cell); }
     thunderFx.innerHTML=''; const activeDiv=root.querySelector('#activeTokens'); activeDiv.innerHTML=''; const neededNames=new Set(level.objectives.filter(o=>o.type==='collect_color').map(o=>o.name));
     activeTokens.forEach(tok=>{ const chip=document.createElement('div'); const isWasa=tok.name==='WASA'; chip.className='cc-token-chip'+(neededNames.has(tok.name)?' needed':'')+(isWasa?' wasa':''); chip.style.background=`linear-gradient(180deg, ${tok.light}, ${tok.bg})`; chip.style.borderColor=tok.bd; chip.title=tok.name; chip.appendChild(createTokenImg(tok, tok.icon)); activeDiv.appendChild(chip); });
-    startSession(); draw(); updateObjectivesUI(); updateUI(); showMainMenu();
+    startSession(); draw(); updateObjectivesUI(); updateUI(); checkWasaPass(false); showMainMenu();
   }
   function updateUI(){
     const badge=root.querySelector('#lvlBadge');
@@ -448,6 +458,7 @@ export function init(container, args){
     if(level.type==='time'){ root.querySelector('#moves').textContent=gameStarted ? timeLeft+'s' : level.time+'s'; root.querySelector('#movesLabel').textContent=gameStarted ? 'TIEMPO' : 'LISTO'; }
     else { root.querySelector('#moves').textContent=moves; root.querySelector('#movesLabel').textContent='MOVS'; }
     root.querySelector('#cScore').textContent=score; root.querySelector('#cReward').textContent='+'+fmt(totalReward).slice(0,6);
+    updatePassUI();
   }
   function updateObjectivesUI(){
     const list=root.querySelector('#objList'); list.innerHTML='';
@@ -576,17 +587,23 @@ export function init(container, args){
     await new Promise(r=>setTimeout(r,80)); lastSwap=null; level.objectives.forEach(o=>{ if(o.type==='score') o.current=score; });
   }
   function showWin(laughFileFromSeq){
-    gameStarted=false; busy=false; if(timerInt) clearInterval(timerInt); const reward=level.reward; totalReward+=reward; localStorage.setItem('wcrush_wasa', totalReward); if(score>best){ best=score; localStorage.setItem('wcrush_best',best); }
+    gameStarted=false; busy=false; if(timerInt) clearInterval(timerInt);
+    const baseReward = level.reward;
+    const finalReward = getRewardForLevel(baseReward);
+    totalReward+=finalReward; localStorage.setItem('wcrush_wasa', totalReward);
+    if(score>best){ best=score; localStorage.setItem('wcrush_best',best); }
     const isTimeLevel=level.type==='time'; const laughFile = laughFileFromSeq || pickRandomMeme('laugh'); const laughUrl = getMemeUrl(laughFile);
-    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#FFFBEB);border:3px solid #22C55E;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#0F172A"><img src="${laughUrl}" style="width:110px;height:110px;object-fit:contain;margin:0 auto 10px;display:block;filter:drop-shadow(0 4px 12px rgba(0,0,0,.3))" onerror="this.style.display='none'"><div style="font-size:48px">🎉</div><div style="font-weight:900;font-size:11px;opacity:.6">${isTimeLevel?'⏰ TIEMPO':'🎯 MOVIMIENTOS'} COMPLETADO</div><div style="font-weight:900;font-size:22px;color:#065F46">¡NIVEL ${currentLevelNum}!</div><div style="background:linear-gradient(180deg,#DCFCE7,#86EFAC);border:2px solid #22C55E;border-radius:14px;padding:12px;margin:12px 0;font-weight:900;color:#065F46">💰 +${fmt(reward)} WASA</div><button id="btnNext" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:linear-gradient(135deg,#22C55E,#16A34A);color:#000;cursor:pointer">SIGUIENTE NIVEL ${currentLevelNum+1}</button><button id="btnDouble" style="width:100%;height:44px;border-radius:14px;font-weight:900;border:2.5px solid #FACC15;background:linear-gradient(135deg,#FEF08A,#FACC15);color:#000;margin-top:8px;cursor:pointer">📺 X2 = ${fmt(reward*2)} WASA</button><button id="btnMenuAfter" style="width:100%;height:38px;border-radius:10px;border:1.5px solid #DDD6FE;background:#fff;margin-top:8px;font-weight:800;cursor:pointer">☰ MENÚ</button></div></div>`;
+    const passText = hasPass ? `<div style="background:linear-gradient(135deg,#A855F7,#7E22CE);color:#fff;border-radius:10px;padding:6px 10px;font-weight:900;font-size:11px;margin:8px 0;box-shadow:0 0 12px #A855F7">💎 WASA PASS X5: ${fmt(baseReward)} → ${fmt(finalReward)} WASA</div>` : `<div style="font-size:10px;opacity:.6;margin:6px 0">💎 Compra PASS para x5 • <a href="/wasa-pass.html" target="_blank" style="color:#7E22CE">5 USDT</a></div>`;
+    const doubleReward = finalReward*2;
+    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#FFFBEB);border:3px solid #22C55E;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#0F172A"><img src="${laughUrl}" style="width:110px;height:110px;object-fit:contain;margin:0 auto 10px;display:block;filter:drop-shadow(0 4px 12px rgba(0,0,0,.3))" onerror="this.style.display='none'"><div style="font-size:48px">🎉</div><div style="font-weight:900;font-size:11px;opacity:.6">${isTimeLevel?'⏰ TIEMPO':'🎯 MOVIMIENTOS'} COMPLETADO</div><div style="font-weight:900;font-size:22px;color:#065F46">¡NIVEL ${currentLevelNum}!</div>${passText}<div style="background:linear-gradient(180deg,#DCFCE7,#86EFAC);border:2px solid #22C55E;border-radius:14px;padding:12px;margin:12px 0;font-weight:900;color:#065F46">💰 +${fmt(finalReward)} WASA ${hasPass?'<span style="background:#A855F7;color:#fff;padding:2px 6px;border-radius:6px;font-size:9px">X5 PASS</span>':''}</div><button id="btnNext" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:linear-gradient(135deg,#22C55E,#16A34A);color:#000;cursor:pointer">SIGUIENTE NIVEL ${currentLevelNum+1}</button><button id="btnDouble" style="width:100%;height:44px;border-radius:14px;font-weight:900;border:2.5px solid #FACC15;background:linear-gradient(135deg,#FEF08A,#FACC15);color:#000;margin-top:8px;cursor:pointer">📺 X2 = ${fmt(doubleReward)} WASA ${hasPass?'(X5 x2 = X10)':''}</button><button id="btnMenuAfter" style="width:100%;height:38px;border-radius:10px;border:1.5px solid #DDD6FE;background:#fff;margin-top:8px;font-weight:800;cursor:pointer">☰ MENÚ</button></div></div>`;
     const btnNext=ui.querySelector('#btnNext'); const btnDouble=ui.querySelector('#btnDouble'); const btnMenuAfter=ui.querySelector('#btnMenuAfter');
-    if(btnNext){ btnNext.onclick=()=>{ btnNext.disabled=true; btnNext.textContent='CARGANDO...'; claim(false,false).catch(()=>{}); ui.innerHTML=''; setTimeout(()=>{ currentLevelNum++; loadLevel(currentLevelNum); },100); }; }
-    if(btnDouble){ btnDouble.onclick=()=>openAd('double_level'); }
+    if(btnNext){ btnNext.onclick=()=>{ btnNext.disabled=true; btnNext.textContent='CARGANDO...'; claim(false,false,finalReward).catch(()=>{}); ui.innerHTML=''; setTimeout(()=>{ currentLevelNum++; loadLevel(currentLevelNum); },100); }; }
+    if(btnDouble){ btnDouble.onclick=()=>{ pendingAd='double_level'; window._pendingReward=doubleReward; openAd('double_level'); }; }
     if(btnMenuAfter){ btnMenuAfter.onclick=()=>{ ui.innerHTML=''; showMainMenu(); }; }
   }
   function showFail(){
     gameStarted=false; busy=false; if(timerInt) clearInterval(timerInt); const isTimeLevel=level.type==='time'; const reason=isTimeLevel ? `⏰ Tiempo agotado` : `Sin movimientos`; const cryFile = pickRandomMeme('cry'); const cryUrl = getMemeUrl(cryFile);
-    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#FEF2F2);border:3px solid #EF4444;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#0F172A"><img src="${cryUrl}" class="cc-fail-meme" style="width:130px;height:130px;object-fit:contain;margin:0 auto 12px;display:block" onerror="this.style.display='none'"><div style="font-size:40px">${isTimeLevel?'⏰':'😭'}</div><div style="font-weight:900;font-size:20px;color:#991B1B">${reason}</div><div style="font-size:12px;opacity:.7;margin:8px 0">Te faltó ${level.objectives.filter(o=>o.current<o.target).map(o=>o.name+' '+o.current+'/'+o.target).join(', ')}</div><button id="btnRetry" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:#EF4444;color:#fff;cursor:pointer">REINTENTAR</button><button id="btnSkip" style="width:100%;height:44px;border-radius:14px;border:2.5px solid #DDD6FE;background:#fff;color:#854D0E;margin-top:8px;cursor:pointer">${isTimeLevel?'VER ANUNCIO +15s':'VER ANUNCIO +5 MOVS'}</button><button id="btnFailMenu" style="width:100%;height:38px;border-radius:10px;border:1.5px solid #DDD6FE;background:#fff;margin-top:8px;font-weight:800;cursor:pointer">☰ MENÚ / TIENDA</button></div></div>`;
+    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#FEF2F2);border:3px solid #EF4444;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#0F172A"><img src="${cryUrl}" class="cc-fail-meme" style="width:130px;height:130px;object-fit:contain;margin:0 auto 12px;display:block" onerror="this.style.display='none'"><div style="font-size:40px">${isTimeLevel?'⏰':'😭'}</div><div style="font-weight:900;font-size:20px;color:#991B1B">${reason}</div><div style="font-size:12px;opacity:.7;margin:8px 0">Te faltó ${level.objectives.filter(o=>o.current<o.target).map(o=>o.name+' '+o.current+'/'+o.target).join(', ')}</div><button id="btnRetry" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:#EF4444;color:#fff;cursor:pointer">REINTENTAR</button><button id="btnSkip" style="width:100%;height:44px;border-radius:14px;border:2.5px solid #DDD6FE;background:#fff;color:#854D0E;margin-top:8px;cursor:pointer">${isTimeLevel?'VER ANUNCIO +15s':'VER ANUNCIO +5 MOVS'}</button><button id="btnFailMenu" style="width:100%;height:38px;border-radius:10px;border:1.5px solid #DDD6FE;background:#fff;margin-top:8px;font-weight:800;cursor:pointer">☰ MENÚ / TIENDA ${hasPass?'💎 X5':''}</button></div></div>`;
     const btnRetry=ui.querySelector('#btnRetry'); const btnSkip=ui.querySelector('#btnSkip'); const btnFailMenu=ui.querySelector('#btnFailMenu');
     if(btnRetry) btnRetry.onclick=()=>{ ui.innerHTML=''; loadLevel(currentLevelNum); };
     if(btnSkip) btnSkip.onclick=()=>openAd(isTimeLevel?'extra_time':'extra_moves');
@@ -608,10 +625,18 @@ export function init(container, args){
   root.querySelector('#btnHelp').onclick=()=>showHowToPlay();
   root.querySelector('#btnShop').onclick=()=>showBoosterShop();
   const watcher=setInterval(()=>{ if(window.vrAd===4 && pendingAd){ const t=pendingAd; pendingAd=null; window.vrAd=0; window.vrAdType=null; (async()=>{
-    if(t==='double_level'){ ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(0,0,0,.7);display:grid;place-items:center;z-index:40;color:white">Validando X2...</div>`; const res=await claim(true,true); if(res.ok){ totalReward+=level.reward; localStorage.setItem('wcrush_wasa', totalReward); currentLevelNum++; ui.innerHTML=''; setTimeout(()=>loadLevel(currentLevelNum),100); } else { ui.innerHTML=''; showWin(); } }
+    if(t==='double_level'){
+      const rewardToClaim = window._pendingReward || getRewardForLevel(level.reward)*2;
+      ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(0,0,0,.7);display:grid;place-items:center;z-index:40;color:white">Validando X2 ${hasPass?'X10':''}...</div>`;
+      const res=await claim(true,true,rewardToClaim);
+      if(res.ok){ totalReward+= (level.reward*passMultiplier); localStorage.setItem('wcrush_wasa', totalReward); currentLevelNum++; ui.innerHTML=''; setTimeout(()=>loadLevel(currentLevelNum),100); }
+      else { ui.innerHTML=''; showWin(); }
+    }
     if(t==='extra_moves'){ moves+=5; gameStarted=true; busy=false; startGameTimer(); updateUI(); ui.innerHTML=''; }
     if(t==='extra_time'){ timeLeft+=15; gameStarted=true; busy=false; startGameTimer(); updateUI(); ui.innerHTML=''; }
   })(); } },150);
   loadLevel(currentLevelNum);
+  // check pass al inicio
+  setTimeout(()=>checkWasaPass(false), 500);
   container._cleanup=()=>{ clearInterval(watcher); if(timerInt) clearInterval(timerInt); document.removeEventListener('touchmove', preventScroll); window.vrAd=0; };
 }
