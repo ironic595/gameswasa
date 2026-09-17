@@ -1,4 +1,4 @@
-// games/crypto-crush/game.js - v6.0 OBJETIVOS COMPLETADOS titilando 3s antes de resumen
+// games/crypto-crush/game.js - v6.1 MEME FACES RANDOM en win/lose + OBJETIVOS COMPLETADOS 3s + RAYO animado
 export function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javisimes.workers.dev/';
   function getDeviceId(){ let id=localStorage.getItem('wasa_device_id'); if(!id){ id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id; }
@@ -34,6 +34,10 @@ export function init(container, args){
   ];
   const SZ = 8;
   const BASE_REWARD = 0.0001;
+
+  // MEME FACES - nombres de archivos esperados en assets/
+  const MEME_LAUGH_FILES = ['doge_laugh.png','shiba_laugh.png','pepe_laugh.png','floki_laugh.png','pepe_laugh2.png','doge_laugh2.png'];
+  const MEME_CRY_FILES   = ['doge_cry.png','pepe_cry.png','shiba_cry.png','floki_cry.png','pepe_cry2.png','doge_cry2.png'];
 
   function getUnlockedTokens(level){ const count=Math.min(11, 5+Math.floor((level-1)/3)); return ALL_TOKENS.slice(0, count); }
   function getActiveTokensForLevel(level){
@@ -183,11 +187,16 @@ export function init(container, args){
 @keyframes lightningStrike{0%{transform:scaleX(0);opacity:0}20%{opacity:1}100%{transform:scaleX(1);opacity:0}}
 .cc-lightning-hit{position:absolute;width:40px;height:40px;background:radial-gradient(circle, #fff 0%, #FEF08A 30%, #FACC15 60%, transparent 100%);border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);animation:lightningHit .4s ease-out forwards;z-index:26}
 @keyframes lightningHit{0%{transform:translate(-50%,-50%) scale(0);opacity:1}50%{transform:translate(-50%,-50%) scale(1.6);opacity:1}100%{transform:translate(-50%,-50%) scale(2.5);opacity:0}}
-.cc-obj-complete{position:absolute;inset:0;background:rgba(15,15,26,.88);display:grid;place-items:center;z-index:40;pointer-events:none}
+.cc-obj-complete{position:absolute;inset:0;background:rgba(15,15,26,.88);display:grid;place-items:center;z-index:40;pointer-events:none;backdrop-filter:blur(4px)}
 .cc-obj-complete-text{font-size:min(8vw, 36px);font-weight:900;letter-spacing:.08em;color:#fff;text-shadow:0 0 20px #FACC15, 0 0 40px #FACC15, 0 4px 0 #000;text-align:center;line-height:1.1;animation:objBlink 0.5s ease-in-out infinite alternate, objScale 0.6s cubic-bezier(.34,1.56,.64,1)}
 .cc-obj-complete-sub{font-size:14px;opacity:.8;margin-top:8px;letter-spacing:.1em}
-@keyframes objBlink{0%{opacity:1;filter:brightness(1) drop-shadow(0 0 10px #FACC15)}100%{opacity:.7;filter:brightness(1.4) drop-shadow(0 0 20px #fff) drop-shadow(0 0 30px #FACC15)}}
+.cc-obj-complete-meme{width:min(42vw, 180px);height:min(42vw, 180px);margin:0 auto 14px;filter:drop-shadow(0 8px 20px rgba(0,0,0,.6)) drop-shadow(0 0 18px rgba(250,204,21,.7));animation:memeBounce .5s cubic-bezier(.34,1.56,.64,1), memeLaugh .6s ease-in-out infinite alternate}
+@keyframes memeBounce{0%{transform:scale(0) rotate(-12deg)}60%{transform:scale(1.2) rotate(6deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes memeLaugh{0%{transform:scale(1) rotate(-2deg)}100%{transform:scale(1.06) rotate(2deg)}}
+@keyframes objBlink{0%{opacity:1;filter:brightness(1) drop-shadow(0 0 10px #FACC15)}100%{opacity:.9;filter:brightness(1.3) drop-shadow(0 0 20px #fff) drop-shadow(0 0 30px #FACC15)}}
 @keyframes objScale{0%{transform:scale(.8)}100%{transform:scale(1.08)}}
+.cc-fail-meme{width:min(38vw, 160px);height:min(38vw, 160px);margin:0 auto 12px;filter:drop-shadow(0 6px 16px rgba(0,0,0,.5));animation:memeCry .7s ease-in-out infinite alternate}
+@keyframes memeCry{0%{transform:translateY(0) scale(1)}100%{transform:translateY(6px) scale(1.02)}}
 .cc-bottom{width:100%;background:rgba(0,0,0,.25);backdrop-filter:blur(6px);padding:5px 10px;display:flex;justify-content:center;gap:8px;flex-shrink:0;border-top:1px solid rgba(255,255,255,.15)}
 .cc-bottom-info{font-size:8px;opacity:.7;text-align:center}
 </style>
@@ -208,7 +217,7 @@ export function init(container, args){
     </div>
   </div>
   <div class="cc-main" id="mainArea"><div class="cc-board" id="board"><div class="cc-grid" id="grid"></div><div class="cc-thunder-fx" id="thunderFx"></div></div></div>
-  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">v6.0 OBJETIVOS COMPLETADOS 3s ⚡</div></div>
+  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">v6.1 MEME FACES random 😂😭</div></div>
   <div id="ui"></div>
 </div>`;
 
@@ -218,6 +227,15 @@ export function init(container, args){
   let level=null; let board=[], score=0, totalReward=parseFloat(localStorage.getItem('wcrush_wasa')||'0'), moves=0, timeLeft=0, timerInt=null, busy=false, sel=null, lastSwap=null;
   let session=null, claiming=false, pendingAd=null, startTime=Date.now();
   let workingBase=null; let gameStarted=false;
+
+  function getMemeUrl(fileName){
+    const base = workingBase || '/games/crypto-crush/assets/';
+    return base + fileName;
+  }
+  function pickRandomMeme(type){
+    const list = type==='laugh' ? MEME_LAUGH_FILES : MEME_CRY_FILES;
+    return list[Math.floor(Math.random()*list.length)];
+  }
 
   async function startSession(){ try{ const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'start_game_session', email:localStorage.getItem('wasa_email'), wallet:localStorage.getItem('wasa_wallet'), device_id:getDeviceId(), game_slug:'crypto-crush', level:currentLevelNum})}); const j=await r.json(); if(j.ok) session=j.session_id; }catch{} }
   async function claim(isDouble, ad){ if(claiming) return {ok:false}; if(!session) await startSession(); if(!session) return {ok:false}; claiming=true; try{ const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward', session_id:session, email:localStorage.getItem('wasa_email'), wallet:localStorage.getItem('wasa_wallet'), device_id:getDeviceId(), game_slug:'crypto-crush', level:currentLevelNum, ad_watched:ad, double_reward:isDouble, time_taken:(Date.now()-startTime)/1000})}); const j=await r.json(); if(j.ok){ const b=j.wasa_balance??j.guest_balance??0; localStorage.setItem(j.is_guest?'wasa_coins_guest':'wasa_coins',b); if(window.setCoinsUI) window.setCoinsUI(b); session=null; claiming=false; return j; } claiming=false; return {ok:false, error:j.error}; }catch{ claiming=false; return {ok:false}; } }
@@ -257,7 +275,6 @@ export function init(container, args){
     const originRect = originEl.getBoundingClientRect();
     const ox = originRect.left - boardRect.left + originRect.width/2;
     const oy = originRect.top - boardRect.top + originRect.height/2;
-
     targetKeys.forEach((key, idx)=>{
       const [r,c]=key.split(',').map(Number);
       if(r===originR && c===originC) return;
@@ -291,28 +308,33 @@ export function init(container, args){
     setTimeout(()=>{ thunderFx.innerHTML=''; }, targetKeys.length*60 + 800);
   }
 
-  // NUEVO: secuencia de objetivos completados pausada
   function triggerWinSequence(){
     if(busy) return;
     busy=true;
     gameStarted=false;
     if(timerInt) clearInterval(timerInt);
 
-    // 1) mostrar OBJETIVOS COMPLETADOS titilando 3 segundos en el centro
+    const laughFile = pickRandomMeme('laugh');
+    const laughUrl = getMemeUrl(laughFile);
+
     const completeOverlay = document.createElement('div');
     completeOverlay.className='cc-obj-complete';
-    completeOverlay.innerHTML=`<div style="text-align:center"><div class="cc-obj-complete-text">⚡ OBJETIVOS<br>COMPLETADOS ⚡</div><div class="cc-obj-complete-sub">¡NIVEL ${currentLevelNum} SUPERADO!</div></div>`;
+    completeOverlay.innerHTML=`
+      <div style="text-align:center;padding:12px">
+        <img class="cc-obj-complete-meme" src="${laughUrl}" alt="laugh" onerror="this.style.display='none'">
+        <div class="cc-obj-complete-text">⚡ OBJETIVOS<br>COMPLETADOS ⚡</div>
+        <div class="cc-obj-complete-sub">¡NIVEL ${currentLevelNum} SUPERADO!</div>
+      </div>`;
     boardEl.appendChild(completeOverlay);
 
-    debugInfo.textContent=`¡N${currentLevelNum} COMPLETADO! Mostrando 3s...`;
+    debugInfo.textContent=`¡N${currentLevelNum} COMPLETADO! ${laughFile}`;
 
-    // confetti rapido en los objetivos del header
     const objMinis = root.querySelectorAll('.cc-obj-mini');
     objMinis.forEach(el=>{ el.style.animation='objBlink .3s ease-in-out 6 alternate'; });
 
     setTimeout(()=>{
       if(completeOverlay.parentNode) completeOverlay.remove();
-      showWin();
+      showWin(laughFile);
     }, 3000);
   }
 
@@ -585,12 +607,14 @@ export function init(container, args){
     level.objectives.forEach(o=>{ if(o.type==='score') o.current=score; });
   }
 
-  function showWin(){
+  function showWin(laughFileFromSeq){
     gameStarted=false; busy=false; if(timerInt) clearInterval(timerInt);
     const reward=level.reward; totalReward+=reward; localStorage.setItem('wcrush_wasa', totalReward);
     if(score>best){ best=score; localStorage.setItem('wcrush_best',best); }
     const isTimeLevel=level.type==='time';
-    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#FFFBEB);border:3px solid #22C55E;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#0F172A"><div style="font-size:48px">🎉</div><div style="font-weight:900;font-size:11px;opacity:.6">${isTimeLevel?'⏰ TIEMPO':'🎯 MOVIMIENTOS'} COMPLETADO</div><div style="font-weight:900;font-size:22px;color:#065F46">¡NIVEL ${currentLevelNum}!</div><div style="background:linear-gradient(180deg,#DCFCE7,#86EFAC);border:2px solid #22C55E;border-radius:14px;padding:12px;margin:12px 0;font-weight:900;color:#065F46">💰 +${fmt(reward)} WASA</div><button id="btnNext" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:linear-gradient(135deg,#22C55E,#16A34A);color:#000;cursor:pointer">SIGUIENTE NIVEL ${currentLevelNum+1}</button><button id="btnDouble" style="width:100%;height:44px;border-radius:14px;font-weight:900;border:2.5px solid #FACC15;background:linear-gradient(135deg,#FEF08A,#FACC15);color:#000;margin-top:8px;cursor:pointer">📺 X2 = ${fmt(reward*2)} WASA</button></div></div>`;
+    const laughFile = laughFileFromSeq || pickRandomMeme('laugh');
+    const laughUrl = getMemeUrl(laughFile);
+    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#FFFBEB);border:3px solid #22C55E;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#0F172A"><img src="${laughUrl}" style="width:110px;height:110px;object-fit:contain;margin:0 auto 10px;display:block;filter:drop-shadow(0 4px 12px rgba(0,0,0,.3))" onerror="this.style.display='none'"><div style="font-size:48px">🎉</div><div style="font-weight:900;font-size:11px;opacity:.6">${isTimeLevel?'⏰ TIEMPO':'🎯 MOVIMIENTOS'} COMPLETADO</div><div style="font-weight:900;font-size:22px;color:#065F46">¡NIVEL ${currentLevelNum}!</div><div style="background:linear-gradient(180deg,#DCFCE7,#86EFAC);border:2px solid #22C55E;border-radius:14px;padding:12px;margin:12px 0;font-weight:900;color:#065F46">💰 +${fmt(reward)} WASA</div><button id="btnNext" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:linear-gradient(135deg,#22C55E,#16A34A);color:#000;cursor:pointer">SIGUIENTE NIVEL ${currentLevelNum+1}</button><button id="btnDouble" style="width:100%;height:44px;border-radius:14px;font-weight:900;border:2.5px solid #FACC15;background:linear-gradient(135deg,#FEF08A,#FACC15);color:#000;margin-top:8px;cursor:pointer">📺 X2 = ${fmt(reward*2)} WASA</button></div></div>`;
     const btnNext=ui.querySelector('#btnNext'); const btnDouble=ui.querySelector('#btnDouble');
     if(btnNext){ btnNext.onclick=()=>{ btnNext.disabled=true; btnNext.textContent='CARGANDO...'; claim(false,false).catch(()=>{}); ui.innerHTML=''; setTimeout(()=>{ currentLevelNum++; loadLevel(currentLevelNum); },100); }; }
     if(btnDouble){ btnDouble.onclick=()=>openAd('double_level'); }
@@ -599,7 +623,9 @@ export function init(container, args){
   function showFail(){
     gameStarted=false; busy=false; if(timerInt) clearInterval(timerInt);
     const isTimeLevel=level.type==='time'; const reason=isTimeLevel ? `⏰ Tiempo agotado` : `Sin movimientos`;
-    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(15,15,26,.88);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#FFFBEB);border:3px solid #EF4444;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#0F172A"><div style="font-size:40px">${isTimeLevel?'⏰':'😵'}</div><div style="font-weight:900;font-size:20px;color:#991B1B">${reason}</div><div style="font-size:12px;opacity:.7;margin:8px 0">Te faltó ${level.objectives.filter(o=>o.current<o.target).map(o=>o.name+' '+o.current+'/'+o.target).join(', ')}</div><button id="btnRetry" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:#EF4444;color:#fff;cursor:pointer">REINTENTAR</button><button id="btnSkip" style="width:100%;height:44px;border-radius:14px;border:2.5px solid #DDD6FE;background:#fff;color:#854D0E;margin-top:8px;cursor:pointer">${isTimeLevel?'VER ANUNCIO +15s':'VER ANUNCIO +5 MOVS'}</button></div></div>`;
+    const cryFile = pickRandomMeme('cry');
+    const cryUrl = getMemeUrl(cryFile);
+    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#FEF2F2);border:3px solid #EF4444;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#0F172A"><img src="${cryUrl}" class="cc-fail-meme" style="width:130px;height:130px;object-fit:contain;margin:0 auto 12px;display:block" onerror="this.style.display='none'"><div style="font-size:40px">${isTimeLevel?'⏰':'😭'}</div><div style="font-weight:900;font-size:20px;color:#991B1B">${reason}</div><div style="font-size:12px;opacity:.7;margin:8px 0">Te faltó ${level.objectives.filter(o=>o.current<o.target).map(o=>o.name+' '+o.current+'/'+o.target).join(', ')}</div><button id="btnRetry" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:#EF4444;color:#fff;cursor:pointer">REINTENTAR</button><button id="btnSkip" style="width:100%;height:44px;border-radius:14px;border:2.5px solid #DDD6FE;background:#fff;color:#854D0E;margin-top:8px;cursor:pointer">${isTimeLevel?'VER ANUNCIO +15s':'VER ANUNCIO +5 MOVS'}</button></div></div>`;
     const btnRetry=ui.querySelector('#btnRetry'); const btnSkip=ui.querySelector('#btnSkip');
     if(btnRetry) btnRetry.onclick=()=>{ ui.innerHTML=''; loadLevel(currentLevelNum); };
     if(btnSkip) btnSkip.onclick=()=>openAd(isTimeLevel?'extra_time':'extra_moves');
