@@ -1,4 +1,4 @@
-// v22 - RUZZLE BUBBLE - RECOMPENSA CORRECTA 0.0003 / X2 0.0006
+// v23 - RUZZLE BUBBLE - MOBILE OPTIMIZED - NO SCROLL - RECOMPENSA 0.0003 / X2 0.0006
 export function init(container, args){
   const DINO_URL_IDLE = args?.dinoUrlIdle || window.RUZZLE_DINO_IDLE || '/games/ruzzle-bubble/dino_manos_cintura.png';
   const DINO_URL_WIN = args?.dinoUrlWin || window.RUZZLE_DINO_WIN || '/games/ruzzle-bubble/dino_festejando.png';
@@ -55,31 +55,68 @@ export function init(container, args){
 
   container.innerHTML=`
   <style>
-.pb6{width:100%;height:100%;background:#08080d;color:#fff;font-family:system-ui;display:flex;flex-direction:column;overflow:hidden;position:relative}
-.pb6-top{height:42px;display:flex;justify-content:space-between;align-items:center;padding:0 12px;background:#0f0f17;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
-.pb6-wrap{flex:1;display:flex;justify-content:center;align-items:center;padding:12px;overflow:auto}
-.pb6-body{display:flex;gap:16px;align-items:flex-start;justify-content:center;margin:auto}
-.pb6-left{flex:0 0 ${RN}px;width:${RN}px;background:#0f0f17;border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden}
+.pb6{width:100%;height:100dvh;max-height:100dvh;background:#08080d;color:#fff;font-family:system-ui;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.pb6-top{height:32px;display:flex;justify-content:space-between;align-items:center;padding:0 12px;background:#0f0f17;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.pb6-wrap{flex:1;display:flex;justify-content:center;align-items:center;padding:12px;overflow:hidden;min-height:0}
+.pb6-body{display:flex;gap:16px;align-items:flex-start;justify-content:center;margin:auto;width:100%;max-width:100%}
+.pb6-left{flex:0 0 ${RN}px;width:${RN}px;background:#0f0f17;border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
 .pb6-canvas{display:block;width:${RN}px;height:${NU}px;touch-action:none}
-.pb6-right{flex:0 0 300px;width:300px;display:flex;flex-direction:column;gap:10px}
-.pb6-st{background:#15151f;border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px}.pb6-st b{font-family:monospace;font-size:14px}.pb6-st span{font-size:9px;opacity:.5}
+.pb6-right{flex:0 0 300px;width:300px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.pb6-st{background:#15151f;border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px}
+.pb6-st b{font-family:monospace;font-size:14px}
+.pb6-st span{font-size:9px;opacity:.5;letter-spacing:.06em}
 .pb6-win{position:absolute;inset:0;background:rgba(0,0,0,.82);display:grid;place-items:center;z-index:20;padding:16px}
 .pb6-card{background:#15151f;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:18px;text-align:center;width:min(340px,92vw)}
 #readyOverlay{position:absolute;inset:0;display:grid;place-items:center;background:rgba(8,8,13,.88);z-index:50;backdrop-filter:blur(4px)}
 #readyText{font-size:72px;font-weight:900;color:#fff;letter-spacing:.05em;text-shadow:0 0 12px #00F0FF,0 0 32px #FF00D4;transform:scale(.4);transition:transform.35s cubic-bezier(.175,.885,.32,1.275)}
-.dino-card{background:#15151f;border:1px solid rgba(42,255,138,.2);border-radius:16px;padding:10px;text-align:center}
+.dino-card{background:#15151f;border:1px solid rgba(42,255,138,.2);border-radius:16px;padding:10px;text-align:center;position:relative}
 .dino-img-bg{background:#15151f;border-radius:12px;padding:6px}
-@media(max-width:900px){.pb6-body{flex-direction:column;align-items:center;width:100%}.pb6-left{width:min(100vw - 16px, ${RN}px)}.pb6-right{width:min(100vw - 16px, 300px)}.pb6-canvas{width:100%!important;height:auto!important;aspect-ratio:${RN}/${NU}}}
+
+/* MOBILE OPTIMIZED - NO SCROLL - TODO EN 1 PANTALLA */
+@media(max-width:900px){
+  .pb6{height:100dvh;max-height:100dvh;overflow:hidden}
+  .pb6-top{display:none!important}
+  .pb6-wrap{padding:0;align-items:stretch;justify-content:flex-start;overflow:hidden;height:100%;flex:1;min-height:0}
+  .pb6-body{flex-direction:column;align-items:stretch;justify-content:flex-start;width:100%;height:100%;gap:0;margin:0;position:relative;overflow:hidden;min-height:0}
+  
+  /* STATS ARRIBA COMPACTOS */
+  .pb6-right{order:-1;flex:0 0 auto;width:100%;max-width:100%;gap:0;background:rgba(15,15,23,0.95);border-bottom:1px solid rgba(255,255,255,.06);padding:0;position:relative;z-index:3}
+  .pb6-stats{display:flex!important;flex-direction:row!important;grid-template-columns:repeat(4,1fr)!important;width:100%!important;gap:0!important;background:transparent!important;border-radius:0!important}
+  .pb6-st{flex:1 1 0;min-width:0;padding:6px 4px!important;border-radius:0!important;background:transparent!important;border:none!important;border-right:1px solid rgba(255,255,255,.06)!important;text-align:center}
+  .pb6-st:last-child{border-right:none!important}
+  .pb6-st b{font-size:11px!important;line-height:1.1;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pb6-st span{font-size:7px!important;opacity:.45}
+  #pb6nxt{width:10px!important;height:10px!important}
+  
+  /* JUEGO AL MAXIMO */
+  .pb6-left{flex:1 1 auto;width:100%;max-width:100%;min-height:0;background:transparent!important;border:none!important;border-radius:0!important;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 4px 2px;overflow:hidden;position:relative}
+  .pb6-canvas{width:min(calc(100vw - 8px), 380px)!important;height:auto!important;aspect-ratio:${RN}/${NU};max-height:calc(100dvh - 110px);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.6);background:#0f0f17}
+  .pb6-left > div:nth-child(2){display:none!important}
+  .pb6-left > div:nth-child(3){display:flex!important;padding:2px 8px!important;font-size:7px!important;opacity:.25!important;width:100%;max-width:380px;justify-content:space-between}
+  
+  /* DINO MINI ESQUINA INFERIOR DERECHA - OVERLAY */
+  .dino-card{position:absolute!important;bottom:8px;right:8px;width:68px;z-index:10;padding:4px!important;background:rgba(21,21,31,0.88)!important;backdrop-filter:blur(12px);border-radius:12px!important;border:1px solid rgba(42,255,138,.18)!important;box-shadow:0 4px 16px rgba(0,0,0,.5)}
+  .dino-card .dino-img-bg{padding:2px!important;border-radius:8px!important;background:rgba(21,21,31,0.5)!important}
+  #dinoImg{width:48px!important;height:48px!important}
+  .dino-card > div:nth-child(2){font-size:7px!important;margin-top:2px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dino-card > div:nth-child(3){display:none!important}
+  #dinoBubble{margin-top:4px!important;padding:4px 5px!important;font-size:7px!important;min-height:20px!important;line-height:1.1!important;border-radius:8px!important}
+}
+@media(max-width:380px){
+  .pb6-canvas{width:calc(100vw - 8px)!important;max-height:calc(100dvh - 100px)}
+  .dino-card{width:60px;bottom:6px;right:6px}
+  #dinoImg{width:42px!important;height:42px!important}
+}
   </style>
   <div class="pb6">
-    <div class="pb6-top"><div id="pb6title" style="font-weight:900;font-size:11px;letter-spacing:.15em;color:#2AFF8A">RUZZLE BUBBLE </div><div id="pb6lvl" style="background:#1b1b27;border-radius:16px;padding:4px 10px;font-size:10px;font-weight:800">LVL 1</div></div>
+    <div class="pb6-top"><div id="pb6title" style="font-weight:900;font-size:10px;letter-spacing:.15em;color:#2AFF8A">RUZZLE BUBBLE</div><div id="pb6lvl" style="background:#1b1b27;border-radius:16px;padding:3px 8px;font-size:9px;font-weight:800">LVL 1</div></div>
     <div class="pb6-wrap"><div class="pb6-body">
       <div class="pb6-left"><canvas id="pb6cv" class="pb6-canvas" width="${RN}" height="${NU}"></canvas><div style="height:3px;background:#000"><div id="pb6bar" style="height:100%;background:linear-gradient(90deg,#2AFF8A,#00D4FF,#FF3BB0);width:0%"></div></div><div style="display:flex;justify-content:space-between;padding:4px 8px;font-size:8px;opacity:.4;font-family:monospace"><span>▼</span><span id="pb6ceil">45s</span><span>▼</span></div></div>
       <div class="pb6-right">
         <div class="dino-card">
           <div class="dino-img-bg"><img id="dinoImg" src="${DINO_URL}" style="width:160px;height:160px;object-fit:contain;display:block;margin:0 auto;"/></div>
-          <div style="font-weight:900;font-size:13px;letter-spacing:.12em;color:#2AFF8A;margin-top:6px">RUZZLE BUBBLE</div>
-          <div style="font-size:9px;opacity:.5;letter-spacing:.1em">LeVeL <span id="dinoLvl">1</span></div>
+          <div style="font-weight:900;font-size:11px;letter-spacing:.12em;color:#2AFF8A;margin-top:6px">RUZZLE BUBBLE</div>
+          <div style="font-size:9px;opacity:.5;letter-spacing:.1em">LVL <span id="dinoLvl">1</span></div>
           <div id="dinoBubble" style="margin-top:8px;background:#0e0e14;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:8px 10px;font-size:12px;font-weight:700;min-height:36px;display:grid;place-items:center;line-height:1.2">READY?</div>
         </div>
         <div class="pb6-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div class="pb6-st"><b id="pb6obj">0/30</b><br><span>OBJETIVO</span></div><div class="pb6-st"><b id="pb6tm">45s / 12</b><br><span>TECHO</span></div><div class="pb6-st"><b id="pb6sc">0</b><br><span>SCORE</span></div><div class="pb6-st"><b id="pb6nxt" style="display:inline-block;width:16px;height:16px;border-radius:50%"></b><br><span>SIGUIENTE</span></div></div>
@@ -117,7 +154,7 @@ export function init(container, args){
     const now=Date.now(); if(now-lastPopTime<2000 &&!isFloating) combo++; else combo=1; lastPopTime=now;
     popTexts.push({x:p.x,y:p.y,text:txt+(combo>1?` Combo x${combo}!`:''),color:PAL[colIndex]||"#fff",life:60,maxLife:60,scale:0.6,isCombo:combo>1});
     const dinoB=container.querySelector('#dinoBubble');
-    if(dinoB){ dinoB.textContent = combo>=3?`WOW! ${txt} Combo x${combo}!` : count>=5?`${txt} 🔥🔥` : isFloating?`Caen ${count}!` : txt; }
+    if(dinoB){ dinoB.textContent = combo>=3?`WOW! ${txt} x${combo}!` : count>=5?`${txt} 🔥` : isFloating?`${count}!` : txt; }
     if(isFloating) sfxDrop(count); else { sfxPop(count); if(combo>1) setTimeout(()=>sfxCombo(combo),120); }
   }
   const spriteCanvases = PAL.map(col=>{ const s=document.createElement('canvas'); s.width=WE; s.height=WE; const sc=s.getContext('2d'); sc.fillStyle=col; sc.beginPath(); sc.arc(WE/2,WE/2,WE/2-1,0,Math.PI*2); sc.fill(); sc.fillStyle='rgba(255,255,255,.35)'; sc.beginPath(); sc.arc(WE*0.35,WE*0.35,WE*0.18,0,Math.PI*2); sc.fill(); return s; });
@@ -126,7 +163,7 @@ export function init(container, args){
   function openAd(t){ if(window.vrAd!==0) return; pend=t; window.vrAdType=t; window.vrAd=1; }
   function checkAd(){ if(shotsSinceAd>=SHOTS_PER_AD){ shotsSinceAd=0; if(window.vrAd===0 &&!isShooting){ pend='inter'; window.vrAdType='inter'; window.vrAd=1; } } }
   function doInitGrid(){ let rows=Math.min(7,5+Math.floor(level/3)); grid=Array.from({length:Q},()=>Array(B).fill(null)); for(let r=0;r<rows;r++){ let cols=r%2===1?B-1:B; for(let c=0;c<cols;c++){ if(level===1&&Math.random()<0.12) continue; grid[r][c]=Math.floor(Math.random()*colors()); } } for(let r=0;r<Q;r++) if(r%2===1) grid[r][B-1]=null; popped=0; shot=0; ceilT=maxT(); cur=Math.floor(Math.random()*colors()); nxt=Math.floor(Math.random()*colors()); angle=-90; shooting=null; isShooting=false; ghost=null; traj=[]; score=0; applyLevelTheme(level); const _di=container.querySelector('#dinoImg'); if(_di) _di.src=DINO_URL_IDLE; startSess(); updateUI(); startCeil(); drawBoard(); }
-  function showReadyGo(){ const ov=container.querySelector('#readyOverlay'); const txt=container.querySelector('#readyText'); const dinoB=container.querySelector('#dinoBubble'); const lvlEl=container.querySelector('#dinoLvl'); if(lvlEl) lvlEl.textContent=level; if(!ov){ doInitGrid(); return; } ov.style.display='grid'; ov.style.opacity='1'; txt.textContent='READY?'; txt.style.transform='scale(.4)'; unlockAudio(); sfxReady(); if(dinoB) dinoB.textContent='Ready?'; setTimeout(()=>{ txt.style.transform='scale(1.15)'; },80); setTimeout(()=>{ txt.textContent='GO!'; txt.style.color='#2AFF8A'; txt.style.transform='scale(.5)'; sfxGo(); setTimeout(()=>{ txt.style.transform='scale(1.4)'; },40); if(dinoB) dinoB.textContent='GO GO GO! 🔥'; },950); setTimeout(()=>{ ov.style.transition='opacity.4s'; ov.style.opacity='0'; setTimeout(()=>{ ov.style.display='none'; doInitGrid(); },420); },1750); }
+  function showReadyGo(){ const ov=container.querySelector('#readyOverlay'); const txt=container.querySelector('#readyText'); const dinoB=container.querySelector('#dinoBubble'); const lvlEl=container.querySelector('#dinoLvl'); if(lvlEl) lvlEl.textContent=level; if(!ov){ doInitGrid(); return; } ov.style.display='grid'; ov.style.opacity='1'; txt.textContent='READY?'; txt.style.transform='scale(.4)'; unlockAudio(); sfxReady(); if(dinoB) dinoB.textContent='Ready?'; setTimeout(()=>{ txt.style.transform='scale(1.15)'; },80); setTimeout(()=>{ txt.textContent='GO!'; txt.style.color='#2AFF8A'; txt.style.transform='scale(.5)'; sfxGo(); setTimeout(()=>{ txt.style.transform='scale(1.4)'; },40); if(dinoB) dinoB.textContent='GO! 🔥'; },950); setTimeout(()=>{ ov.style.transition='opacity.4s'; ov.style.opacity='0'; setTimeout(()=>{ ov.style.display='none'; doInitGrid(); },420); },1750); }
   function startCeil(){ if(ceilIv) clearInterval(ceilIv); ceilIv=setInterval(()=>{ ceilT--; updateUI(); if(ceilT<=0){ pushCeil(); ceilT=maxT(); } },1000); }
   function pushCeil(){ if(isShooting) return; const old = tu(grid); let ng=Array.from({length:Q},()=>Array(B).fill(null)); for(let r=Q-1;r>0;r--){ let src=old[r-1]; let row=[...src]; if(r%2===1) row[B-1]=null; ng[r]=row; } let nr=Array(B).fill(null); for(let c=0;c<B-1;c++){ if(Math.random()>0.15) nr[c]=Math.floor(Math.random()*colors()); } nr[B-1]=null; ng[0]=nr; let floating=hm(ng); if(floating.length>0){ floating.forEach(([rr,cc])=> ng[rr][cc]=null ); popped+=floating.length; score+=floating.length*5; } if(ng[Q-1].some(v=>v!==null)){ lose(); return; } grid=ng; shot=0; updateUI(); drawBoard(); }
   function updateUI(){ let {stageName, levelInStage, accent} = getLevelColors(level); container.querySelector('#pb6lvl').textContent=`LVL ${level} • ${stageName} ${levelInStage}/10`; const dl=container.querySelector('#dinoLvl'); if(dl) dl.textContent=level; let titleEl=container.querySelector('#pb6title'); if(titleEl){ titleEl.innerHTML=`RUZZLE BUBBLE • <span style='color:${accent}'>${stageName}</span> • ${levelInStage}/10`; } container.querySelector('#pb6obj').textContent=popped+'/'+target(); container.querySelector('#pb6tm').textContent=ceilT+'s / '+need(); container.querySelector('#pb6sc').textContent=score; container.querySelector('#pb6bar').style.width=Math.min(100,popped/target()*100)+'%'; container.querySelector('#pb6ceil').textContent=ceilT+'s'; const nxtEl=container.querySelector('#pb6nxt'); if(nxtEl) nxtEl.style.background=PAL[nxt]; }
