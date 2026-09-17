@@ -1,1 +1,43 @@
-.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script>const GAME_NAME = "crypto-crush";</script>
+
+<title>Crypto Crush Game - Play Free Online | WASA GAMES</title>
+<meta name="description" content="Play Crypto Crush online free and farm $WASA. Premium wooden puzzle. 100% onchain, no download, play in browser.">
+
+  <meta property="og:title" content="Play Crypto Crush game online free and farm $wasa">
+  <meta property="og:description" content="Play Crypto Crush game online free, farm $wasa, earn crypto">
+  <meta property="og:image" content="https://games.wasa.chat/img/crypto-crush.png">
+  <meta property="og:image:width" content="2048">
+  <meta property="og:image:height" content="1152">
+  <meta property="og:url" content="https://games.wasa.chat/play/crypto-crush/">
+  <meta property="og:type" content="website">
+
+<link rel="canonical" href="https://games.wasa.chat/play/crypto-crush/">
+<meta name="robots" content="index, follow">
+
+<!-- [El resto de tus metas y tags se mantienen exactamente igual] -->
+
+</head>
+<body>
+<script>
+if(GAME_NAME && GAME_NAME !== "" && GAME_NAME !== "x"){
+  // 1. Guardar la cadena "2048" en 'nombreJuego'
+  localStorage.setItem("nombreJuego", GAME_NAME);
+  
+  // 2. Guardar la variable numérica como "1" en 'ejecutarJuego'
+  localStorage.setItem("ejecutarJuego", "1");
+
+  // 3. Redirigir (reemplazando el historial para que no se quede atrapado al ir atrás)
+  setTimeout(() => {
+    location.replace("https://games.wasa.chat/");
+  }, 120);
+}
+</script>
+
+</body>
+</html>
