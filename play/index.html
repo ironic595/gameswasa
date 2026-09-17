@@ -236,16 +236,29 @@ function getDesc(g){const d={'ruzzle-bubble':'¡Explota burbujas con la rana má
 function renderNewCarousel(){const track=document.getElementById('newTrack');const section=document.getElementById('newSection');if(!GAMES.length){if(section) section.style.display='none';return;}const lastThree=[...GAMES].slice(-3).reverse();if(!lastThree.length||!track){if(section) section.style.display='none';return;}section.style.display='block';track.innerHTML=lastThree.map((g)=>`<div class="new-slide"><div class="new-thumb"><span class="new-badge">🆕 NUEVO</span><img src="/img/${g.slug}.png" alt="${g.title}" loading="lazy"></div><div class="new-content"><div class="new-cat">${g.cat||'puzzle'} • recién agregado</div><h3 class="new-title">${g.title}</h3><p class="new-desc">${getDesc(g)}</p><button class="new-cta" onclick="openGame('${g.slug}')">▶ JUGAR AHORA</button></div></div>`).join('');}
 
 function getGameFromUrl(){
+  // FIX CRITICO: lee ?game= desde cualquier path, incluyendo /play/?game= con slash
   const params = new URLSearchParams(location.search);
   let g = params.get('game');
-  if(g) return g;
-  // support /play?game= or /play/ruzzle-bubble or /?game=
+  if(g){
+    // limpiar espacios y lower
+    g = g.trim().toLowerCase();
+    // mapear aliases por si games.json usa nombres distintos
+    const alias = {'2048-madera':'2048', 'puzzle-bubble':'ruzzle-bubble'};
+    if(alias[g]) {
+      console.log('[WASA] alias', g, '->', alias[g]);
+      // intentar alias pero preferir original si existe carpeta
+    }
+    return g;
+  }
   const path = location.pathname;
   if(path.startsWith('/play/')){
     const parts = path.split('/').filter(Boolean);
-    if(parts.length>=2) return parts[1];
+    if(parts.length>=2){
+      const slug = parts[1].toLowerCase();
+      console.log('[WASA] slug desde path', slug);
+      return slug;
+    }
   }
-  if(path.startsWith('/play') && params.get('game')) return params.get('game');
   return null;
 }
 
@@ -305,23 +318,93 @@ function shareCurrentGame(){
 
 async function loadGames(){
   try{
-    const r=await fetch('/games.json?t='+Date.now());
+    // GitHub Pages: usar path absoluto desde root para que funcione desde /play/?game=
+    const r=await fetch('/games.json?t='+Date.now(), {cache:'no-store'});
+    if(!r.ok) throw new Error('games.json HTTP '+r.status);
     GAMES=await r.json();
+    console.log('[WASA] games.json cargado:', GAMES.length, 'juegos');
   }catch(e){
-    GAMES=[{slug:'ruzzle-bubble',title:'RUZZLE BUBBLE',cat:'puzzle',live:true},{slug:'2048-madera',title:'2048 GAME',cat:'puzzle',live:true},{slug:'ahorcado',title:'AHORCADO',cat:'puzzle',live:true},{slug:'banatron-revelation',title:'BANATRON REVELATION',cat:'arcade',live:true}];
+    console.warn('[WASA] No se pudo cargar games.json, usando fallback', e);
+    GAMES=[
+      {slug:'2048',title:'2048',cat:'puzzle',live:true},
+      {slug:'2048-madera',title:'2048 MADERA',cat:'puzzle',live:true},
+      {slug:'ruzzle-bubble',title:'RUZZLE BUBBLE',cat:'puzzle',live:true},
+      {slug:'puzzle-bubble',title:'PUZZLE BUBBLE',cat:'puzzle',live:true},
+      {slug:'ahorcado',title:'AHORCADO',cat:'puzzle',live:true},
+      {slug:'banatron',title:'BANATRON',cat:'arcade',live:true},
+      {slug:'banatron-revelation',title:'BANATRON REVELATION',cat:'arcade',live:true},
+      {slug:'roadfighter',title:'ROAD FIGHTER',cat:'arcade action',live:true},
+      {slug:'space-invaders',title:'SPACE INVADERS',cat:'arcade action',live:true}
+    ];
   }
-  renderNewCarousel();
-  renderGrid();
+  try{ renderNewCarousel(); }catch(e){ console.error('renderNewCarousel', e); }
+  try{ renderGrid(); }catch(e){ console.error('renderGrid', e); }
   
-  // === DEEP LINK: si entra con ?game=ruzzle-bubble abre directo ===
-  const deep = getGameFromUrl();
-  if(deep){
-    // esperar un tick para que renderGrid termine
-    setTimeout(()=>{ 
-      if(GAMES.find(g=>g.slug===deep)){
-        openGame(deep, true); 
+  // === DEEP LINK + TU IDEA DE VARIABLE LOCAL PARA RELOAD ===
+  let deep = getGameFromUrl();
+  
+  // Detectar si es reload: performance.navigation.type === 1 (reload) o navigation.type === 'reload'
+  let isReload = false;
+  try{
+    const nav = performance.getEntriesByType('navigation')[0];
+    if(nav && nav.type === 'reload') isReload = true;
+    if(performance.navigation && performance.navigation.type === 1) isReload = true;
+  }catch(e){}
+
+  // Si no hay ?game= en URL pero hay variable guardada y fue reload o session indica que estaba en juego
+  if(!deep){
+    try{
+      const lastSession = sessionStorage.getItem('wasa_last_game_session');
+      const lastLocal = localStorage.getItem('wasa_last_game');
+      const wasInGame = sessionStorage.getItem('wasa_in_game');
+      const gameOpen = localStorage.getItem('wasa_game_open');
+      
+      console.log('[WASA] No hay ?game= en URL, check storage:', {lastSession, lastLocal, wasInGame, gameOpen, isReload});
+      
+      // Caso 1: recarga - sessionStorage sigue vivo y teniamos juego abierto
+      if(wasInGame === '1' && lastSession){
+        deep = lastSession;
+        console.log('[WASA] Recuperando de sessionStorage por reload:', deep);
       }
-    }, 200);
+      // Caso 2: GitHub redirect a /play/ perdio ?game= pero localStorage tiene el juego y fue reload reciente
+      else if(isReload && lastLocal && gameOpen === '1'){
+        // Solo si el ultimo juego fue hace menos de 10 segundos (evita que al volver dias despues se auto-abra)
+        const lastTime = parseInt(localStorage.getItem('wasa_last_game_time')||'0');
+        const diff = Date.now() - lastTime;
+        if(diff < 10000){
+          deep = lastLocal;
+          console.log('[WASA] Recuperando de localStorage por reload reciente:', deep, diff+'ms');
+        } else {
+          console.log('[WASA] localStorage muy viejo, no restaurar', diff);
+          // Limpiar si es muy viejo
+          localStorage.removeItem('wasa_last_game');
+          localStorage.setItem('wasa_game_open','0');
+        }
+      }
+    }catch(e){}
+  }
+
+  if(deep){
+    console.log('[WASA] Deep link detectado:', deep, 'desde', location.pathname + location.search, 'isReload:', isReload);
+    setTimeout(()=>{ 
+      try{ openGame(deep, true); }catch(e){ console.error('openGame deep failed', e); }
+    }, 100);
+    setTimeout(()=>{
+      if(!document.getElementById('modal')?.classList.contains('open')){
+        console.log('[WASA] Retry deep link:', deep);
+        try{ openGame(deep, true); }catch(e){}
+      }
+    }, 800);
+  } else {
+    // Si no hay deep y no fue reload, limpiar storage para que no se auto-abra la proxima vez que entre al index normal
+    try{
+      const wasInGame = sessionStorage.getItem('wasa_in_game');
+      // Si entra normal al index sin ?game= y sin ser reload, limpiar
+      if(!isReload && !wasInGame){
+        localStorage.removeItem('wasa_last_game');
+        localStorage.setItem('wasa_game_open','0');
+      }
+    }catch(e){}
   }
 }
 
@@ -359,6 +442,15 @@ function renderGrid(){
 
 async function openGame(slug, isDeepLink=false){
   currentGameSlug = slug;
+  // === TU IDEA: guardar variable local para detectar reload ===
+  try{
+    localStorage.setItem('wasa_last_game', slug);
+    localStorage.setItem('wasa_game_open', '1');
+    localStorage.setItem('wasa_last_game_time', Date.now().toString());
+    sessionStorage.setItem('wasa_last_game_session', slug);
+    sessionStorage.setItem('wasa_in_game', '1');
+    console.log('[WASA] Guardado juego en storage:', slug);
+  }catch(e){}
   try{ updateMetaForGame(slug); }catch(e){}
   const modal=document.getElementById('modal');
   const container=document.getElementById('modalContainer');
@@ -385,9 +477,36 @@ async function openGame(slug, isDeepLink=false){
   container.innerHTML=`<div style="color:#94a3b8;padding:40px;text-align:center">Loading ${slug}...<br><small style="opacity:.5">Si queda en blanco al recargar, verifica _redirects</small></div>`;
   window.vrAd=0;
   try{
-    const mod=await import(`/games/${slug}/game.js?v=10&t=${Date.now()}`, { cache: 'no-store' });
+    // Intentar cargar juego desde /games/SLUG/game.js - path absoluto para que funcione desde /play/
+    let mod = null;
+    let lastErr = null;
+    const trySlugs = [slug];
+    // si pide 2048 y no existe, probar 2048-madera y viceversa
+    if(slug==='2048') trySlugs.push('2048-madera');
+    if(slug==='2048-madera') trySlugs.push('2048');
+    if(slug==='puzzle-bubble') trySlugs.push('ruzzle-bubble');
+    if(slug==='ruzzle-bubble') trySlugs.push('puzzle-bubble');
+    if(slug==='banatron-revelation') trySlugs.push('banatron');
+    if(slug==='banatron') trySlugs.push('banatron-revelation');
+    
+    for(const s of trySlugs){
+      try{
+        console.log('[WASA] Intentando cargar /games/'+s+'/game.js');
+        mod = await import(`/games/${s}/game.js?v=11&t=${Date.now()}`, { cache: 'no-store' });
+        if(mod){
+          console.log('[WASA] Cargado:', s);
+          // actualizar slug actual por si usamos alias
+          currentGameSlug = s;
+          break;
+        }
+      }catch(err){
+        lastErr = err;
+        console.warn('[WASA] No se pudo cargar', s, err.message);
+      }
+    }
+    if(!mod) throw lastErr || new Error('No se pudo cargar game.js');
     container.innerHTML='';
-    if(mod.init){ mod.init(container,{quality,getCoins,addCoins,setCoins,slug}); }
+    if(mod.init){ mod.init(container,{quality,getCoins,addCoins,setCoins,slug: currentGameSlug || slug}); }
   }catch(e){
     container.innerHTML=`<div style="color:#f87171;padding:40px;text-align:center">No encontrado /games/${slug}/game.js<br><small>${e.message}</small><br><br><button onclick="closeGame()" style="background:#fff;color:#000;padding:8px 16px;border-radius:20px;font-weight:800">Volver</button></div>`;
   }
@@ -400,6 +519,14 @@ function closeGame(){
   currentGameSlug=null;
   document.title = 'Wasa Games, Play Free Online $WASA farm';
   try{ let can=document.querySelector('link[rel="canonical"]'); if(can) can.href = location.origin + '/'; }catch(e){}
+  // === TU IDEA: al cerrar juego, limpiar variable para que no se auto-abra al volver al index ===
+  try{
+    localStorage.removeItem('wasa_last_game');
+    localStorage.setItem('wasa_game_open', '0');
+    sessionStorage.removeItem('wasa_last_game_session');
+    sessionStorage.removeItem('wasa_in_game');
+    console.log('[WASA] Juego cerrado, storage limpiado');
+  }catch(e){}
   // Volver a /
   if(location.search.includes('game=') || location.pathname.startsWith('/play')){
     history.pushState({},'',`/`);
@@ -415,13 +542,19 @@ window.addEventListener('popstate', (e)=>{
       openGame(g, true);
     }
   } else if(!g && document.getElementById('modal').classList.contains('open')){
-    // back a home
+    // back a home -> cerrar juego y limpiar storage
     document.getElementById('modal').classList.remove('open');
     document.getElementById('modalContainer').innerHTML='';
     document.body.style.overflow='';
     currentGameSlug=null;
-  document.title = 'Wasa Games, Play Free Online $WASA farm';
-  try{ let can=document.querySelector('link[rel="canonical"]'); if(can) can.href = location.origin + '/'; }catch(e){}
+    document.title = 'Wasa Games, Play Free Online $WASA farm';
+    try{ let can=document.querySelector('link[rel="canonical"]'); if(can) can.href = location.origin + '/'; }catch(e){}
+    try{
+      localStorage.removeItem('wasa_last_game');
+      localStorage.setItem('wasa_game_open', '0');
+      sessionStorage.removeItem('wasa_last_game_session');
+      sessionStorage.removeItem('wasa_in_game');
+    }catch(e){}
   }
 });
 
