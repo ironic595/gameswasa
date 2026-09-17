@@ -134,10 +134,6 @@
   .footer-links a{font-size:10px;color:#64748b;text-decoration:none}
   @media(max-width:900px){.footer-inner{grid-template-columns:1fr 1fr;gap:20px;padding:20px 16px}}
   @media(max-width:600px){.footer-inner{grid-template-columns:1fr;gap:18px}.footer-bottom{flex-direction:column;align-items:flex-start;padding:12px 16px}}
- .back-btn{
-  text-decoration:none;
-  color:#38bdf8;
- }
 
 </style>
 </head>
@@ -162,10 +158,10 @@
 <div style="position:absolute;top:14px;left:0;z-index:2"><a href="https://games.wasa.chat" class="back-btn">← VOLVER A INICIO</a></div>
 <div class="hero-inner" style="margin-top:32px">
 <div class="hero-left">
-<div style="font-size:9px;letter-spacing:0.14em;color:#fcd34d;border:1px solid rgba(252,211,77,0.3);display:inline-block;padding:3px 10px;border-radius:9999px;margin-bottom:10px">EDICION LIMITADA • 500 UNIDADES</div>
+<div style="font-size:9px;letter-spacing:0.14em;color:#fcd34d;border:1px solid rgba(252,211,77,0.3);display:inline-block;padding:3px 10px;border-radius:9999px;margin-bottom:10px">EDICION LIMITADA SEPTIEMBRE 2026 • 500 UNIDADES</div>
 <div style="font-size:11px;color:rgba(255,255,255,0.6);letter-spacing:0.18em;margin-bottom:4px;font-weight:700">WASA PASS</div>
-<h1 class="hero-title"><span style="background:linear-gradient(135deg,#fde68a,#f59e0b);-webkit-background-clip:text;color:transparent">MULTIPLICA X5 LAS RECOMPENSAS DE $WASA EN TODOS LOS JUEGOS</span></h1>
-<p class="hero-subtitle">Y recibe un regalo extra con tu compra 🎁</p>
+<h1 class="hero-title"><span style="background:linear-gradient(135deg,#fde68a,#f59e0b);-webkit-background-clip:text;color:transparent">MULTIPLICA POR SIEMPRE LAS RECOMPENSAS DE $WASA EN TODOS LOS JUEGOS</span> <span style="color:#fcd34d">X5</span></h1>
+<p class="hero-subtitle">Compra el WASAPASS por solo 5 USDT y recibe un regalo extra en $WASA</p>
 <button style="margin-top:16px;height:42px;padding:0 20px;border-radius:9999px;background:linear-gradient(135deg,#fcd34d,#f59e0b);border:0;font-weight:900;cursor:pointer;font-size:13px" onclick="document.getElementById('compra').scrollIntoView({behavior:'smooth'})">COMPRAR POR 5 USDT →</button>
 </div>
 <div class="hero-right"><img src="img/wasapasshero.png" class="float" alt="WASA PASS X5" onerror="this.src='img/founderswasa.png'"></div>
@@ -223,7 +219,7 @@
     </div>
     <div class="footer-col"><h4>Jugar</h4><a href="/">Todos los juegos</a><a href="/?cat=arcade">Arcade</a><a href="/?cat=puzzle">Puzzle</a><a href="/?cat=action">Action</a></div>
     <div class="footer-col"><h4>WASA</h4><a href="/wasa-pass.html">WASA PASS X5 - 5 USDT</a><button onclick="openWasaBuy()">Comprar $WASA</button><button onclick="openReferral()">Programa referidos 20%</button><a href="https://bscscan.com/token/0x55d398326f99059fF775485246999027B3197955" target="_blank">Contrato USDT BSC</a></div>
-    <div class="footer-col"><h4>Soporte</h4><button onclick="openAuthEmail('register')">Crear cuenta</button><button onclick="openUserProfile()">Mi perfil</button><button onclick="handleWalletBtn()">Conectar wallet</button><a href="mailto:support@wasa.chat">support@wasa.chat</a><a href="https://games.wasa.chat/">games.wasa.chat</a></div>
+    <div class="footer-col"><h4>Soporte</h4><button onclick="openAuthEmail('register')" class="footer-guest-only">Crear cuenta</button><button onclick="openUserProfile()" class="footer-logged-only" style="display:none">Mi perfil</button><button onclick="handleWalletBtn()" data-footer-wallet>Conectar wallet</button><a href="mailto:support@wasa.chat">support@wasa.chat</a><a href="https://games.wasa.chat/">games.wasa.chat</a></div>
   </div>
   <div class="footer-bottom">
     <div class="footer-copy">© 2026 WASA GAMES • Play Free, Farm $WASA • Built on BSC</div>
