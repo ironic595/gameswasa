@@ -1,4 +1,4 @@
-// games/crypto-crush/game.js - v5.9 RAYO con animacion electrica a cada token - elimina igual que arcoiris pero con rayos
+// games/crypto-crush/game.js - v6.0 OBJETIVOS COMPLETADOS titilando 3s antes de resumen
 export function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javisimes.workers.dev/';
   function getDeviceId(){ let id=localStorage.getItem('wasa_device_id'); if(!id){ id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id; }
@@ -183,6 +183,11 @@ export function init(container, args){
 @keyframes lightningStrike{0%{transform:scaleX(0);opacity:0}20%{opacity:1}100%{transform:scaleX(1);opacity:0}}
 .cc-lightning-hit{position:absolute;width:40px;height:40px;background:radial-gradient(circle, #fff 0%, #FEF08A 30%, #FACC15 60%, transparent 100%);border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);animation:lightningHit .4s ease-out forwards;z-index:26}
 @keyframes lightningHit{0%{transform:translate(-50%,-50%) scale(0);opacity:1}50%{transform:translate(-50%,-50%) scale(1.6);opacity:1}100%{transform:translate(-50%,-50%) scale(2.5);opacity:0}}
+.cc-obj-complete{position:absolute;inset:0;background:rgba(15,15,26,.88);display:grid;place-items:center;z-index:40;pointer-events:none}
+.cc-obj-complete-text{font-size:min(8vw, 36px);font-weight:900;letter-spacing:.08em;color:#fff;text-shadow:0 0 20px #FACC15, 0 0 40px #FACC15, 0 4px 0 #000;text-align:center;line-height:1.1;animation:objBlink 0.5s ease-in-out infinite alternate, objScale 0.6s cubic-bezier(.34,1.56,.64,1)}
+.cc-obj-complete-sub{font-size:14px;opacity:.8;margin-top:8px;letter-spacing:.1em}
+@keyframes objBlink{0%{opacity:1;filter:brightness(1) drop-shadow(0 0 10px #FACC15)}100%{opacity:.7;filter:brightness(1.4) drop-shadow(0 0 20px #fff) drop-shadow(0 0 30px #FACC15)}}
+@keyframes objScale{0%{transform:scale(.8)}100%{transform:scale(1.08)}}
 .cc-bottom{width:100%;background:rgba(0,0,0,.25);backdrop-filter:blur(6px);padding:5px 10px;display:flex;justify-content:center;gap:8px;flex-shrink:0;border-top:1px solid rgba(255,255,255,.15)}
 .cc-bottom-info{font-size:8px;opacity:.7;text-align:center}
 </style>
@@ -203,7 +208,7 @@ export function init(container, args){
     </div>
   </div>
   <div class="cc-main" id="mainArea"><div class="cc-board" id="board"><div class="cc-grid" id="grid"></div><div class="cc-thunder-fx" id="thunderFx"></div></div></div>
-  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">v5.9 RAYO con animacion ⚡</div></div>
+  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">v6.0 OBJETIVOS COMPLETADOS 3s ⚡</div></div>
   <div id="ui"></div>
 </div>`;
 
@@ -244,7 +249,6 @@ export function init(container, args){
     return `<div style="width:32px;height:32px;flex-shrink:0;border-radius:9px;background:linear-gradient(180deg,${token.light},${token.bg});border:2px solid ${token.bd};display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px rgba(0,0,0,.12)"><img src="${base}${token.img}" alt="${token.name}" style="width:20px;height:20px;object-fit:contain;display:block" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div style="display:none;width:20px;height:20px;align-items:center;justify-content:center;font-weight:900;font-size:12px">${token.icon}</div></div>`;
   }
 
-  // NUEVA FUNCION: animacion de rayo desde origen a cada token eliminado
   function animateThunder(originR, originC, targetKeys){
     thunderFx.innerHTML='';
     const originEl = gridEl.querySelector(`[data-r="${originR}"][data-c="${originC}"]`);
@@ -265,8 +269,6 @@ export function init(container, args){
       const dx = tx-ox, dy = ty-oy;
       const dist = Math.sqrt(dx*dx + dy*dy);
       const angle = Math.atan2(dy,dx)*180/Math.PI;
-
-      // linea de rayo
       const lightning = document.createElement('div');
       lightning.className='cc-lightning';
       lightning.style.left = ox+'px';
@@ -274,13 +276,8 @@ export function init(container, args){
       lightning.style.width = dist+'px';
       lightning.style.transform = `rotate(${angle}deg) scaleX(0)`;
       lightning.style.animationDelay = (idx*0.06)+'s';
-      // zigzag effect con clip path random
-      const zig = Math.random()>0.5 ? '2px' : '-2px';
-      lightning.style.marginTop = zig;
       thunderFx.appendChild(lightning);
       requestAnimationFrame(()=>{ lightning.style.transform = `rotate(${angle}deg) scaleX(1)`; });
-
-      // hit explosion en destino
       setTimeout(()=>{
         const hit = document.createElement('div');
         hit.className='cc-lightning-hit';
@@ -289,12 +286,34 @@ export function init(container, args){
         thunderFx.appendChild(hit);
         setTimeout(()=>hit.remove(), 400);
       }, idx*60 + 120);
-
       setTimeout(()=>lightning.remove(), 500 + idx*60);
     });
-
-    // limpia todo despues de animacion
     setTimeout(()=>{ thunderFx.innerHTML=''; }, targetKeys.length*60 + 800);
+  }
+
+  // NUEVO: secuencia de objetivos completados pausada
+  function triggerWinSequence(){
+    if(busy) return;
+    busy=true;
+    gameStarted=false;
+    if(timerInt) clearInterval(timerInt);
+
+    // 1) mostrar OBJETIVOS COMPLETADOS titilando 3 segundos en el centro
+    const completeOverlay = document.createElement('div');
+    completeOverlay.className='cc-obj-complete';
+    completeOverlay.innerHTML=`<div style="text-align:center"><div class="cc-obj-complete-text">⚡ OBJETIVOS<br>COMPLETADOS ⚡</div><div class="cc-obj-complete-sub">¡NIVEL ${currentLevelNum} SUPERADO!</div></div>`;
+    boardEl.appendChild(completeOverlay);
+
+    debugInfo.textContent=`¡N${currentLevelNum} COMPLETADO! Mostrando 3s...`;
+
+    // confetti rapido en los objetivos del header
+    const objMinis = root.querySelectorAll('.cc-obj-mini');
+    objMinis.forEach(el=>{ el.style.animation='objBlink .3s ease-in-out 6 alternate'; });
+
+    setTimeout(()=>{
+      if(completeOverlay.parentNode) completeOverlay.remove();
+      showWin();
+    }, 3000);
   }
 
   function showLevelIntro(){
@@ -436,32 +455,33 @@ export function init(container, args){
     allMatchedForCount.forEach(k=>{ const [rr,cc]=k.split(',').map(Number); const col=board[rr][cc]?.c; if(col!==undefined) level.objectives.forEach(o=>{ if(o.type==='collect_color' && o.color===col) o.current++; }); });
     if(obj.s==='bomb' || obj.s==='h' || obj.s==='v') level.objectives.forEach(o=>{ if(o.type==='collect_special') o.current++; });
     await processMatchesWithSet(Array.from(toRemove), null, 1, []); await runAutoCascade();
-    if(level.type==='moves') moves--; updateObjectivesUI(); updateUI(); busy=false; if(checkWin()) showWin(); else checkFail();
+    if(level.type==='moves') moves--; updateObjectivesUI(); updateUI(); busy=false; 
+    if(checkWin()) triggerWinSequence(); else checkFail();
   }
 
   async function activateColorBombRainbowAll(){
     if(busy || !gameStarted) return; busy=true; sel=null; 
     let toRemove=new Set(); for(let rr=0;rr<SZ;rr++) for(let cc=0;cc<SZ;cc++) toRemove.add(rr+','+cc);
     const keys = Array.from(toRemove);
-    // animacion de rayos desde centro a todo el tablero
     const centerR = Math.floor(SZ/2), centerC = Math.floor(SZ/2);
     animateThunder(centerR, centerC, keys);
     await new Promise(r=>setTimeout(r, 400));
     toRemove.forEach(k=>{ const [rr,cc]=k.split(',').map(Number); const col=board[rr][cc]?.c; if(col!==undefined) level.objectives.forEach(o=>{ if(o.type==='collect_color' && o.color===col) o.current++; }); });
     level.objectives.forEach(o=>{ if(o.type==='collect_rainbow') o.current++; }); await processMatchesWithSet(keys, null, 2, []); await runAutoCascade();
-    if(level.type==='moves') moves--; updateObjectivesUI(); updateUI(); busy=false; if(checkWin()) showWin(); else checkFail();
+    if(level.type==='moves') moves--; updateObjectivesUI(); updateUI(); busy=false; 
+    if(checkWin()) triggerWinSequence(); else checkFail();
   }
 
   async function activateColorBomb(r,c,targetColor){
     if(busy || !gameStarted) return; busy=true; sel=null; let toRemove=new Set(); toRemove.add(r+','+c);
     for(let rr=0;rr<SZ;rr++) for(let cc=0;cc<SZ;cc++) if(board[rr][cc]?.c===targetColor) toRemove.add(rr+','+cc);
     const keys = Array.from(toRemove);
-    // animacion: rayo desde origen a cada token
     animateThunder(r,c, keys);
     await new Promise(r=>setTimeout(r, 350 + keys.length*25));
     toRemove.forEach(k=>{ const [rr,cc]=k.split(',').map(Number); const col=board[rr][cc]?.c; if(col!==undefined) level.objectives.forEach(o=>{ if(o.type==='collect_color' && o.color===col) o.current++; }); });
     level.objectives.forEach(o=>{ if(o.type==='collect_rainbow') o.current++; }); await processMatchesWithSet(keys, null, 1, []); await runAutoCascade();
-    if(level.type==='moves') moves--; updateObjectivesUI(); updateUI(); busy=false; if(checkWin()) showWin(); else checkFail();
+    if(level.type==='moves') moves--; updateObjectivesUI(); updateUI(); busy=false; 
+    if(checkWin()) triggerWinSequence(); else checkFail();
   }
 
   async function trySwap(r1,c1,r2,c2){
@@ -474,16 +494,17 @@ export function init(container, args){
       else { for(let rr=0;rr<SZ;rr++) for(let cc=0;cc<SZ;cc++) if(board[rr][cc]?.c===other.c) toRemove.add(rr+','+cc); }
       const keys = Array.from(toRemove);
       sel=null; draw(); 
-      // animacion inmediata al hacer swap
       animateThunder(br,bc, keys);
       await new Promise(r=>setTimeout(r, 350 + keys.length*25));
       toRemove.forEach(k=>{ const [rr,cc]=k.split(',').map(Number); const col=board[rr][cc]?.c; if(col!==undefined) level.objectives.forEach(o=>{ if(o.type==='collect_color' && o.color===col) o.current++; }); });
       level.objectives.forEach(o=>{ if(o.type==='collect_rainbow') o.current++; }); await processMatchesWithSet(keys, null, 1, []); await runAutoCascade();
-      if(level.type==='moves') moves--; updateObjectivesUI(); updateUI(); busy=false; if(checkWin()) showWin(); else checkFail(); return;
+      if(level.type==='moves') moves--; updateObjectivesUI(); updateUI(); busy=false; 
+      if(checkWin()) triggerWinSequence(); else checkFail(); return;
     }
     swap(r1,c1,r2,c2); draw(); await new Promise(res=>setTimeout(res,120));
     let found=findMatches(); if(found.groups.length===0){ swap(r1,c1,r2,c2); draw(); busy=false; sel=null; return; }
-    sel=null; await processCascade(found); if(level.type==='moves') moves--; updateObjectivesUI(); updateUI(); busy=false; if(checkWin()) showWin(); else checkFail();
+    sel=null; await processCascade(found); if(level.type==='moves') moves--; updateObjectivesUI(); updateUI(); busy=false; 
+    if(checkWin()) triggerWinSequence(); else checkFail();
   }
 
   function swap(r1,c1,r2,c2){ const t=board[r1][c1]; board[r1][c1]=board[r2][c2]; board[r2][c2]=t; }
@@ -510,6 +531,7 @@ export function init(container, args){
       found=findMatches(); if(found.groups.length>0) await new Promise(r=>setTimeout(r,100));
     }
     updateObjectivesUI(); updateUI();
+    if(checkWin()) triggerWinSequence();
   }
 
   async function processCascade(firstFind){
@@ -532,6 +554,7 @@ export function init(container, args){
       current=findMatches(); if(current.groups.length>0) await new Promise(r=>setTimeout(r,100));
     }
     updateObjectivesUI(); updateUI();
+    if(checkWin()) triggerWinSequence();
   }
 
   async function processMatchesWithSet(keys, origin, combo=1, specialsToCreate=[], countAlready=true){
@@ -567,7 +590,7 @@ export function init(container, args){
     const reward=level.reward; totalReward+=reward; localStorage.setItem('wcrush_wasa', totalReward);
     if(score>best){ best=score; localStorage.setItem('wcrush_best',best); }
     const isTimeLevel=level.type==='time';
-    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(15,15,26,.88);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#FFFBEB);border:3px solid #22C55E;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#0F172A"><div style="font-size:48px">🎉</div><div style="font-weight:900;font-size:11px;opacity:.6">${isTimeLevel?'⏰ TIEMPO':'🎯 MOVIMIENTOS'} COMPLETADO</div><div style="font-weight:900;font-size:22px;color:#065F46">¡NIVEL ${currentLevelNum}!</div><div style="background:linear-gradient(180deg,#DCFCE7,#86EFAC);border:2px solid #22C55E;border-radius:14px;padding:12px;margin:12px 0;font-weight:900;color:#065F46">💰 +${fmt(reward)} WASA</div><button id="btnNext" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:linear-gradient(135deg,#22C55E,#16A34A);color:#000;cursor:pointer">SIGUIENTE NIVEL ${currentLevelNum+1}</button><button id="btnDouble" style="width:100%;height:44px;border-radius:14px;font-weight:900;border:2.5px solid #FACC15;background:linear-gradient(135deg,#FEF08A,#FACC15);color:#000;margin-top:8px;cursor:pointer">📺 X2 = ${fmt(reward*2)} WASA</button></div></div>`;
+    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#FFFBEB);border:3px solid #22C55E;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#0F172A"><div style="font-size:48px">🎉</div><div style="font-weight:900;font-size:11px;opacity:.6">${isTimeLevel?'⏰ TIEMPO':'🎯 MOVIMIENTOS'} COMPLETADO</div><div style="font-weight:900;font-size:22px;color:#065F46">¡NIVEL ${currentLevelNum}!</div><div style="background:linear-gradient(180deg,#DCFCE7,#86EFAC);border:2px solid #22C55E;border-radius:14px;padding:12px;margin:12px 0;font-weight:900;color:#065F46">💰 +${fmt(reward)} WASA</div><button id="btnNext" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:linear-gradient(135deg,#22C55E,#16A34A);color:#000;cursor:pointer">SIGUIENTE NIVEL ${currentLevelNum+1}</button><button id="btnDouble" style="width:100%;height:44px;border-radius:14px;font-weight:900;border:2.5px solid #FACC15;background:linear-gradient(135deg,#FEF08A,#FACC15);color:#000;margin-top:8px;cursor:pointer">📺 X2 = ${fmt(reward*2)} WASA</button></div></div>`;
     const btnNext=ui.querySelector('#btnNext'); const btnDouble=ui.querySelector('#btnDouble');
     if(btnNext){ btnNext.onclick=()=>{ btnNext.disabled=true; btnNext.textContent='CARGANDO...'; claim(false,false).catch(()=>{}); ui.innerHTML=''; setTimeout(()=>{ currentLevelNum++; loadLevel(currentLevelNum); },100); }; }
     if(btnDouble){ btnDouble.onclick=()=>openAd('double_level'); }
