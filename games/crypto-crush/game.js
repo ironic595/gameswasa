@@ -109,7 +109,7 @@ export function init(container, args){
   function processMatches(matches){
     if(matches.length==0) return;
     mergeCount+=1; mergesSinceForced+=1; score+=matches.length*10*mult;
-    matches.forEach(k=>{ const [r][c]=k.split(',').map(Number); board[r][c]=-1; });
+    matches.forEach(k=>{ const [r,c]=k.split(',').map(Number); board[r][c]=-1; });
     render();
     setTimeout(()=>{
       // gravity
