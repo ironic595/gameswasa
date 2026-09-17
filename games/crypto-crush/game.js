@@ -1,4 +1,4 @@
-// games/crypto-crush/game.js - v4.9 WASA AZUL CLARO + VIOLETA ROSADO
+// games/crypto-crush/game.js - v5.0 COLORES FUERTES - tonos saturados, DASH mas azul, WASA azul+violeta fuerte
 export function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javisimes.workers.dev/';
   function getDeviceId(){ let id=localStorage.getItem('wasa_device_id'); if(!id){ id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id; }
@@ -19,20 +19,20 @@ export function init(container, args){
   }
   const ASSET_BASES=getAssetBases();
 
-  // WASA AHORA AZUL CLARO + VIOLETA ROSADO
+  // COLORES FUERTES - saturados
   const ALL_TOKENS = [
-    {icon:'₿', name:'BTC',  bg:'#FFB347', bd:'#FF8C00', light:'#FFD699', img:'btc.png'},
-    {icon:'Ξ', name:'ETH',  bg:'#7DD3FC', bd:'#0EA5E9', light:'#BAE6FD', img:'eth.png'},
-    {icon:'Đ', name:'DASH', bg:'#60A5FA', bd:'#2563EB', light:'#93C5FD', img:'dash.png'},
-    {icon:'Ł', name:'LTC',  bg:'#D1D5DB', bd:'#9CA3AF', light:'#F3F4F6', img:'ltc.png'},
-    // WASA - AZUL CLARO + VIOLETA ROSADO (tu moneda destacada)
-    {icon:'W', name:'WASA', bg:'#C084FC', bd:'#8B5CF6', light:'#BAE6FD', img:'wasa.png'},
-    {icon:'B', name:'BNB',  bg:'#FBBF24', bd:'#D97706', light:'#FDE68A', img:'bnb.png'},
-    {icon:'₮', name:'USDT', bg:'#6EE7B7', bd:'#10B981', light:'#A7F3D0', img:'usdt.png'},
-    {icon:'🐶', name:'DOGE',  bg:'#FDE68A', bd:'#EAB308', light:'#FEF9C3', img:'doge.png'},
-    {icon:'🐕', name:'SHIB',  bg:'#FDA4AF', bd:'#F43F5E', light:'#FFE4E6', img:'shib.png'},
-    {icon:'🐸', name:'PEPE',  bg:'#86EFAC', bd:'#22C55E', light:'#DCFCE7', img:'pepe.png'},
-    {icon:'🐺', name:'FLOKI', bg:'#C4B5FD', bd:'#7C3AED', light:'#DDD6FE', img:'floki.png'},
+    {icon:'₿', name:'BTC',  bg:'#F7931A', bd:'#E67E00', light:'#FFB84D', img:'btc.png'}, // naranja BTC fuerte
+    {icon:'Ξ', name:'ETH',  bg:'#627EEA', bd:'#3C5FE3', light:'#8AA0FF', img:'eth.png'}, // azul ETH fuerte
+    {icon:'Đ', name:'DASH', bg:'#1E88E5', bd:'#1565C0', light:'#42A5F5', img:'dash.png'}, // DASH AZUL FUERTE
+    {icon:'Ł', name:'LTC',  bg:'#A6A9AA', bd:'#7A7D7E', light:'#CFD8DC', img:'ltc.png'}, // LTC plata mas fuerte
+    // WASA - AZUL CLARO FUERTE + VIOLETA ROSADO FUERTE
+    {icon:'W', name:'WASA', bg:'#A855F7', bd:'#7E22CE', light:'#38BDF8', img:'wasa.png'},
+    {icon:'B', name:'BNB',  bg:'#F3BA2F', bd:'#D99A00', light:'#FCD535', img:'bnb.png'}, // BNB amarillo fuerte
+    {icon:'₮', name:'USDT', bg:'#26A17B', bd:'#1A7A5C', light:'#4ECC9E', img:'usdt.png'},
+    {icon:'🐶', name:'DOGE',  bg:'#C2A633', bd:'#9A8300', light:'#E8C547', img:'doge.png'},
+    {icon:'🐕', name:'SHIB',  bg:'#FF4565', bd:'#E02D4A', light:'#FF7A91', img:'shib.png'},
+    {icon:'🐸', name:'PEPE',  bg:'#22C55E', bd:'#16A34A', light:'#4ADE80', img:'pepe.png'},
+    {icon:'🐺', name:'FLOKI', bg:'#8B5CF6', bd:'#6D28D9', light:'#A78BFA', img:'floki.png'},
   ];
   const SZ = 8;
   const BASE_REWARD = 0.0001;
@@ -85,25 +85,24 @@ export function init(container, args){
 *{box-sizing:border-box}
 html,body{overscroll-behavior:none}
 .cc{width:100%;height:100%;display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% 0%, #8B5CF6 0%, #6D28D9 25%, #4C1D95 60%, #1E0B3A 100%);color:#fff;font-family:Inter,system-ui;overflow:hidden;position:relative;touch-action:none}
-.cc-header{width:100%;background:rgba(255,255,255,.96);color:#2a1a5e;box-shadow:0 4px 20px rgba(0,0,0,.3);z-index:10;flex-shrink:0;border-bottom:2px solid #E9D5FF}
+.cc-header{width:100%;background:rgba(255,255,255,.97);color:#2a1a5e;box-shadow:0 4px 20px rgba(0,0,0,.3);z-index:10;flex-shrink:0;border-bottom:2px solid #E9D5FF}
 .cc-header-inner{width:100%;padding:8px 10px;display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:nowrap;min-height:48px}
 .cc-header-left{display:flex;align-items:center;gap:8px;flex-shrink:0}
 .cc-level-badge{background:#4C1D95;color:#fff;border-radius:10px;padding:4px 10px;font-weight:900;font-size:12px;line-height:1}
 .cc-level-badge span{font-size:9px;opacity:.7;font-weight:700;display:block}
 .cc-tokens{display:flex;gap:4px;align-items:center}
-.cc-token-chip{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-weight:900;font-size:12px;border:1.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.15);flex-shrink:0;transition:all .2s;overflow:hidden;background:#fff}
+.cc-token-chip{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-weight:900;font-size:12px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.2);flex-shrink:0;transition:all .2s;overflow:hidden;background:#fff}
 .cc-token-chip img{width:82%;height:82%;object-fit:contain;display:block}
 .cc-token-chip.needed{transform:scale(1.25);box-shadow:0 0 0 2.5px #22C55E, 0 0 12px #22C55E;z-index:2;border-color:#22C55E}
-.cc-token-chip.wasa{box-shadow:0 0 0 2px #fff, 0 0 10px #C084FC; border-color:#C084FC}
-.cc-token-chip.wasa.needed{box-shadow:0 0 0 2.5px #22C55E, 0 0 14px #C084FC}
+.cc-token-chip.wasa{box-shadow:0 0 0 2px #fff, 0 0 12px #A855F7; border-color:#A855F7}
 .cc-header-center{flex:1;min-width:0;display:flex;gap:6px;align-items:center;overflow:hidden}
 .cc-obj-mini{flex:1;min-width:70px;background:#F5F3FF;border:1.5px solid #DDD6FE;border-radius:10px;padding:4px 7px;display:flex;align-items:center;gap:5px}
 .cc-obj-mini.done{background:#DCFCE7;border-color:#22C55E}
-.cc-obj-mini-icon{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;font-weight:900;font-size:11px;flex-shrink:0;overflow:hidden;background:#fff}
+.cc-obj-mini-icon{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;font-weight:900;font-size:11px;flex-shrink:0;overflow:hidden;background:#fff; border:1.5px solid #e5e7eb}
 .cc-obj-mini-icon img{width:82%;height:82%;object-fit:contain}
 .cc-obj-mini-info{flex:1;min-width:0}
 .cc-obj-mini-name{font-weight:900;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cc-obj-mini-bar{height:4px;background:#EDE9FE;border-radius:999px;overflow:hidden;margin-top:2px}
+.cc-obj-mini-bar{height:5px;background:#EDE9FE;border-radius:999px;overflow:hidden;margin-top:2px}
 .cc-obj-mini-fill{height:100%;background:linear-gradient(90deg,#22C55E,#4ADE80);transition:width .3s}
 .cc-header-right{display:flex;gap:5px;align-items:center;flex-shrink:0}
 .cc-stat-mini{background:#fff;border:1.5px solid #E9D5FF;border-radius:10px;padding:4px 7px;min-width:52px;text-align:center}
@@ -111,21 +110,30 @@ html,body{overscroll-behavior:none}
 .cc-stat-mini span{font-size:6px;font-weight:800;opacity:.6;letter-spacing:.05em;text-transform:uppercase;color:#4C1D95}
 .cc-stat-mini.gold{background:linear-gradient(180deg,#FEF08A,#FACC15);border-color:#EAB308}
 .cc-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:10px 10px 6px;overflow:auto;overflow-x:hidden;touch-action:none;width:100%;min-height:0;gap:8px}
-.cc-board{width:min(92vw, 460px);aspect-ratio:1;background:rgba(255,255,255,.96);border-radius:18px;padding:6px;box-shadow:0 20px 50px rgba(0,0,0,.4), 0 0 0 2.5px rgba(255,255,255,.9);position:relative;touch-action:none;user-select:none;contain:layout;flex-shrink:0}
+.cc-board{width:min(92vw, 460px);aspect-ratio:1;background:rgba(255,255,255,.98);border-radius:18px;padding:6px;box-shadow:0 24px 60px rgba(0,0,0,.45), 0 0 0 2.5px rgba(255,255,255,.95);position:relative;touch-action:none;user-select:none;contain:layout;flex-shrink:0}
 .cc-grid{display:grid;grid-template-columns:repeat(${SZ},1fr);grid-template-rows:repeat(${SZ},1fr);gap:4px;width:100%;height:100%;touch-action:none}
 .cc-cell{position:relative;border-radius:11px;display:grid;place-items:center;cursor:pointer;touch-action:none}
 .cc-cell.sel{transform:scale(1.1);z-index:5}.cc-cell.sel::after{content:'';position:absolute;inset:-2px;border:3px solid #FACC15;border-radius:12px;box-shadow:0 0 14px #FACC15;pointer-events:none}
-.cc-candy{width:86%;height:86%;border-radius:12px;display:grid;place-items:center;font-weight:900;font-size:15px;position:relative;box-shadow:0 3px 0 rgba(0,0,0,.12), inset 0 1.5px 0 rgba(255,255,255,.9);border:1.5px solid rgba(0,0,0,.06);overflow:hidden;background:#fff}
-.cc-candy img{width:74%;height:74%;object-fit:contain;display:block;pointer-events:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.18))}
-.cc-candy.wasa-candy{background:linear-gradient(180deg, #BAE6FD 0%, #93C5FD 20%, #C084FC 75%, #A78BFA 100%) !important; border-color:#8B5CF6 !important; box-shadow:0 3px 0 rgba(124,58,237,.25), inset 0 2px 0 rgba(255,255,255,.95), 0 0 12px rgba(192,132,252,.45) !important}
-.cc-candy.wasa-candy img{filter:drop-shadow(0 1.5px 3px rgba(0,0,0,.25)) brightness(1.05)}
-.cc-candy::before{content:'';position:absolute;top:8%;left:14%;width:34%;height:26%;background:rgba(255,255,255,.85);border-radius:50%;pointer-events:none;z-index:1}
-.cc-candy.bomb{box-shadow:0 0 0 2px #fff, 0 3px 0 rgba(0,0,0,.15), 0 0 14px currentColor}
-.cc-candy.striped-h::after{content:'';position:absolute;left:-4px;right:-4px;top:50%;height:5px;background:repeating-linear-gradient(90deg, #fff 0 5px, transparent 5px 10px);transform:translateY(-50%);border-radius:999px;z-index:2}
-.cc-candy.striped-v::after{content:'';position:absolute;top:-4px;bottom:-4px;left:50%;width:5px;background:repeating-linear-gradient(180deg, #fff 0 5px, transparent 5px 10px);transform:translateX(-50%);border-radius:999px;z-index:2}
-.cc-candy.color-bomb{background:radial-gradient(circle at 30% 30%, #fff, #ddd 20%, #aaa 40%, #444 100%) !important;border:2.5px solid #fff !important;box-shadow:0 0 16px #fff !important;animation:rainbow 1.5s linear infinite}
+.cc-candy{width:88%;height:88%;border-radius:13px;display:grid;place-items:center;font-weight:900;font-size:15px;position:relative;box-shadow:0 4px 0 rgba(0,0,0,.18), inset 0 2px 0 rgba(255,255,255,.95);border:2px solid rgba(0,0,0,.08);overflow:hidden;background:#fff}
+.cc-candy img{width:76%;height:76%;object-fit:contain;display:block;pointer-events:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.22))}
+.cc-candy.wasa-candy{
+  background:linear-gradient(180deg, #38BDF8 0%, #0EA5E9 25%, #A855F7 70%, #9333EA 100%) !important; 
+  border-color:#7E22CE !important; 
+  box-shadow:0 4px 0 rgba(126,34,206,.35), inset 0 2px 0 rgba(255,255,255,.95), 0 0 16px rgba(168,85,247,.55) !important
+}
+.cc-candy.wasa-candy img{filter:drop-shadow(0 2px 3px rgba(0,0,0,.3)) brightness(1.08) contrast(1.1)}
+.cc-candy.dash-candy{
+  background:linear-gradient(180deg, #42A5F5 0%, #1E88E5 100%) !important;
+  border-color:#1565C0 !important;
+  box-shadow:0 4px 0 rgba(21,101,192,.3), inset 0 2px 0 rgba(255,255,255,.9), 0 0 10px rgba(30,136,229,.4) !important
+}
+.cc-candy::before{content:'';position:absolute;top:8%;left:14%;width:34%;height:26%;background:rgba(255,255,255,.9);border-radius:50%;pointer-events:none;z-index:1}
+.cc-candy.bomb{box-shadow:0 0 0 2px #fff, 0 4px 0 rgba(0,0,0,.2), 0 0 16px currentColor}
+.cc-candy.striped-h::after{content:'';position:absolute;left:-4px;right:-4px;top:50%;height:6px;background:repeating-linear-gradient(90deg, #fff 0 6px, transparent 6px 12px);transform:translateY(-50%);border-radius:999px;z-index:2;box-shadow:0 0 6px #fff}
+.cc-candy.striped-v::after{content:'';position:absolute;top:-4px;bottom:-4px;left:50%;width:6px;background:repeating-linear-gradient(180deg, #fff 0 6px, transparent 6px 12px);transform:translateX(-50%);border-radius:999px;z-index:2;box-shadow:0 0 6px #fff}
+.cc-candy.color-bomb{background:radial-gradient(circle at 30% 30%, #fff, #ddd 20%, #aaa 40%, #444 100%) !important;border:2.5px solid #fff !important;box-shadow:0 0 18px #fff !important;animation:rainbow 1.5s linear infinite}
 .cc-candy.color-bomb img{display:none}
-@keyframes rainbow{0%{filter:hue-rotate(0deg) brightness(1.15)}100%{filter:hue-rotate(360deg) brightness(1.15)}}
+@keyframes rainbow{0%{filter:hue-rotate(0deg) brightness(1.2)}100%{filter:hue-rotate(360deg) brightness(1.2)}}
 .cc-cell.matched{animation:pop .38s cubic-bezier(.34,1.56,.64,1) forwards}
 @keyframes pop{0%{transform:scale(1)}25%{transform:scale(1.32)}100%{transform:scale(0) rotate(80deg);opacity:0}}
 .cc-cell.new{animation:newpop .28s cubic-bezier(.34,1.56,.64,1)}
@@ -170,7 +178,7 @@ html,body{overscroll-behavior:none}
     </div>
   </div>
   <div class="cc-main" id="mainArea"><div class="cc-board" id="board"><div class="cc-grid" id="grid"></div></div></div>
-  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">WASA azul claro + violeta rosado ✨</div></div>
+  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">WASA azul fuerte + violeta | DASH azul fuerte 🔵</div></div>
   <div id="ui"></div>
 </div>`;
 
@@ -191,7 +199,7 @@ html,body{overscroll-behavior:none}
     const wrapper=document.createElement('div');
     wrapper.style.width='100%'; wrapper.style.height='100%'; wrapper.style.display='grid'; wrapper.style.placeItems='center';
     const img=document.createElement('img');
-    img.alt=token.name; img.loading='lazy'; img.style.width='74%'; img.style.height='74%'; img.style.objectFit='contain';
+    img.alt=token.name; img.loading='lazy'; img.style.width='76%'; img.style.height='76%'; img.style.objectFit='contain';
     let baseIndex=0;
     function tryNextBase(){
       if(baseIndex>=ASSET_BASES.length){
@@ -201,7 +209,7 @@ html,body{overscroll-behavior:none}
       const urlToTry = workingBase ? workingBase + token.img : base + token.img;
       img.src=urlToTry;
     }
-    img.onload=()=>{ if(!workingBase){ workingBase=ASSET_BASES[baseIndex]; if(!workingBase.endsWith('/')) workingBase+='/'; const src=img.src; workingBase=src.substring(0, src.lastIndexOf('/')+1); debugInfo.textContent='WASA azul claro + violeta rosado ✨ | imgs: '+workingBase; } };
+    img.onload=()=>{ if(!workingBase){ workingBase=ASSET_BASES[baseIndex]; if(!workingBase.endsWith('/')) workingBase+='/'; const src=img.src; workingBase=src.substring(0, src.lastIndexOf('/')+1); debugInfo.textContent='WASA azul fuerte + violeta | DASH azul fuerte | imgs: '+workingBase; } };
     img.onerror=()=>{ baseIndex++; if(workingBase) workingBase=null; tryNextBase(); };
     tryNextBase(); wrapper.appendChild(img); return wrapper;
   }
@@ -262,14 +270,14 @@ html,body{overscroll-behavior:none}
       const obj=board[r][c]; if(!obj){ cellEl.innerHTML=''; continue; }
       let candy=cellEl.querySelector('.cc-candy');
       if(!candy){ candy=document.createElement('div'); cellEl.appendChild(candy); }
-      let cls='cc-candy'; if(ALL_TOKENS[obj.c]?.name==='WASA') cls+=' wasa-candy'; if(obj.s==='bomb') cls+=' bomb'; else if(obj.s==='h') cls+=' striped-h'; else if(obj.s==='v') cls+=' striped-v'; else if(obj.s==='color') cls+=' color-bomb';
+      const tok=ALL_TOKENS[obj.c];
+      let cls='cc-candy'; if(tok?.name==='WASA') cls+=' wasa-candy'; if(tok?.name==='DASH') cls+=' dash-candy'; if(obj.s==='bomb') cls+=' bomb'; else if(obj.s==='h') cls+=' striped-h'; else if(obj.s==='v') cls+=' striped-v'; else if(obj.s==='color') cls+=' color-bomb';
       candy.className=cls;
       if(obj.s==='color'){ candy.innerHTML='🌈'; }
       else {
-        const tok=ALL_TOKENS[obj.c];
         candy.innerHTML='';
         candy.appendChild(createTokenImg(tok, tok.icon));
-        if(tok.name!=='WASA'){
+        if(tok.name!=='WASA' && tok.name!=='DASH'){
           candy.style.background=`linear-gradient(180deg, ${tok.light}, ${tok.bg})`;
           candy.style.borderColor=tok.bd;
         }
