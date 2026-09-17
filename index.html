@@ -361,6 +361,28 @@
 </div>
 
 <script>
+// Este código debe ir en el script principal de games.wasa.chat
+
+document.addEventListener("DOMContentLoaded", () => {
+    // 1. Obtener los valores del localStorage
+    const estadoEjecutar = localStorage.getItem("ejecutarJuego");
+    const juegoAGuardar = localStorage.getItem("nombreJuego");
+
+    // 2. Verificar si la variable numérica es igual a "1"
+    if (estadoEjecutar === "1" && juegoAGuardar) {
+        
+        // 3. Opcional: Limpiar las variables para que no se vuelva a abrir el juego si recarga la página
+        localStorage.removeItem("ejecutarJuego");
+        localStorage.removeItem("nombreJuego");
+
+        // 4. Ejecutar tu función pasando el nombre del juego ("2048")
+        openGame(juegoAGuardar);
+    }
+});
+
+
+
+ 
 let GAMES=[]; let currentCat='all'; let showAll=false;
 let heroIdx=0;
 let currentGameSlug=null; // variable con nombre del juego
