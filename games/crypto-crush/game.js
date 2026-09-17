@@ -1,4 +1,4 @@
-// games/crypto-crush/game.js - v3.1 FIX SIN SALTO - Candy vivo + especiales
+// games/crypto-crush/game.js - v3.2 FIX ARCOIRIS + CASCADA AUTOMATICA - no se queda colgado
 export function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javisimes.workers.dev/';
   function getDeviceId(){ let id=localStorage.getItem('wasa_device_id'); if(!id){ id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id; }
@@ -29,7 +29,7 @@ export function init(container, args){
 .cc-grid{display:grid;grid-template-columns:repeat(${SZ},1fr);grid-template-rows:repeat(${SZ},1fr);gap:5px;width:100%;height:100%}
 .cc-cell{position:relative;border-radius:14px;display:grid;place-items:center;cursor:pointer;will-change:transform}
 .cc-cell.sel{transform:scale(1.12);z-index:5}.cc-cell.sel::after{content:'';position:absolute;inset:-3px;border:3.5px solid #FACC15;border-radius:16px;box-shadow:0 0 18px #FACC15;pointer-events:none}
-.cc-candy{width:88%;height:88%;border-radius:18px;display:grid;place-items:center;font-weight:900;font-size:22px;position:relative;box-shadow:0 4px 0 rgba(0,0,0,.15), inset 0 2px 0 rgba(255,255,255,.9);border:2px solid rgba(0,0,0,.08);overflow:hidden;transition:transform .12s}
+.cc-candy{width:88%;height:88%;border-radius:18px;display:grid;place-items:center;font-weight:900;font-size:22px;position:relative;box-shadow:0 4px 0 rgba(0,0,0,.15), inset 0 2px 0 rgba(255,255,255,.9);border:2px solid rgba(0,0,0,.08);overflow:hidden}
 .cc-candy::before{content:'';position:absolute;top:8%;left:14%;width:36%;height:28%;background:rgba(255,255,255,.85);border-radius:50%}
 .cc-candy.bomb{border-radius:14px;box-shadow:0 0 0 2px #fff, 0 4px 0 rgba(0,0,0,.2), 0 0 18px currentColor}
 .cc-candy.striped-h::after{content:'';position:absolute;left:-6px;right:-6px;top:50%;height:6px;background:repeating-linear-gradient(90deg, #fff 0 6px, transparent 6px 12px);transform:translateY(-50%);border-radius:999px;box-shadow:0 0 8px #fff}
@@ -44,25 +44,16 @@ export function init(container, args){
 @keyframes explo{0%{width:10px;height:10px;opacity:1}100%{width:110px;height:110px;opacity:0}}
 .cc-combo{position:absolute;left:50%;top:18%;transform:translateX(-50%);background:linear-gradient(135deg,#FACC15,#F59E0B);color:#000;padding:6px 14px;border-radius:999px;font-weight:900;font-size:15px;box-shadow:0 6px 16px rgba(0,0,0,.4);pointer-events:none;animation:combo .9s ease forwards;z-index:30;border:2px solid #fff}
 @keyframes combo{0%{opacity:0;transform:translateX(-50%) translateY(20px) scale(.6)}20%{opacity:1;transform:translateX(-50%) translateY(0) scale(1.2)}100%{opacity:0;transform:translateX(-50%) translateY(-38px) scale(1)}}
-.cc-diffs{display:flex;gap:8px;width:100%}.cc-diff{flex:1;height:42px;border-radius:14px;border:2.5px solid #fff;background:rgba(255,255,255,.9);color:#4C1D95;font-weight:900;font-size:11px;cursor:pointer;display:grid;place-items:center;box-shadow:0 4px 12px rgba(0,0,0,.2)}.cc-diff.active{background:#FACC15;border-color:#EAB308;color:#000;transform:translateY(-2px);box-shadow:0 8px 20px rgba(250,204,21,.5)}
-@media(max-width:480px){.cc-grid{gap:4px}.cc-candy{font-size:19px;border-radius:13px}.cc-board{padding:6px;border-radius:18px}.cc-cell{border-radius:11px}}
+.cc-diffs{display:flex;gap:8px;width:100%}.cc-diff{flex:1;height:42px;border-radius:14px;border:2.5px solid #fff;background:rgba(255,255,255,.9);color:#4C1D95;font-weight:900;font-size:11px;cursor:pointer;display:grid;place-items:center}.cc-diff.active{background:#FACC15;border-color:#EAB308;color:#000;transform:translateY(-2px)}
+@media(max-width:480px){.cc-grid{gap:4px}.cc-candy{font-size:19px}.cc-board{padding:6px;border-radius:18px}}
 </style>
 <div class="cc" id="root">
   <div class="cc-area">
-    <div class="cc-stats">
-      <div class="cc-stat"><b id="cScore">0</b><span>Score</span></div>
-      <div class="cc-stat"><b id="cBest">0</b><span>Best</span></div>
-      <div class="cc-stat gold"><b id="cReward">+0.0000000</b><span>WASA TOTAL</span></div>
-    </div>
-    <div class="cc-bar-wrap">
-      <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:900"><span>PROGRESO PREMIO</span><span id="cProg">0/${MERGES_FOR_REWARD}</span></div>
-      <div class="cc-bar"><div class="cc-bar-fill" id="cBar"></div></div>
-      <div style="font-size:9px;opacity:.7;margin-top:4px">4 en línea = rayada ↔ • L/T = bomba 💥 • 5 = arcoiris 🌈</div>
-    </div>
+    <div class="cc-stats"><div class="cc-stat"><b id="cScore">0</b><span>Score</span></div><div class="cc-stat"><b id="cBest">0</b><span>Best</span></div><div class="cc-stat gold"><b id="cReward">+0.0000000</b><span>WASA TOTAL</span></div></div>
+    <div class="cc-bar-wrap"><div style="display:flex;justify-content:space-between;font-size:11px;font-weight:900"><span>PROGRESO PREMIO</span><span id="cProg">0/${MERGES_FOR_REWARD}</span></div><div class="cc-bar"><div class="cc-bar-fill" id="cBar"></div></div><div style="font-size:9px;opacity:.7;margin-top:4px">4 en línea = rayada ↔ • L/T = bomba 💥 • 5 = arcoiris 🌈</div></div>
     <div class="cc-board" id="board"><div class="cc-grid" id="grid"></div></div>
     <div class="cc-diffs"><div class="cc-diff" id="d1">EASY</div><div class="cc-diff active" id="d2">MEDIUM</div><div class="cc-diff" id="d3">HARD X2</div></div>
-  </div>
-  <div id="ui"></div>
+  </div><div id="ui"></div>
 </div>`;
 
   const root=container.querySelector('#root'); const ui=root.querySelector('#ui'); const gridEl=root.querySelector('#grid');
@@ -80,9 +71,7 @@ export function init(container, args){
     let tries=0;
     do{ board=Array(SZ).fill(0).map(()=>Array(SZ).fill(0).map(()=>makeCell(randColor()))); tries++; }while(findMatches().groups.length>0 && tries<100);
     score=0; crushes=0; sel=null; busy=false; lastSwap=null; startTime=Date.now(); startSession();
-    // crea DOM una sola vez
-    gridEl.innerHTML='';
-    for(let r=0;r<SZ;r++) for(let c=0;c<SZ;c++){ const cell=document.createElement('div'); cell.className='cc-cell'; cell.dataset.r=r; cell.dataset.c=c; gridEl.appendChild(cell); }
+    gridEl.innerHTML=''; for(let r=0;r<SZ;r++) for(let c=0;c<SZ;c++){ const cell=document.createElement('div'); cell.className='cc-cell'; cell.dataset.r=r; cell.dataset.c=c; gridEl.appendChild(cell); }
     draw();
   }
 
@@ -90,15 +79,12 @@ export function init(container, args){
     for(let r=0;r<SZ;r++) for(let c=0;c<SZ;c++){
       const idx=r*SZ+c; const cellEl=gridEl.children[idx]; if(!cellEl) continue;
       const obj=board[r][c]; if(!obj){ cellEl.innerHTML=''; continue; }
-      let candy=cellEl.querySelector('.cc-candy');
-      if(!candy){ candy=document.createElement('div'); cellEl.appendChild(candy); }
-      let cls='cc-candy';
-      if(obj.s==='bomb') cls+=' bomb'; else if(obj.s==='h') cls+=' striped-h'; else if(obj.s==='v') cls+=' striped-v'; else if(obj.s==='color') cls+=' color-bomb';
+      let candy=cellEl.querySelector('.cc-candy'); if(!candy){ candy=document.createElement('div'); cellEl.appendChild(candy); }
+      let cls='cc-candy'; if(obj.s==='bomb') cls+=' bomb'; else if(obj.s==='h') cls+=' striped-h'; else if(obj.s==='v') cls+=' striped-v'; else if(obj.s==='color') cls+=' color-bomb';
       candy.className=cls;
       if(obj.s==='color'){ candy.textContent='🌈'; }
       else { candy.textContent=ICONS[obj.c]; const col=COLORS[obj.c]; candy.style.background=`linear-gradient(180deg, ${col.light}, ${col.bg})`; candy.style.borderColor=col.bd; }
-      cellEl.classList.remove('sel','matched','new');
-      if(sel && sel.r==r && sel.c==c) cellEl.classList.add('sel');
+      cellEl.classList.remove('sel','matched','new'); if(sel && sel.r==r && sel.c==c) cellEl.classList.add('sel');
     }
     root.querySelector('#cScore').textContent=score;
     root.querySelector('#cBest').textContent=Math.max(best,score);
@@ -110,37 +96,45 @@ export function init(container, args){
 
   function isAdj(r1,c1,r2,c2){ return Math.abs(r1-r2)+Math.abs(c1-c2)===1; }
 
-  function handleSelect(r,c){
+  async function handleSelect(r,c){
     if(busy) return;
     const obj=board[r][c];
     if(obj.s==='color' && sel){
       const targetColor=board[sel.r][sel.c].c;
-      activateColorBomb(r,c,targetColor); return;
+      await activateColorBomb(r,c,targetColor); return;
     }
-    if(obj.s && sel===null && (obj.s==='h'||obj.s==='v'||obj.s==='bomb')){
-      activateSpecial(r,c); return;
+    if(obj.s && sel===null && (obj.s==='h'||obj.s==='v'||obj.s==='bomb'||obj.s==='color')){
+      await activateSpecial(r,c); return;
     }
     if(!sel){ sel={r,c}; draw(); return; }
     if(sel.r===r && sel.c===c){ sel=null; draw(); return; }
     if(!isAdj(sel.r,sel.c,r,c)){ sel={r,c}; draw(); return; }
-    trySwap(sel.r,sel.c,r,c);
+    await trySwap(sel.r,sel.c,r,c);
   }
 
-  function activateSpecial(r,c){
-    if(busy) return; busy=true;
-    const obj=board[r][c];
-    let toRemove=new Set();
+  async function activateSpecial(r,c){
+    if(busy) return; busy=true; sel=null;
+    const obj=board[r][c]; let toRemove=new Set();
     if(obj.s==='h'){ for(let cc=0;cc<SZ;cc++) toRemove.add(r+','+cc); }
     else if(obj.s==='v'){ for(let rr=0;rr<SZ;rr++) toRemove.add(rr+','+c); }
     else if(obj.s==='bomb'){ for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){ const nr=r+dr, nc=c+dc; if(nr>=0&&nr<SZ&&nc>=0&&nc<SZ) toRemove.add(nr+','+nc); } }
-    sel=null; processMatchesWithSet(Array.from(toRemove), null, 1, []).then(()=>{ busy=false; if(crushes>=MERGES_FOR_REWARD) showReward(); });
+    else if(obj.s==='color'){ for(let rr=0;rr<SZ;rr++) for(let cc=0;cc<SZ;cc++) toRemove.add(rr+','+cc); }
+    await processMatchesWithSet(Array.from(toRemove), null, 1, []);
+    // FIX: despues de bomba/rayada, busca cascada automatica
+    await runAutoCascade();
+    busy=false;
+    if(crushes>=MERGES_FOR_REWARD) showReward();
   }
 
-  function activateColorBomb(r,c,targetColor){
+  async function activateColorBomb(r,c,targetColor){
     if(busy) return; busy=true; sel=null;
     let toRemove=new Set(); toRemove.add(r+','+c);
     for(let rr=0;rr<SZ;rr++) for(let cc=0;cc<SZ;cc++) if(board[rr][cc].c===targetColor) toRemove.add(rr+','+cc);
-    processMatchesWithSet(Array.from(toRemove), null, 1, []).then(()=>{ busy=false; if(crushes>=MERGES_FOR_REWARD) showReward(); });
+    await processMatchesWithSet(Array.from(toRemove), null, 1, []);
+    // FIX: cascada automatica despues del arcoiris
+    await runAutoCascade();
+    busy=false;
+    if(crushes>=MERGES_FOR_REWARD) showReward();
   }
 
   async function trySwap(r1,c1,r2,c2){
@@ -154,6 +148,7 @@ export function init(container, args){
       else { for(let rr=0;rr<SZ;rr++) for(let cc=0;cc<SZ;cc++) if(board[rr][cc].c===other.c) toRemove.add(rr+','+cc); }
       sel=null; draw(); await new Promise(r=>setTimeout(r,120));
       await processMatchesWithSet(Array.from(toRemove), null, 1, []);
+      await runAutoCascade();
       busy=false; if(crushes>=MERGES_FOR_REWARD) showReward(); return;
     }
     swap(r1,c1,r2,c2); draw(); await new Promise(res=>setTimeout(res,140));
@@ -187,6 +182,35 @@ export function init(container, args){
       }
     }
     return {groups, all:Array.from(allCells)};
+  }
+
+  async function runAutoCascade(){
+    let combo=1;
+    let found=findMatches();
+    while(found.groups.length>0){
+      combo++;
+      const specialsToCreate=[]; const cellToGroups=new Map();
+      found.groups.forEach(g=>g.cells.forEach(cell=>{ const key=cell.r+','+cell.c; if(!cellToGroups.has(key)) cellToGroups.set(key,[]); cellToGroups.get(key).push(g); }));
+      for(const [key, gList] of cellToGroups){
+        if(gList.length>=2){
+          const hasH=gList.some(g=>g.dir==='h'); const hasV=gList.some(g=>g.dir==='v');
+          if(hasH && hasV){ const [r,c]=key.split(',').map(Number); specialsToCreate.push({r,c,type:'bomb', color:board[r][c].c}); }
+        }
+      }
+      found.groups.forEach(g=>{
+        if(g.len===4){
+          let target=g.cells[Math.floor(g.cells.length/2)];
+          if(!specialsToCreate.some(s=>s.r===target.r && s.c===target.c)) specialsToCreate.push({r:target.r,c:target.c,type: g.dir==='h' ? 'v' : 'h', color:g.color});
+        } else if(g.len>=5){
+          let target=g.cells[Math.floor(g.cells.length/2)];
+          specialsToCreate.push({r:target.r,c:target.c,type:'color', color:g.color});
+        }
+      });
+      let toRemoveSet=new Set(found.all); specialsToCreate.forEach(s=> toRemoveSet.delete(s.r+','+s.c));
+      await processMatchesWithSet(Array.from(toRemoveSet), null, combo, specialsToCreate);
+      found=findMatches();
+      if(found.groups.length>0) await new Promise(r=>setTimeout(r,120));
+    }
   }
 
   async function processCascade(firstFind){
@@ -236,14 +260,13 @@ export function init(container, args){
     }
     specialsToCreate.forEach(s=>{ if(board[s.r]) board[s.r][s.c]=makeCell(s.color, s.type); });
     draw();
-    // solo nuevas fichas arriba con animacion suave, sin mover todo el tablero
     for(let c=0;c<SZ;c++){ for(let r=0;r<2;r++){ const el=gridEl.querySelector(`[data-r="${r}"][data-c="${c}"]`); if(el){ el.classList.add('new'); setTimeout(()=>el.classList.remove('new'),340); } } }
     await new Promise(r=>setTimeout(r,120));
     lastSwap=null;
   }
 
   function showReward(){
-    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(18,10,42,.88);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:30;padding:16px"><div style="background:linear-gradient(180deg,#fff,#F3F0FF);border:3px solid #8B5CF6;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#2a1a5e;box-shadow:0 24px 60px rgba(0,0,0,.5)"><div style="font-size:40px">🍬✨</div><div style="font-weight:900;margin:8px 0;font-size:20px;color:#4C1D95">¡${MERGES_FOR_REWARD} CRUSHES!</div><div style="background:linear-gradient(180deg,#DCFCE7,#86EFAC);border:2px solid #22C55E;border-radius:14px;padding:12px;margin:12px 0;font-weight:900;color:#065F46">💰 +${fmt(BASE_REWARD*mult)} WASA</div><button id="btnDouble" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:linear-gradient(135deg,#FACC15,#F59E0B);color:#000;cursor:pointer">📺 X2 = ${fmt(BASE_REWARD*mult*2)}</button><button id="btnClaim" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:2.5px solid #DDD6FE;background:#fff;color:#4C1D95;margin-top:10px;cursor:pointer">COBRAR ${fmt(BASE_REWARD*mult)} WASA</button></div></div>`;
+    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(18,10,42,.88);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:30;padding:16px"><div style="background:linear-gradient(180deg,#fff,#F3F0FF);border:3px solid #8B5CF6;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#2a1a5e"><div style="font-size:40px">🍬✨</div><div style="font-weight:900;margin:8px 0;font-size:20px;color:#4C1D95">¡${MERGES_FOR_REWARD} CRUSHES!</div><div style="background:linear-gradient(180deg,#DCFCE7,#86EFAC);border:2px solid #22C55E;border-radius:14px;padding:12px;margin:12px 0;font-weight:900;color:#065F46">💰 +${fmt(BASE_REWARD*mult)} WASA</div><button id="btnDouble" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:linear-gradient(135deg,#FACC15,#F59E0B);color:#000;cursor:pointer">📺 X2 = ${fmt(BASE_REWARD*mult*2)}</button><button id="btnClaim" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:2.5px solid #DDD6FE;background:#fff;color:#4C1D95;margin-top:10px;cursor:pointer">COBRAR ${fmt(BASE_REWARD*mult)} WASA</button></div></div>`;
     ui.querySelector('#btnDouble').onclick=()=>openAd('double');
     ui.querySelector('#btnClaim').onclick=async()=>{ const btn=ui.querySelector('#btnClaim'); btn.textContent='⏳ VALIDANDO...'; btn.disabled=true; const res=await claim(false,false); if(res.ok){ totalReward+=BASE_REWARD*mult; crushes=0; startTime=Date.now(); startSession(); draw(); ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(0,0,0,.75);display:grid;place-items:center;z-index:40"><div style="background:#fff;border:3px solid #22C55E;border-radius:18px;padding:18px;text-align:center;color:#065F46;width:min(320px,90vw)"><div style="font-weight:900;font-size:18px">¡+${fmt(BASE_REWARD*mult)} WASA!</div><button id="ok" style="margin-top:12px;width:100%;height:44px;border-radius:999px;background:#22C55E;color:#000;font-weight:900;border:0;cursor:pointer">SEGUIR</button></div></div>`; ui.querySelector('#ok').onclick=()=>{ ui.innerHTML=''; draw(); }; } else { btn.textContent=res.error||'REINTENTAR'; btn.disabled=false; } };
   }
