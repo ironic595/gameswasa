@@ -25,6 +25,15 @@ function updateWalletUI(){
   if(btn){ if(connectedWallet){ btn.textContent=(connectedNickname||connectedWallet.slice(0,6)+'...'+connectedWallet.slice(-4)); btn.classList.add('connected'); if(info){ info.style.display='block'; info.textContent='✅ '+connectedWallet; } }else{ btn.textContent='Connect Wallet'; btn.classList.remove('connected'); if(info) info.style.display='none'; } }
   if(userBtn){ if(isLogged()){ const name=connectedNickname||connectedEmail?.split('@')[0]||connectedWallet?.slice(0,6)||'U'; userBtn.textContent=name.slice(0,2).toUpperCase(); userBtn.className='user-btn connected'; }else{ userBtn.textContent='👤'; userBtn.className='user-btn disconnected'; } }
   if(!isLogged()) closeUserMenu();
+  // === FOOTER INTELIGENTE - FIX para JONY ya logueado ===
+  const logged = isLogged();
+  document.querySelectorAll('.footer-guest-only').forEach(el=>{ el.style.display = logged ? 'none' : 'block'; });
+  document.querySelectorAll('.footer-logged-only').forEach(el=>{ el.style.display = logged ? 'block' : 'none'; });
+  // Si esta logueado, el boton Conectar wallet dice Cambiar wallet
+  document.querySelectorAll('[data-footer-wallet]').forEach(el=>{
+    if(connectedWallet){ el.textContent = '🔗 '+connectedWallet.slice(0,6)+'...'; el.title = connectedWallet; }
+    else { el.textContent = 'Conectar wallet'; }
+  });
 }
 async function syncBalanceFromD1(){
   const email=getStoredEmail(); const wallet=getStoredWallet(); const device_id=getDeviceId();
@@ -38,7 +47,19 @@ function openWalletChooser(){ document.getElementById('walletChooser')?.classLis
 function closeWalletChooser(){ document.getElementById('walletChooser')?.classList.remove('open'); }
 function openWasaBuy(){ document.getElementById('wasaBuyModal')?.classList.add('open'); updateWalletUI(); }
 function closeWasaBuy(){ document.getElementById('wasaBuyModal')?.classList.remove('open'); }
-function openAuthEmail(tab){ if(tab) authTab=tab; closeWalletChooser(); closeUserMenu(); closeVerifyModal(); document.getElementById('authModal')?.classList.add('open'); switchAuthTab(authTab); }
+function openAuthEmail(tab){ 
+  // FIX: si ya esta logueado, no mostrar Crear cuenta, mostrar perfil directamente
+  if(isLogged()){
+    if(tab==='register'){
+      openUserProfile();
+      return;
+    }
+  }
+  if(tab) authTab=tab; 
+  closeWalletChooser(); closeUserMenu(); closeVerifyModal(); 
+  document.getElementById('authModal')?.classList.add('open'); 
+  switchAuthTab(authTab); 
+}
 function closeAuthEmail(){ document.getElementById('authModal')?.classList.remove('open'); }
 function switchAuthTab(tab){ authTab=tab; document.getElementById('tabLogin')?.classList.toggle('active',tab==='login'); document.getElementById('tabRegister')?.classList.toggle('active',tab==='register'); const lf=document.getElementById('loginForm'); const rf=document.getElementById('registerForm'); if(lf) lf.style.display=tab==='login'?'block':'none'; if(rf) rf.style.display=tab==='register'?'block':'none'; const fb=document.getElementById('forgotBox'); if(fb) fb.classList.remove('open'); }
 function openUserMenu(){ if(!isLogged()){ openAuthEmail('register'); return; } document.getElementById('userDropdown')?.classList.add('open'); userMenuOpen=true; }
