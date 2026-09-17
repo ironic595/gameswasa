@@ -178,6 +178,9 @@ footer.wasa-footer{background:rgba(5,8,20,0.85);backdrop-filter:blur(12px);borde
 .footer-links a{font-size:10px;color:#64748b;text-decoration:none}
 @media(max-width:900px){.footer-inner{grid-template-columns:1fr 1fr;gap:20px;padding:20px 16px}}
 @media(max-width:600px){.footer-inner{grid-template-columns:1fr;gap:18px}.footer-bottom{flex-direction:column;align-items:flex-start;padding:12px 16px}}
+  #gmLogo, #loading-text-gm{
+    display:none;
+  }
 </style>
 <script>
   window.vrAd=0; window.SDK_OPTIONS={gameId:"4kci7og3klgj0ivy2wz3gd9dth5e7n",onEvent:function(a){if(a.name==='SDK_GAME_PAUSE'){window._gm_shown=true;if(window.vrAd===2){window.vrAd=3;}}if(a.name==='SDK_GAME_START'||a.name==='SDK_ERROR'||a.name==='SDK_GAME_END'){if(window.vrAd===3||window.vrAd===2){window.vrAd=4;}}if(a.name==='SDK_READY'){window._gm_ready=true;}}};
