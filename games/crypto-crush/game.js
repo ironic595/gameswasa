@@ -1,4 +1,4 @@
-// games/crypto-crush/game.js - v5.3 FIX CONTEO 4 Y ARCOIRIS - cuenta bien y arcoiris solo al swap
+// games/crypto-crush/game.js - v5.4 FIX TRABADO DESPUES DE NIVEL + MODAL OBJETIVOS SIEMPRE
 export function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javisimes.workers.dev/';
   function getDeviceId(){ let id=localStorage.getItem('wasa_device_id'); if(!id){ id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id; }
@@ -212,7 +212,7 @@ html,body{overscroll-behavior:none}
     </div>
   </div>
   <div class="cc-main" id="mainArea"><div class="cc-board" id="board"><div class="cc-grid" id="grid"></div></div></div>
-  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">Fix conteo 4 y arcoiris swap only</div></div>
+  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">v5.4 fix trabado + modal siempre</div></div>
   <div id="ui"></div>
 </div>`;
 
@@ -250,6 +250,7 @@ html,body{overscroll-behavior:none}
 
   function showLevelIntro(){
     gameStarted=false;
+    busy=false;
     if(timerInt) clearInterval(timerInt);
     const isTimeLevel = level.type==='time';
     const title = isTimeLevel ? '⏰ NIVEL POR TIEMPO' : '🎯 NIVEL POR MOVIMIENTOS';
@@ -266,21 +267,32 @@ html,body{overscroll-behavior:none}
       return `<div style="background:#F5F3FF;border:2px solid #DDD6FE;border-radius:10px;padding:8px;display:flex;align-items:center;gap:8px"><div style="font-size:18px">${o.icon}</div><div><b style="font-size:12px">${o.name} ${o.target}</b></div></div>`;
     }).join('');
 
-    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(18,10,42,.92);backdrop-filter:blur(16px);display:grid;place-items:center;z-index:40;padding:16px">
-      <div style="background:linear-gradient(180deg,#fff,#F3F0FF);border:3px solid ${isTimeLevel?'#EF4444':'#4C1D95'};border-radius:22px;padding:20px;text-align:center;width:min(380px,94vw);color:#2a1a5e">
+    ui.innerHTML=`<div id="introModal" style="position:fixed;inset:0;background:rgba(18,10,42,.92);backdrop-filter:blur(16px);display:grid;place-items:center;z-index:50;padding:16px">
+      <div style="background:linear-gradient(180deg,#fff,#F3F0FF);border:3px solid ${isTimeLevel?'#EF4444':'#4C1D95'};border-radius:22px;padding:20px;text-align:center;width:min(380px,94vw);color:#2a1a5e;box-shadow:0 20px 60px rgba(0,0,0,.5)">
         <div style="font-size:12px;font-weight:900;letter-spacing:.1em;opacity:.6">${title}</div>
         <div style="font-size:32px;font-weight:900;margin:6px 0;color:${isTimeLevel?'#DC2626':'#4C1D95'}">NIVEL ${currentLevelNum}</div>
         <div style="background:${isTimeLevel?'#FEF2F2':'#F5F3FF'};border:1.5px solid ${isTimeLevel?'#FECACA':'#DDD6FE'};border-radius:12px;padding:12px;margin:10px 0;font-size:13px;line-height:1.4">${desc}</div>
         <div style="display:grid;gap:6px;margin:12px 0;text-align:left">${objsHtml}</div>
-        <button id="btnStart" style="width:100%;height:52px;border-radius:14px;font-weight:900;font-size:16px;border:0;background:${isTimeLevel?'linear-gradient(135deg,#EF4444,#DC2626)':'linear-gradient(135deg,#4C1D95,#6D28D9)'};color:#fff;cursor:pointer">▶ ACEPTAR Y EMPEZAR</button>
+        <div style="font-size:10px;opacity:.5;margin:8px 0">Tokens: ${level.activeTokens.map(t=>t.name).join(', ')}</div>
+        <button id="btnStart" style="width:100%;height:52px;border-radius:14px;font-weight:900;font-size:16px;border:0;background:${isTimeLevel?'linear-gradient(135deg,#EF4444,#DC2626)':'linear-gradient(135deg,#4C1D95,#6D28D9)'};color:#fff;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25)">▶ ACEPTAR Y EMPEZAR</button>
       </div>
     </div>`;
-    ui.querySelector('#btnStart').onclick=()=>{ ui.innerHTML=''; startGameTimer(); };
+    
+    const btn=ui.querySelector('#btnStart');
+    if(btn){
+      btn.onclick=()=>{
+        const modal=ui.querySelector('#introModal');
+        if(modal) modal.remove();
+        startGameTimer();
+      };
+    }
   }
 
   function startGameTimer(){
     gameStarted=true;
+    busy=false;
     startTime=Date.now();
+    debugInfo.textContent=`N${currentLevelNum} ${level.type==='time'?'⏰ '+level.time+'s':'🎯 '+level.moves+' movs'} - ¡A jugar!`;
     if(level.type==='time'){
       if(timerInt) clearInterval(timerInt);
       timerInt=setInterval(()=>{
@@ -294,7 +306,8 @@ html,body{overscroll-behavior:none}
   }
 
   function loadLevel(n){
-    currentLevelNum=n; localStorage.setItem('wcrush_level', n);
+    currentLevelNum=n; 
+    localStorage.setItem('wcrush_level', n);
     const activeTokens=getActiveTokensForLevel(n);
     level=generateLevel(n, activeTokens);
     score=0; moves=level.moves; timeLeft=level.time; sel=null; busy=false; lastSwap=null; gameStarted=false;
@@ -314,6 +327,7 @@ html,body{overscroll-behavior:none}
       activeDiv.appendChild(chip);
     });
     startSession(); draw(); updateObjectivesUI(); updateUI();
+    // FIX: muestra modal SIEMPRE antes de cada nivel
     showLevelIntro();
   }
 
@@ -385,45 +399,29 @@ html,body{overscroll-behavior:none}
     if(level.type==='moves' && moves<=0 && !checkWin()){ showFail(); } 
   }
 
-  // FIX 2: arcoiris solo al swap, no al toque solo
   async function handleSelect(r,c){
     if(busy || !gameStarted) return;
     const obj=board[r][c];
-
-    // ARCOIRIS: si tocas arcoiris sin seleccion previa, solo lo selecciona, no explota
     if(obj.s==='color'){
       if(sel===null){
-        sel={r,c};
-        draw();
-        debugInfo.textContent='🌈 Arcoiris seleccionado - cambia con un color para explotar';
+        sel={r,c}; draw();
+        debugInfo.textContent='🌈 Arcoiris seleccionado - cambia con un color';
         return;
       } else {
-        // ya hay selección, si seleccionaste arcoiris + color o viceversa, activa combo
         const other=board[sel.r][sel.c];
         if(other.s==='color' || obj.s==='color'){
-          // arcoiris + arcoiris = todo el tablero
-          // arcoiris + color = explota ese color
           const targetColor = other.s==='color' ? obj.c : other.c;
           const rainbowR = other.s==='color' ? sel.r : r;
           const rainbowC = other.s==='color' ? sel.c : c;
           const isDoubleRainbow = other.s==='color' && obj.s==='color';
-          if(isDoubleRainbow){
-            await activateColorBombRainbowAll();
-          } else {
-            await activateColorBomb(rainbowR, rainbowC, targetColor);
-          }
+          if(isDoubleRainbow){ await activateColorBombRainbowAll(); } else { await activateColorBomb(rainbowR, rainbowC, targetColor); }
           return;
         }
       }
     }
-
-    // Bombas y rayadas sí pueden activarse con doble toque
     if(obj.s && sel===null && (obj.s==='h'||obj.s==='v'||obj.s==='bomb')){
-      // solo bombas y rayadas, no arcoiris
-      await activateSpecial(r,c); 
-      return; 
+      await activateSpecial(r,c); return; 
     }
-
     if(!sel){ sel={r,c}; draw(); return; }
     if(sel.r===r && sel.c===c){ sel=null; draw(); return; }
     if(!isAdj(sel.r,sel.c,r,c)){ sel={r,c}; draw(); return; }
@@ -436,13 +434,9 @@ html,body{overscroll-behavior:none}
     if(obj.s==='h'){ for(let cc=0;cc<SZ;cc++) toRemove.add(r+','+cc); }
     else if(obj.s==='v'){ for(let rr=0;rr<SZ;rr++) toRemove.add(rr+','+c); }
     else if(obj.s==='bomb'){ for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){ const nr=r+dr, nc=c+dc; if(nr>=0&&nr<SZ&&nc>=0&&nc<SZ) toRemove.add(nr+','+nc); } }
-    // color-bomb no entra aca, se maneja aparte
-
-    // FIX 1: cuenta ANTES de sacar especiales
     const allMatchedForCount = Array.from(toRemove);
     allMatchedForCount.forEach(k=>{ const [rr,cc]=k.split(',').map(Number); const col=board[rr][cc]?.c; if(col!==undefined) level.objectives.forEach(o=>{ if(o.type==='collect_color' && o.color===col) o.current++; }); });
     if(obj.s==='bomb' || obj.s==='h' || obj.s==='v') level.objectives.forEach(o=>{ if(o.type==='collect_special') o.current++; });
-
     await processMatchesWithSet(Array.from(toRemove), null, 1, []);
     await runAutoCascade();
     if(level.type==='moves') moves--;
@@ -467,11 +461,8 @@ html,body{overscroll-behavior:none}
     if(busy || !gameStarted) return; busy=true; sel=null;
     let toRemove=new Set(); toRemove.add(r+','+c);
     for(let rr=0;rr<SZ;rr++) for(let cc=0;cc<SZ;cc++) if(board[rr][cc]?.c===targetColor) toRemove.add(rr+','+cc);
-
-    // cuenta todo lo que va a explotar
     toRemove.forEach(k=>{ const [rr,cc]=k.split(',').map(Number); const col=board[rr][cc]?.c; if(col!==undefined) level.objectives.forEach(o=>{ if(o.type==='collect_color' && o.color===col) o.current++; }); });
     level.objectives.forEach(o=>{ if(o.type==='collect_rainbow') o.current++; });
-
     await processMatchesWithSet(Array.from(toRemove), null, 1, []);
     await runAutoCascade();
     if(level.type==='moves') moves--;
@@ -482,32 +473,19 @@ html,body{overscroll-behavior:none}
   async function trySwap(r1,c1,r2,c2){
     if(busy || !gameStarted) return; busy=true; lastSwap={r1,c1,r2,c2};
     const a=board[r1][c1], b=board[r2][c2];
-
-    // CASO ARCOIRIS - maneja combinaciones especiales
     if(a.s==='color' || b.s==='color'){
       const br=a.s==='color'?r1:r2, bc=a.s==='color'?c1:c2; const other=a.s==='color'?b:a;
       let toRemove=new Set(); toRemove.add(br+','+bc);
-
-      if(other.s==='color'){ 
-        // arcoiris + arcoiris = todo
-        for(let rr=0;rr<SZ;rr++) for(let cc=0;cc<SZ;cc++) toRemove.add(rr+','+cc); 
-      } else { 
-        // arcoiris + color = todo ese color
-        for(let rr=0;rr<SZ;rr++) for(let cc=0;cc<SZ;cc++) if(board[rr][cc]?.c===other.c) toRemove.add(rr+','+cc); 
-      }
-
+      if(other.s==='color'){ for(let rr=0;rr<SZ;rr++) for(let cc=0;cc<SZ;cc++) toRemove.add(rr+','+cc); }
+      else { for(let rr=0;rr<SZ;rr++) for(let cc=0;cc<SZ;cc++) if(board[rr][cc]?.c===other.c) toRemove.add(rr+','+cc); }
       sel=null; draw(); await new Promise(r=>setTimeout(r,100));
-
-      // FIX CONTEO: cuenta todo antes
       toRemove.forEach(k=>{ const [rr,cc]=k.split(',').map(Number); const col=board[rr][cc]?.c; if(col!==undefined) level.objectives.forEach(o=>{ if(o.type==='collect_color' && o.color===col) o.current++; }); });
       level.objectives.forEach(o=>{ if(o.type==='collect_rainbow') o.current++; });
-
       await processMatchesWithSet(Array.from(toRemove), null, 1, []);
       await runAutoCascade();
       if(level.type==='moves') moves--; updateObjectivesUI(); updateUI(); busy=false;
       if(checkWin()) showWin(); else checkFail(); return;
     }
-
     swap(r1,c1,r2,c2); draw(); await new Promise(res=>setTimeout(res,120));
     let found=findMatches();
     if(found.groups.length===0){ swap(r1,c1,r2,c2); draw(); busy=false; sel=null; return; }
@@ -524,7 +502,6 @@ html,body{overscroll-behavior:none}
     return {groups, all:Array.from(allCells)};
   }
 
-  // FIX 1: processMatchesWithSet ahora cuenta ANTES y cuenta las 4 fichas aunque una se vuelva rayada
   async function runAutoCascade(){
     let combo=1; let found=findMatches();
     while(found.groups.length>0){
@@ -532,21 +509,10 @@ html,body{overscroll-behavior:none}
       const specialsToCreate=[]; const cellToGroups=new Map();
       found.groups.forEach(g=>g.cells.forEach(cell=>{ const key=cell.r+','+cell.c; if(!cellToGroups.has(key)) cellToGroups.set(key,[]); cellToGroups.get(key).push(g); }));
       for(const [key, gList] of cellToGroups){ if(gList.length>=2){ const hasH=gList.some(g=>g.dir==='h'); const hasV=gList.some(g=>g.dir==='v'); if(hasH && hasV){ const [r,c]=key.split(',').map(Number); specialsToCreate.push({r,c,type:'bomb', color:board[r][c]?.c}); } } }
-      found.groups.forEach(g=>{ 
-        if(g.len===4){ 
-          let target=g.cells[Math.floor(g.cells.length/2)]; 
-          if(!specialsToCreate.some(s=>s.r===target.r && s.c===target.c)) specialsToCreate.push({r:target.r,c:target.c,type: g.dir==='h' ? 'v' : 'h', color:g.color}); 
-        } else if(g.len>=5){ 
-          let target=g.cells[Math.floor(g.cells.length/2)]; 
-          specialsToCreate.push({r:target.r,c:target.c,type:'color', color:g.color}); 
-        } 
-      });
-
-      // CUENTA TODO EL MATCH ANTES DE SACAR LA POSICION DE LA ESPECIAL
+      found.groups.forEach(g=>{ if(g.len===4){ let target=g.cells[Math.floor(g.cells.length/2)]; if(!specialsToCreate.some(s=>s.r===target.r && s.c===target.c)) specialsToCreate.push({r:target.r,c:target.c,type: g.dir==='h' ? 'v' : 'h', color:g.color}); } else if(g.len>=5){ let target=g.cells[Math.floor(g.cells.length/2)]; specialsToCreate.push({r:target.r,c:target.c,type:'color', color:g.color}); } });
       const countSet = new Set(found.all);
       countSet.forEach(k=>{ const [rr,cc]=k.split(',').map(Number); const col=board[rr][cc]?.c; if(col!==undefined) level.objectives.forEach(o=>{ if(o.type==='collect_color' && o.color===col) o.current++; }); });
       specialsToCreate.forEach(s=>{ if(s.type==='bomb' || s.type==='h' || s.type==='v') level.objectives.forEach(o=>{ if(o.type==='collect_special') o.current++; }); if(s.type==='color') level.objectives.forEach(o=>{ if(o.type==='collect_rainbow') o.current++; }); });
-
       let toRemoveSet=new Set(found.all); specialsToCreate.forEach(s=> toRemoveSet.delete(s.r+','+s.c));
       await processMatchesWithSet(Array.from(toRemoveSet), null, combo, specialsToCreate, false);
       found=findMatches(); if(found.groups.length>0) await new Promise(r=>setTimeout(r,100));
@@ -565,13 +531,10 @@ html,body{overscroll-behavior:none}
         if(g.len===4){ let target=g.cells[Math.floor(g.cells.length/2)]; if(lastSwap){ if(g.cells.some(cell=>cell.r===lastSwap.r1 && cell.c===lastSwap.c1)) target={r:lastSwap.r1,c:lastSwap.c1}; else if(g.cells.some(cell=>cell.r===lastSwap.r2 && cell.c===lastSwap.c2)) target={r:lastSwap.r2,c:lastSwap.c2}; } if(!specialsToCreate.some(s=>s.r===target.r && s.c===target.c)) specialsToCreate.push({r:target.r,c:target.c,type: g.dir==='h' ? 'v' : 'h', color:g.color}); }
         else if(g.len>=5){ let target=g.cells[Math.floor(g.cells.length/2)]; if(lastSwap){ if(g.cells.some(cell=>cell.r===lastSwap.r1 && cell.c===lastSwap.c1)) target={r:lastSwap.r1,c:lastSwap.c1}; else if(g.cells.some(cell=>cell.r===lastSwap.r2 && cell.c===lastSwap.c2)) target={r:lastSwap.r2,c:lastSwap.c2}; } specialsToCreate.push({r:target.r,c:target.c,type:'color', color:g.color}); }
       });
-
-      // CUENTA TODO
       const countSet = new Set(current.all);
       countSet.forEach(k=>{ const [rr,cc]=k.split(',').map(Number); const col=board[rr][cc]?.c; if(col!==undefined) level.objectives.forEach(o=>{ if(o.type==='collect_color' && o.color===col) o.current++; }); });
       specialsToCreate.forEach(s=>{ if(s.type==='bomb' || s.type==='h' || s.type==='v') level.objectives.forEach(o=>{ if(o.type==='collect_special') o.current++; }); if(s.type==='color') level.objectives.forEach(o=>{ if(o.type==='collect_rainbow') o.current++; }); });
       level.objectives.forEach(o=>{ if(o.type==='score') o.current=score; });
-
       let toRemoveSet=new Set(current.all); specialsToCreate.forEach(s=> toRemoveSet.delete(s.r+','+s.c));
       await processMatchesWithSet(Array.from(toRemoveSet), null, combo, specialsToCreate, false);
       current=findMatches(); if(current.groups.length>0) await new Promise(r=>setTimeout(r,100));
@@ -579,21 +542,12 @@ html,body{overscroll-behavior:none}
     updateObjectivesUI(); updateUI();
   }
 
-  // param countAlready=false para no contar doble cuando ya contamos afuera
   async function processMatchesWithSet(keys, origin, combo=1, specialsToCreate=[], countAlready=true){
     if(countAlready){
-      keys.forEach(k=>{
-        const [r,c]=k.split(',').map(Number);
-        const col=board[r]?.[c]?.c;
-        if(col!==undefined) level.objectives.forEach(o=>{ if(o.type==='collect_color' && o.color===col) o.current++; });
-      });
-      specialsToCreate.forEach(s=>{
-        if(s.type==='bomb' || s.type==='h' || s.type==='v') level.objectives.forEach(o=>{ if(o.type==='collect_special') o.current++; });
-        if(s.type==='color') level.objectives.forEach(o=>{ if(o.type==='collect_rainbow') o.current++; });
-      });
+      keys.forEach(k=>{ const [r,c]=k.split(',').map(Number); const col=board[r]?.[c]?.c; if(col!==undefined) level.objectives.forEach(o=>{ if(o.type==='collect_color' && o.color===col) o.current++; }); });
+      specialsToCreate.forEach(s=>{ if(s.type==='bomb' || s.type==='h' || s.type==='v') level.objectives.forEach(o=>{ if(o.type==='collect_special') o.current++; }); if(s.type==='color') level.objectives.forEach(o=>{ if(o.type==='collect_rainbow') o.current++; }); });
       level.objectives.forEach(o=>{ if(o.type==='score') o.current=score; });
     }
-
     keys.forEach(k=>{
       const [r,c]=k.split(',').map(Number);
       const el=gridEl.querySelector(`[data-r="${r}"][data-c="${c}"]`);
@@ -617,24 +571,49 @@ html,body{overscroll-behavior:none}
   }
 
   function showWin(){
-    gameStarted=false;
+    gameStarted=false; busy=false;
     if(timerInt) clearInterval(timerInt);
     const reward=level.reward; totalReward+=reward; localStorage.setItem('wcrush_wasa', totalReward);
     if(score>best){ best=score; localStorage.setItem('wcrush_best',best); }
     const isTimeLevel=level.type==='time';
-    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(18,10,42,.88);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:30;padding:16px"><div style="background:linear-gradient(180deg,#fff,#F3F0FF);border:3px solid #22C55E;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#2a1a5e"><div style="font-size:48px">🎉</div><div style="font-weight:900;font-size:11px;opacity:.6">${isTimeLevel?'⏰ TIEMPO':'🎯 MOVIMIENTOS'} COMPLETADO</div><div style="font-weight:900;font-size:22px;color:#065F46">¡NIVEL ${currentLevelNum}!</div><div style="background:linear-gradient(180deg,#DCFCE7,#86EFAC);border:2px solid #22C55E;border-radius:14px;padding:12px;margin:12px 0;font-weight:900;color:#065F46">💰 +${fmt(reward)} WASA</div><button id="btnNext" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:linear-gradient(135deg,#22C55E,#16A34A);color:#000;cursor:pointer">SIGUIENTE NIVEL ${currentLevelNum+1}</button><button id="btnDouble" style="width:100%;height:44px;border-radius:14px;font-weight:900;border:2.5px solid #FACC15;background:linear-gradient(135deg,#FEF08A,#FACC15);color:#000;margin-top:8px;cursor:pointer">📺 X2 = ${fmt(reward*2)} WASA</button></div></div>`;
-    ui.querySelector('#btnNext').onclick=async()=>{ const res=await claim(false,false); currentLevelNum++; loadLevel(currentLevelNum); ui.innerHTML=''; };
-    ui.querySelector('#btnDouble').onclick=()=>openAd('double_level');
+    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(18,10,42,.88);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#F3F0FF);border:3px solid #22C55E;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#2a1a5e"><div style="font-size:48px">🎉</div><div style="font-weight:900;font-size:11px;opacity:.6">${isTimeLevel?'⏰ TIEMPO':'🎯 MOVIMIENTOS'} COMPLETADO</div><div style="font-weight:900;font-size:22px;color:#065F46">¡NIVEL ${currentLevelNum}!</div><div style="background:linear-gradient(180deg,#DCFCE7,#86EFAC);border:2px solid #22C55E;border-radius:14px;padding:12px;margin:12px 0;font-weight:900;color:#065F46">💰 +${fmt(reward)} WASA</div><button id="btnNext" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:linear-gradient(135deg,#22C55E,#16A34A);color:#000;cursor:pointer">SIGUIENTE NIVEL ${currentLevelNum+1}</button><button id="btnDouble" style="width:100%;height:44px;border-radius:14px;font-weight:900;border:2.5px solid #FACC15;background:linear-gradient(135deg,#FEF08A,#FACC15);color:#000;margin-top:8px;cursor:pointer">📺 X2 = ${fmt(reward*2)} WASA</button></div></div>`;
+    
+    const btnNext=ui.querySelector('#btnNext');
+    const btnDouble=ui.querySelector('#btnDouble');
+    
+    if(btnNext){
+      btnNext.onclick=async()=>{
+        // FIX: no borrar el modal de intro del siguiente nivel
+        btnNext.disabled=true;
+        btnNext.textContent='CARGANDO...';
+        // claim en segundo plano, no bloquea
+        claim(false,false).catch(()=>{});
+        // limpia win modal primero
+        ui.innerHTML='';
+        // espera un frame y carga siguiente nivel (que mostrará su propio modal de objetivos)
+        setTimeout(()=>{
+          currentLevelNum++;
+          loadLevel(currentLevelNum);
+        },100);
+      };
+    }
+    if(btnDouble){
+      btnDouble.onclick=()=>openAd('double_level');
+    }
   }
+
   function showFail(){
-    gameStarted=false;
+    gameStarted=false; busy=false;
     if(timerInt) clearInterval(timerInt);
     const isTimeLevel=level.type==='time';
     const reason=isTimeLevel ? `⏰ Tiempo agotado` : `Sin movimientos`;
-    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(18,10,42,.88);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:30;padding:16px"><div style="background:linear-gradient(180deg,#fff,#F3F0FF);border:3px solid #EF4444;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#2a1a5e"><div style="font-size:40px">${isTimeLevel?'⏰':'😵'}</div><div style="font-weight:900;font-size:20px;color:#991B1B">${reason}</div><div style="font-size:12px;opacity:.7;margin:8px 0">Te faltó ${level.objectives.filter(o=>o.current<o.target).map(o=>o.name+' '+o.current+'/'+o.target).join(', ')}</div><button id="btnRetry" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:#EF4444;color:#fff;cursor:pointer">REINTENTAR</button><button id="btnSkip" style="width:100%;height:44px;border-radius:14px;border:2.5px solid #DDD6FE;background:#fff;color:#4C1D95;margin-top:8px;cursor:pointer">${isTimeLevel?'VER ANUNCIO +15s':'VER ANUNCIO +5 MOVS'}</button></div></div>`;
-    ui.querySelector('#btnRetry').onclick=()=>{ ui.innerHTML=''; loadLevel(currentLevelNum); };
-    ui.querySelector('#btnSkip').onclick=()=>openAd(isTimeLevel?'extra_time':'extra_moves');
+    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(18,10,42,.88);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#F3F0FF);border:3px solid #EF4444;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#2a1a5e"><div style="font-size:40px">${isTimeLevel?'⏰':'😵'}</div><div style="font-weight:900;font-size:20px;color:#991B1B">${reason}</div><div style="font-size:12px;opacity:.7;margin:8px 0">Te faltó ${level.objectives.filter(o=>o.current<o.target).map(o=>o.name+' '+o.current+'/'+o.target).join(', ')}</div><button id="btnRetry" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:#EF4444;color:#fff;cursor:pointer">REINTENTAR</button><button id="btnSkip" style="width:100%;height:44px;border-radius:14px;border:2.5px solid #DDD6FE;background:#fff;color:#4C1D95;margin-top:8px;cursor:pointer">${isTimeLevel?'VER ANUNCIO +15s':'VER ANUNCIO +5 MOVS'}</button></div></div>`;
+    const btnRetry=ui.querySelector('#btnRetry');
+    const btnSkip=ui.querySelector('#btnSkip');
+    if(btnRetry) btnRetry.onclick=()=>{ ui.innerHTML=''; loadLevel(currentLevelNum); };
+    if(btnSkip) btnSkip.onclick=()=>openAd(isTimeLevel?'extra_time':'extra_moves');
   }
+
   let dragStart=null;
   function preventScroll(e){ if(dragStart) e.preventDefault(); }
   document.addEventListener('touchmove', preventScroll, {passive:false});
@@ -662,11 +641,11 @@ html,body{overscroll-behavior:none}
     if(t==='double_level'){
       ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(0,0,0,.7);display:grid;place-items:center;z-index:40;color:white">Validando X2...</div>`;
       const res=await claim(true,true);
-      if(res.ok){ totalReward+=level.reward; localStorage.setItem('wcrush_wasa', totalReward); currentLevelNum++; loadLevel(currentLevelNum); ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(0,0,0,.75);display:grid;place-items:center;z-index:40"><div style="background:#fff;border:3px solid #22C55E;border-radius:18px;padding:18px;text-align:center;width:min(320px,90vw)"><div style="color:#065F46;font-weight:900;font-size:18px">¡X2 +${fmt(level.reward*2)} WASA!</div><button id="ok2" style="margin-top:10px;width:100%;height:44px;border-radius:999px;background:#22C55E;color:#000;font-weight:900;border:0">SIGUIENTE</button></div></div>`; ui.querySelector('#ok2').onclick=()=>{ ui.innerHTML=''; }; }
+      if(res.ok){ totalReward+=level.reward; localStorage.setItem('wcrush_wasa', totalReward); currentLevelNum++; ui.innerHTML=''; setTimeout(()=>loadLevel(currentLevelNum),100); }
       else { ui.innerHTML=''; showWin(); }
     }
-    if(t==='extra_moves'){ moves+=5; gameStarted=true; startGameTimer(); updateUI(); ui.innerHTML=''; }
-    if(t==='extra_time'){ timeLeft+=15; gameStarted=true; startGameTimer(); updateUI(); ui.innerHTML=''; }
+    if(t==='extra_moves'){ moves+=5; gameStarted=true; busy=false; startGameTimer(); updateUI(); ui.innerHTML=''; }
+    if(t==='extra_time'){ timeLeft+=15; gameStarted=true; busy=false; startGameTimer(); updateUI(); ui.innerHTML=''; }
   })(); } },150);
   loadLevel(currentLevelNum);
   container._cleanup=()=>{ clearInterval(watcher); if(timerInt) clearInterval(timerInt); document.removeEventListener('touchmove', preventScroll); window.vrAd=0; };
