@@ -1,13 +1,35 @@
-// games/crypto-crush/game.js - v4.6 IMAGENES LIVIANAS - usa btc.png, bnb.png etc en vez de "B"
+// games/crypto-crush/game.js - v4.7 FIX IMAGENES NO SE VEN - auto-detecta ruta assets/
 export function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javisimes.workers.dev/';
   function getDeviceId(){ let id=localStorage.getItem('wasa_device_id'); if(!id){ id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id; }
   function fmt(n){ const v=parseFloat(n)||0; if(v===0) return '0'; return (Math.round(v*1e7)/1e7).toFixed(7).replace(/0+$/,'').replace(/\.$/,''); }
 
-  // CONFIGURA ACA DONDE ESTAN TUS IMAGENES
-  // Opcion 1: ./assets/btc.png (recomendado)
-  // Opcion 2: ./btc.png (mismo folder que game.js)
-  const ASSET_BASE = './assets/'; // cambia a './' si las pones al lado de game.js
+  // AUTO-DETECTA DONDE ESTAN LAS IMAGENES - prueba 5 rutas posibles
+  function getAssetBases(){
+    const bases=[];
+    // intenta sacar la ruta del script game.js
+    try{
+      const scripts=document.querySelectorAll('script[src*="crypto-crush"]');
+      scripts.forEach(s=>{
+        const url=new URL(s.src, window.location.origin);
+        const dir=url.pathname.substring(0, url.pathname.lastIndexOf('/')+1);
+        bases.push(dir+'assets/');
+        bases.push(dir);
+      });
+    }catch{}
+    // rutas comunes
+    bases.push('/games/crypto-crush/assets/');
+    bases.push('games/crypto-crush/assets/');
+    bases.push('./games/crypto-crush/assets/');
+    bases.push('./assets/');
+    bases.push('assets/');
+    bases.push('/assets/');
+    bases.push('./');
+    bases.push('/');
+    return [...new Set(bases)]; // sin duplicados
+  }
+  const ASSET_BASES=getAssetBases();
+  console.log('[CRYPTO-CRUSH] Probando bases:', ASSET_BASES);
 
   const ALL_TOKENS = [
     {icon:'₿', name:'BTC',  bg:'#FFB347', bd:'#FF8C00', light:'#FFD699', img:'btc.png'},
@@ -83,13 +105,13 @@ html,body{overscroll-behavior:none}
 .cc-level-badge span{font-size:9px;opacity:.7;font-weight:700;display:block}
 .cc-tokens{display:flex;gap:4px;align-items:center}
 .cc-token-chip{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-weight:900;font-size:12px;border:1.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.15);flex-shrink:0;transition:all .2s;overflow:hidden;background:#fff}
-.cc-token-chip img{width:78%;height:78%;object-fit:contain;display:block}
+.cc-token-chip img{width:82%;height:82%;object-fit:contain;display:block}
 .cc-token-chip.needed{transform:scale(1.25);box-shadow:0 0 0 2.5px #22C55E, 0 0 12px #22C55E;z-index:2;border-color:#22C55E}
 .cc-header-center{flex:1;min-width:0;display:flex;gap:6px;align-items:center;overflow:hidden}
 .cc-obj-mini{flex:1;min-width:70px;background:#F5F3FF;border:1.5px solid #DDD6FE;border-radius:10px;padding:4px 7px;display:flex;align-items:center;gap:5px}
 .cc-obj-mini.done{background:#DCFCE7;border-color:#22C55E}
 .cc-obj-mini-icon{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;font-weight:900;font-size:11px;flex-shrink:0;overflow:hidden;background:#fff}
-.cc-obj-mini-icon img{width:80%;height:80%;object-fit:contain}
+.cc-obj-mini-icon img{width:82%;height:82%;object-fit:contain}
 .cc-obj-mini-info{flex:1;min-width:0}
 .cc-obj-mini-name{font-weight:900;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cc-obj-mini-bar{height:4px;background:#EDE9FE;border-radius:999px;overflow:hidden;margin-top:2px}
@@ -105,7 +127,7 @@ html,body{overscroll-behavior:none}
 .cc-cell{position:relative;border-radius:11px;display:grid;place-items:center;cursor:pointer;touch-action:none}
 .cc-cell.sel{transform:scale(1.1);z-index:5}.cc-cell.sel::after{content:'';position:absolute;inset:-2px;border:3px solid #FACC15;border-radius:12px;box-shadow:0 0 14px #FACC15;pointer-events:none}
 .cc-candy{width:86%;height:86%;border-radius:12px;display:grid;place-items:center;font-weight:900;font-size:15px;position:relative;box-shadow:0 3px 0 rgba(0,0,0,.12), inset 0 1.5px 0 rgba(255,255,255,.9);border:1.5px solid rgba(0,0,0,.06);overflow:hidden;background:#fff}
-.cc-candy img{width:72%;height:72%;object-fit:contain;display:block;pointer-events:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.15))}
+.cc-candy img{width:74%;height:74%;object-fit:contain;display:block;pointer-events:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.18))}
 .cc-candy::before{content:'';position:absolute;top:8%;left:14%;width:34%;height:26%;background:rgba(255,255,255,.85);border-radius:50%;pointer-events:none;z-index:1}
 .cc-candy.bomb{box-shadow:0 0 0 2px #fff, 0 3px 0 rgba(0,0,0,.15), 0 0 14px currentColor}
 .cc-candy.striped-h::after{content:'';position:absolute;left:-4px;right:-4px;top:50%;height:5px;background:repeating-linear-gradient(90deg, #fff 0 5px, transparent 5px 10px);transform:translateY(-50%);border-radius:999px;z-index:2}
@@ -157,15 +179,16 @@ html,body{overscroll-behavior:none}
     </div>
   </div>
   <div class="cc-main" id="mainArea"><div class="cc-board" id="board"><div class="cc-grid" id="grid"></div></div></div>
-  <div class="cc-bottom"><div class="cc-bottom-info">🖼️ Usa imágenes: pon btc.png, bnb.png en /assets/ • Se diferencian al toque</div></div>
+  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">🔍 Buscando imágenes...</div></div>
   <div id="ui"></div>
 </div>`;
 
-  const root=container.querySelector('#root'); const ui=root.querySelector('#ui'); const gridEl=root.querySelector('#grid'); const mainArea=root.querySelector('#mainArea');
+  const root=container.querySelector('#root'); const ui=root.querySelector('#ui'); const gridEl=root.querySelector('#grid'); const mainArea=root.querySelector('#mainArea'); const debugInfo=root.querySelector('#debugInfo');
   let best=parseInt(localStorage.getItem('wcrush_best')||'0');
   let currentLevelNum=parseInt(localStorage.getItem('wcrush_level')||'1');
   let level=null; let board=[], score=0, totalReward=parseFloat(localStorage.getItem('wcrush_wasa')||'0'), moves=0, timeLeft=0, timerInt=null, busy=false, sel=null, lastSwap=null;
   let session=null, claiming=false, pendingAd=null, startTime=Date.now();
+  let workingBase=null; // base que funcionó
 
   async function startSession(){ try{ const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'start_game_session', email:localStorage.getItem('wasa_email'), wallet:localStorage.getItem('wasa_wallet'), device_id:getDeviceId(), game_slug:'crypto-crush', level:currentLevelNum})}); const j=await r.json(); if(j.ok) session=j.session_id; }catch{} }
   async function claim(isDouble, ad){ if(claiming) return {ok:false}; if(!session) await startSession(); if(!session) return {ok:false}; claiming=true; try{ const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward', session_id:session, email:localStorage.getItem('wasa_email'), wallet:localStorage.getItem('wasa_wallet'), device_id:getDeviceId(), game_slug:'crypto-crush', level:currentLevelNum, ad_watched:ad, double_reward:isDouble, time_taken:(Date.now()-startTime)/1000})}); const j=await r.json(); if(j.ok){ const b=j.wasa_balance??j.guest_balance??0; localStorage.setItem(j.is_guest?'wasa_coins_guest':'wasa_coins',b); if(window.setCoinsUI) window.setCoinsUI(b); session=null; claiming=false; return j; } claiming=false; return {ok:false, error:j.error}; }catch{ claiming=false; return {ok:false}; } }
@@ -173,26 +196,60 @@ html,body{overscroll-behavior:none}
   function randColorFromActive(active){ const tok=active[Math.floor(Math.random()*active.length)]; return ALL_TOKENS.indexOf(tok); }
   function makeCell(color, special=null){ return {c:color, s:special}; }
 
-  // helper para crear imagen con fallback a letra
+  // Intenta cargar una imagen probando todas las bases hasta que una funciona
   function createTokenImg(token, fallbackText){
+    const wrapper=document.createElement('div');
+    wrapper.style.width='100%'; wrapper.style.height='100%'; wrapper.style.display='grid'; wrapper.style.placeItems='center';
+
     const img=document.createElement('img');
-    img.src=ASSET_BASE + token.img;
     img.alt=token.name;
     img.loading='lazy';
-    img.onerror=()=>{
-      // si falla assets/, prueba en misma carpeta
-      if(img.src.includes('assets/')){
-        img.src=token.img;
-      } else {
-        // fallback final a letra
+    img.style.width='74%'; img.style.height='74%'; img.style.objectFit='contain';
+
+    let baseIndex=0;
+    function tryNextBase(){
+      if(baseIndex>=ASSET_BASES.length){
+        // todas fallaron, fallback a letra
+        console.warn('[CRYPTO-CRUSH] No se encontró imagen para', token.name, token.img, 'probadas:', ASSET_BASES);
+        debugInfo.textContent='⚠️ No se encontraron imágenes. Verificá que estén en /games/crypto-crush/assets/ con nombres: '+ALL_TOKENS.map(t=>t.img).join(', ');
         const span=document.createElement('span');
         span.textContent=fallbackText || token.icon;
-        span.style.fontWeight='900';
-        span.style.fontSize='12px';
-        img.replaceWith(span);
+        span.style.fontWeight='900'; span.style.fontSize='13px';
+        wrapper.innerHTML=''; wrapper.appendChild(span);
+        return;
+      }
+      const base=ASSET_BASES[baseIndex];
+      // si ya encontramos una base que funciona, usa esa primero
+      const urlToTry = workingBase ? workingBase + token.img : base + token.img;
+      if(baseIndex===0 && !workingBase) debugInfo.textContent='🔍 Probando: '+urlToTry;
+      img.src=urlToTry;
+    }
+
+    img.onload=()=>{
+      if(!workingBase){
+        // guarda la base que funcionó
+        workingBase=ASSET_BASES[baseIndex];
+        if(!workingBase.endsWith('/')) workingBase+='/';
+        // si la que funcionó no es la que probamos (porque usamos workingBase), deduce base de src
+        const src=img.src;
+        workingBase=src.substring(0, src.lastIndexOf('/')+1);
+        console.log('[CRYPTO-CRUSH] Base que funciona:', workingBase);
+        debugInfo.textContent='✅ Imágenes cargadas desde: '+workingBase;
       }
     };
-    return img;
+
+    img.onerror=()=>{
+      baseIndex++;
+      if(workingBase){
+        // si ya teníamos base y falló para este token, prueba otras bases para este token
+        workingBase=null;
+      }
+      tryNextBase();
+    };
+
+    tryNextBase();
+    wrapper.appendChild(img);
+    return wrapper;
   }
 
   function loadLevel(n){
@@ -237,7 +294,7 @@ html,body{overscroll-behavior:none}
         const tok=ALL_TOKENS[obj.color];
         icon.style.background=`linear-gradient(180deg, ${tok.light}, ${tok.bg})`;
         icon.style.border=`1.5px solid ${tok.bd}`;
-        icon.appendChild(createTokenImg(tok, tok.icon));
+        icon.innerHTML=''; icon.appendChild(createTokenImg(tok, tok.icon));
       } else { icon.style.background='#fff'; icon.textContent=obj.icon; }
       const info=document.createElement('div'); info.className='cc-obj-mini-info'; info.innerHTML=`<div class="cc-obj-mini-name">${obj.name} ${obj.current}/${obj.target}</div><div class="cc-obj-mini-bar"><div class="cc-obj-mini-fill" style="width:${Math.min(100, obj.current/obj.target*100)}%"></div></div>`;
       item.appendChild(icon); item.appendChild(info); list.appendChild(item);
@@ -253,11 +310,9 @@ html,body{overscroll-behavior:none}
       let cls='cc-candy'; if(obj.s==='bomb') cls+=' bomb'; else if(obj.s==='h') cls+=' striped-h'; else if(obj.s==='v') cls+=' striped-v'; else if(obj.s==='color') cls+=' color-bomb';
       candy.className=cls;
       if(obj.s==='color'){
-        candy.textContent='🌈';
         candy.innerHTML='🌈';
       } else {
         const tok=ALL_TOKENS[obj.c];
-        // limpia y pone imagen
         candy.innerHTML='';
         candy.appendChild(createTokenImg(tok, tok.icon));
         candy.style.background=`linear-gradient(180deg, ${tok.light}, ${tok.bg})`;
@@ -449,3 +504,4 @@ html,body{overscroll-behavior:none}
   })(); } },150);
   loadLevel(currentLevelNum);
   container._cleanup=()=>{ clearInterval(watcher); if(timerInt) clearInterval(timerInt); document.removeEventListener('touchmove', preventScroll); window.vrAd=0; };
+}
