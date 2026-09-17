@@ -1,4 +1,4 @@
-// games/crypto-crush/game.js - v5.4 FIX TRABADO DESPUES DE NIVEL + MODAL OBJETIVOS SIEMPRE
+// games/crypto-crush/game.js - v5.5 FIX ALINEACION TOKEN - modal objetivos centrado
 export function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javisimes.workers.dev/';
   function getDeviceId(){ let id=localStorage.getItem('wasa_device_id'); if(!id){ id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id; }
@@ -212,7 +212,7 @@ html,body{overscroll-behavior:none}
     </div>
   </div>
   <div class="cc-main" id="mainArea"><div class="cc-board" id="board"><div class="cc-grid" id="grid"></div></div></div>
-  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">v5.4 fix trabado + modal siempre</div></div>
+  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">v5.5 fix alineacion modal</div></div>
   <div id="ui"></div>
 </div>`;
 
@@ -248,9 +248,14 @@ html,body{overscroll-behavior:none}
     tryNextBase(); wrapper.appendChild(img); return wrapper;
   }
 
+  // FIX ALINEACION: crea icono alineado perfecto
+  function createModalTokenIcon(token){
+    const base = workingBase || '/games/crypto-crush/assets/';
+    return `<div style="width:32px;height:32px;flex-shrink:0;border-radius:9px;background:linear-gradient(180deg,${token.light},${token.bg});border:2px solid ${token.bd};display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px rgba(0,0,0,.12)"><img src="${base}${token.img}" alt="${token.name}" style="width:20px;height:20px;object-fit:contain;display:block" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div style="display:none;width:20px;height:20px;align-items:center;justify-content:center;font-weight:900;font-size:12px">${token.icon}</div></div>`;
+  }
+
   function showLevelIntro(){
-    gameStarted=false;
-    busy=false;
+    gameStarted=false; busy=false;
     if(timerInt) clearInterval(timerInt);
     const isTimeLevel = level.type==='time';
     const title = isTimeLevel ? '⏰ NIVEL POR TIEMPO' : '🎯 NIVEL POR MOVIMIENTOS';
@@ -259,22 +264,29 @@ html,body{overscroll-behavior:none}
       : `Consigue los objetivos con solo <b style="color:#4C1D95">${level.moves} movimientos</b>.`;
     
     const objsHtml = level.objectives.map(o=>{
-      if(o.type==='score') return `<div style="background:#FFFBEB;border:2px solid #F59E0B;border-radius:10px;padding:8px;display:flex;align-items:center;gap:8px"><div style="font-size:20px">⭐</div><div><b style="font-size:12px">${o.target} PUNTOS</b></div></div>`;
+      if(o.type==='score'){
+        return `<div style="min-height:48px;background:#FFFBEB;border:2px solid #F59E0B;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:12px"><div style="width:32px;height:32px;flex-shrink:0;border-radius:9px;background:#fff;border:2px solid #F59E0B;display:flex;align-items:center;justify-content:center;font-size:18px">⭐</div><div style="flex:1;display:flex;align-items:center"><b style="font-size:13px;line-height:32px">${o.target} PUNTOS</b></div></div>`;
+      }
       if(o.type==='collect_color'){
         const tok=ALL_TOKENS[o.color];
-        return `<div style="background:#F5F3FF;border:2px solid #DDD6FE;border-radius:10px;padding:8px;display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(180deg,${tok.light},${tok.bg});display:grid;place-items:center;border:1.5px solid ${tok.bd}"><img src="${workingBase||'/games/crypto-crush/assets/'}${tok.img}" style="width:70%;height:70%;object-fit:contain" onerror="this.style.display='none'"><span style="font-weight:900;font-size:12px">${tok.icon}</span></div><div><b style="font-size:12px">${o.name} ${o.target}</b></div></div>`;
+        return `<div style="min-height:48px;background:#F5F3FF;border:2px solid #DDD6FE;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:12px">${createModalTokenIcon(tok)}<div style="flex:1;display:flex;align-items:center"><b style="font-size:13px;line-height:32px;letter-spacing:.02em">${o.name} ${o.target}</b></div></div>`;
       }
-      return `<div style="background:#F5F3FF;border:2px solid #DDD6FE;border-radius:10px;padding:8px;display:flex;align-items:center;gap:8px"><div style="font-size:18px">${o.icon}</div><div><b style="font-size:12px">${o.name} ${o.target}</b></div></div>`;
+      if(o.type==='collect_special'){
+        const isBomb = o.special==='bomb';
+        return `<div style="min-height:48px;background:#F5F3FF;border:2px solid #DDD6FE;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:12px"><div style="width:32px;height:32px;flex-shrink:0;border-radius:9px;background:#fff;border:2px solid #E5E7EB;display:flex;align-items:center;justify-content:center;font-size:18px">${isBomb?'💥':'↔️'}</div><div style="flex:1;display:flex;align-items:center"><b style="font-size:13px;line-height:32px">${o.name} ${o.target}</b></div></div>`;
+      }
+      // rainbow
+      return `<div style="min-height:48px;background:#FFFBEB;border:2px solid #FCD34D;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:12px"><div style="width:32px;height:32px;flex-shrink:0;border-radius:9px;background:radial-gradient(circle at 30% 30%, #fff, #ffd700 20%, #ff8c00 45%, #444 100%);border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 10px #FFD700">🌈</div><div style="flex:1;display:flex;align-items:center"><b style="font-size:13px;line-height:32px">${o.name} ${o.target}</b></div></div>`;
     }).join('');
 
     ui.innerHTML=`<div id="introModal" style="position:fixed;inset:0;background:rgba(18,10,42,.92);backdrop-filter:blur(16px);display:grid;place-items:center;z-index:50;padding:16px">
       <div style="background:linear-gradient(180deg,#fff,#F3F0FF);border:3px solid ${isTimeLevel?'#EF4444':'#4C1D95'};border-radius:22px;padding:20px;text-align:center;width:min(380px,94vw);color:#2a1a5e;box-shadow:0 20px 60px rgba(0,0,0,.5)">
-        <div style="font-size:12px;font-weight:900;letter-spacing:.1em;opacity:.6">${title}</div>
-        <div style="font-size:32px;font-weight:900;margin:6px 0;color:${isTimeLevel?'#DC2626':'#4C1D95'}">NIVEL ${currentLevelNum}</div>
-        <div style="background:${isTimeLevel?'#FEF2F2':'#F5F3FF'};border:1.5px solid ${isTimeLevel?'#FECACA':'#DDD6FE'};border-radius:12px;padding:12px;margin:10px 0;font-size:13px;line-height:1.4">${desc}</div>
-        <div style="display:grid;gap:6px;margin:12px 0;text-align:left">${objsHtml}</div>
-        <div style="font-size:10px;opacity:.5;margin:8px 0">Tokens: ${level.activeTokens.map(t=>t.name).join(', ')}</div>
-        <button id="btnStart" style="width:100%;height:52px;border-radius:14px;font-weight:900;font-size:16px;border:0;background:${isTimeLevel?'linear-gradient(135deg,#EF4444,#DC2626)':'linear-gradient(135deg,#4C1D95,#6D28D9)'};color:#fff;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25)">▶ ACEPTAR Y EMPEZAR</button>
+        <div style="font-size:11px;font-weight:900;letter-spacing:.12em;opacity:.6;text-transform:uppercase">${title}</div>
+        <div style="font-size:32px;font-weight:900;margin:8px 0;color:${isTimeLevel?'#DC2626':'#4C1D95'};line-height:1">NIVEL ${currentLevelNum}</div>
+        <div style="background:${isTimeLevel?'#FEF2F2':'#F5F3FF'};border:1.5px solid ${isTimeLevel?'#FECACA':'#DDD6FE'};border-radius:12px;padding:12px;margin:12px 0;font-size:13px;line-height:1.4">${desc}</div>
+        <div style="display:grid;gap:8px;margin:14px 0;text-align:left">${objsHtml}</div>
+        <div style="font-size:10px;opacity:.5;margin:10px 0;letter-spacing:.02em">Tokens: ${level.activeTokens.map(t=>t.name).join(', ')}</div>
+        <button id="btnStart" style="width:100%;height:52px;border-radius:14px;font-weight:900;font-size:15px;border:0;background:${isTimeLevel?'linear-gradient(135deg,#EF4444,#DC2626)':'linear-gradient(135deg,#4C1D95,#6D28D9)'};color:#fff;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;gap:8px">▶ ACEPTAR Y EMPEZAR</button>
       </div>
     </div>`;
     
@@ -289,9 +301,7 @@ html,body{overscroll-behavior:none}
   }
 
   function startGameTimer(){
-    gameStarted=true;
-    busy=false;
-    startTime=Date.now();
+    gameStarted=true; busy=false; startTime=Date.now();
     debugInfo.textContent=`N${currentLevelNum} ${level.type==='time'?'⏰ '+level.time+'s':'🎯 '+level.moves+' movs'} - ¡A jugar!`;
     if(level.type==='time'){
       if(timerInt) clearInterval(timerInt);
@@ -306,8 +316,7 @@ html,body{overscroll-behavior:none}
   }
 
   function loadLevel(n){
-    currentLevelNum=n; 
-    localStorage.setItem('wcrush_level', n);
+    currentLevelNum=n; localStorage.setItem('wcrush_level', n);
     const activeTokens=getActiveTokensForLevel(n);
     level=generateLevel(n, activeTokens);
     score=0; moves=level.moves; timeLeft=level.time; sel=null; busy=false; lastSwap=null; gameStarted=false;
@@ -327,7 +336,6 @@ html,body{overscroll-behavior:none}
       activeDiv.appendChild(chip);
     });
     startSession(); draw(); updateObjectivesUI(); updateUI();
-    // FIX: muestra modal SIEMPRE antes de cada nivel
     showLevelIntro();
   }
 
@@ -393,21 +401,14 @@ html,body{overscroll-behavior:none}
 
   function isAdj(r1,c1,r2,c2){ return Math.abs(r1-r2)+Math.abs(c1-c2)===1; }
   function checkWin(){ return level.objectives.every(o=>o.current>=o.target); }
-  function checkFail(){ 
-    if(!gameStarted) return;
-    if(level.type==='time' && timeLeft<=0 && !checkWin()){ showFail(); } 
-    if(level.type==='moves' && moves<=0 && !checkWin()){ showFail(); } 
-  }
+  function checkFail(){ if(!gameStarted) return; if(level.type==='time' && timeLeft<=0 && !checkWin()){ showFail(); } if(level.type==='moves' && moves<=0 && !checkWin()){ showFail(); } }
 
   async function handleSelect(r,c){
     if(busy || !gameStarted) return;
     const obj=board[r][c];
     if(obj.s==='color'){
-      if(sel===null){
-        sel={r,c}; draw();
-        debugInfo.textContent='🌈 Arcoiris seleccionado - cambia con un color';
-        return;
-      } else {
+      if(sel===null){ sel={r,c}; draw(); return; }
+      else {
         const other=board[sel.r][sel.c];
         if(other.s==='color' || obj.s==='color'){
           const targetColor = other.s==='color' ? obj.c : other.c;
@@ -419,9 +420,7 @@ html,body{overscroll-behavior:none}
         }
       }
     }
-    if(obj.s && sel===null && (obj.s==='h'||obj.s==='v'||obj.s==='bomb')){
-      await activateSpecial(r,c); return; 
-    }
+    if(obj.s && sel===null && (obj.s==='h'||obj.s==='v'||obj.s==='bomb')){ await activateSpecial(r,c); return; }
     if(!sel){ sel={r,c}; draw(); return; }
     if(sel.r===r && sel.c===c){ sel=null; draw(); return; }
     if(!isAdj(sel.r,sel.c,r,c)){ sel={r,c}; draw(); return; }
@@ -577,29 +576,17 @@ html,body{overscroll-behavior:none}
     if(score>best){ best=score; localStorage.setItem('wcrush_best',best); }
     const isTimeLevel=level.type==='time';
     ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(18,10,42,.88);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#F3F0FF);border:3px solid #22C55E;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#2a1a5e"><div style="font-size:48px">🎉</div><div style="font-weight:900;font-size:11px;opacity:.6">${isTimeLevel?'⏰ TIEMPO':'🎯 MOVIMIENTOS'} COMPLETADO</div><div style="font-weight:900;font-size:22px;color:#065F46">¡NIVEL ${currentLevelNum}!</div><div style="background:linear-gradient(180deg,#DCFCE7,#86EFAC);border:2px solid #22C55E;border-radius:14px;padding:12px;margin:12px 0;font-weight:900;color:#065F46">💰 +${fmt(reward)} WASA</div><button id="btnNext" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:linear-gradient(135deg,#22C55E,#16A34A);color:#000;cursor:pointer">SIGUIENTE NIVEL ${currentLevelNum+1}</button><button id="btnDouble" style="width:100%;height:44px;border-radius:14px;font-weight:900;border:2.5px solid #FACC15;background:linear-gradient(135deg,#FEF08A,#FACC15);color:#000;margin-top:8px;cursor:pointer">📺 X2 = ${fmt(reward*2)} WASA</button></div></div>`;
-    
     const btnNext=ui.querySelector('#btnNext');
     const btnDouble=ui.querySelector('#btnDouble');
-    
     if(btnNext){
-      btnNext.onclick=async()=>{
-        // FIX: no borrar el modal de intro del siguiente nivel
-        btnNext.disabled=true;
-        btnNext.textContent='CARGANDO...';
-        // claim en segundo plano, no bloquea
+      btnNext.onclick=()=>{
+        btnNext.disabled=true; btnNext.textContent='CARGANDO...';
         claim(false,false).catch(()=>{});
-        // limpia win modal primero
         ui.innerHTML='';
-        // espera un frame y carga siguiente nivel (que mostrará su propio modal de objetivos)
-        setTimeout(()=>{
-          currentLevelNum++;
-          loadLevel(currentLevelNum);
-        },100);
+        setTimeout(()=>{ currentLevelNum++; loadLevel(currentLevelNum); },100);
       };
     }
-    if(btnDouble){
-      btnDouble.onclick=()=>openAd('double_level');
-    }
+    if(btnDouble){ btnDouble.onclick=()=>openAd('double_level'); }
   }
 
   function showFail(){
