@@ -1,4 +1,4 @@
-// games/crypto-crush/game.js - v5.5 FIX ALINEACION TOKEN - modal objetivos centrado
+// games/crypto-crush/game.js - v5.9 RAYO con animacion electrica a cada token - elimina igual que arcoiris pero con rayos
 export function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javisimes.workers.dev/';
   function getDeviceId(){ let id=localStorage.getItem('wasa_device_id'); if(!id){ id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id; }
@@ -64,7 +64,7 @@ export function init(container, args){
       lvl.moves=Math.max(14, 24 - Math.floor(n/4) + Math.floor(n/12));
       const numObjs=n<5?1:n<12?2:n<35?3:4;
       const usedNames=new Set();
-      let hasRainbow=false, hasSpecial=false;
+      let hasThunder=false, hasSpecial=false;
       let attempts=0;
       while(lvl.objectives.length < numObjs && attempts<30){
         attempts++;
@@ -85,12 +85,12 @@ export function init(container, args){
         } else if(roll<0.86 && !hasSpecial){
           const special=Math.random()<0.5?'bomb':'striped';
           const target=Math.floor(1 + n/22);
-          lvl.objectives.push({id:special+'_'+lvl.objectives.length, type:'collect_special', special, name:special==='bomb'?'BOMBAS 💥':'RAYADAS ↔', icon:special==='bomb'?'💥':'↔', target, current:0});
+          lvl.objectives.push({id:special+'_'+lvl.objectives.length, type:'collect_special', special, name:special==='bomb'?'BOMBAS':'RAYADAS', icon:special==='bomb'?'💥':'↔️', target, current:0});
           hasSpecial=true;
-        } else if(!hasRainbow){
+        } else if(!hasThunder){
           if(n<8) continue;
-          lvl.objectives.push({id:'rainbow_'+lvl.objectives.length, type:'collect_rainbow', name:'ARCOIRIS 🌈', icon:'🌈', target:1, current:0});
-          hasRainbow=true;
+          lvl.objectives.push({id:'thunder_'+lvl.objectives.length, type:'collect_rainbow', name:'RAYO', icon:'⚡', target:1, current:0});
+          hasThunder=true;
         }
       }
     }
@@ -109,9 +109,9 @@ export function init(container, args){
     lvl.objectives=lvl.objectives.filter(o=>{
       const key=o.type+'_'+o.name+'_'+(o.special||'');
       if(seen.has(key) && o.type!=='collect_color') return false;
-      if(o.type==='collect_rainbow' && seen.has('rainbow')) return false;
+      if(o.type==='collect_rainbow' && seen.has('thunder')) return false;
       seen.add(key);
-      if(o.type==='collect_rainbow') seen.add('rainbow');
+      if(o.type==='collect_rainbow') seen.add('thunder');
       return true;
     });
     return lvl;
@@ -121,12 +121,11 @@ export function init(container, args){
 
   container.innerHTML=`<style>
 *{box-sizing:border-box}
-html,body{overscroll-behavior:none}
-.cc{width:100%;height:100%;display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% 0%, #8B5CF6 0%, #6D28D9 25%, #4C1D95 60%, #1E0B3A 100%);color:#fff;font-family:Inter,system-ui;overflow:hidden;position:relative;touch-action:none}
+.cc{width:100%;height:100%;display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% 0%, #0F0F1A 0%, #1A1A2E 25%, #16213E 60%, #0F0F1A 100%);color:#fff;font-family:Inter,system-ui;overflow:hidden;position:relative;touch-action:none}
 .cc-header{width:100%;background:rgba(255,255,255,.97);color:#2a1a5e;box-shadow:0 4px 20px rgba(0,0,0,.3);z-index:10;flex-shrink:0;border-bottom:2px solid #E9D5FF}
 .cc-header-inner{width:100%;padding:8px 10px;display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:nowrap;min-height:48px}
 .cc-header-left{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.cc-level-badge{background:#4C1D95;color:#fff;border-radius:10px;padding:4px 10px;font-weight:900;font-size:12px;line-height:1}
+.cc-level-badge{background:#1A1A2E;color:#fff;border-radius:10px;padding:4px 10px;font-weight:900;font-size:12px;line-height:1}
 .cc-level-badge span{font-size:9px;opacity:.7;font-weight:700;display:block}
 .cc-level-badge.timed{background:linear-gradient(135deg,#EF4444,#DC2626); animation:pulse 1s infinite}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
@@ -165,35 +164,27 @@ html,body{overscroll-behavior:none}
 .cc-candy.bomb{box-shadow:0 0 0 2px #fff, 0 4px 0 rgba(0,0,0,.2), 0 0 16px currentColor}
 .cc-candy.striped-h::after{content:'';position:absolute;left:-4px;right:-4px;top:50%;height:6px;background:repeating-linear-gradient(90deg, #fff 0 6px, transparent 6px 12px);transform:translateY(-50%);border-radius:999px;z-index:2;box-shadow:0 0 6px #fff}
 .cc-candy.striped-v::after{content:'';position:absolute;top:-4px;bottom:-4px;left:50%;width:6px;background:repeating-linear-gradient(180deg, #fff 0 6px, transparent 6px 12px);transform:translateX(-50%);border-radius:999px;z-index:2;box-shadow:0 0 6px #fff}
-.cc-candy.color-bomb{background:radial-gradient(circle at 30% 30%, #fff, #ffd700 20%, #ff8c00 45%, #444 100%) !important;border:2.5px solid #fff !important;box-shadow:0 0 22px #FFD700, 0 0 12px #fff !important;animation:rainbow 1.5s linear infinite}
+.cc-candy.color-bomb{background:radial-gradient(circle at 30% 30%, #FEF08A, #FACC15 25%, #EAB308 55%, #854D0E 100%) !important;border:2.5px solid #fff !important;box-shadow:0 0 28px #FACC15, 0 0 16px #fff, inset 0 0 14px rgba(255,255,255,.9) !important;animation:thunderPulse 0.8s ease-in-out infinite}
+.cc-candy.color-bomb::before{content:'⚡';position:absolute;font-size:26px;z-index:3;filter:drop-shadow(0 0 6px #fff) drop-shadow(0 0 10px #FACC15);animation:thunderFlash .2s ease-in-out infinite alternate}
 .cc-candy.color-bomb img{display:none}
-@keyframes rainbow{0%{filter:hue-rotate(0deg) brightness(1.2)}100%{filter:hue-rotate(360deg) brightness(1.2)}}
+@keyframes thunderPulse{0%,100%{transform:scale(1);box-shadow:0 0 28px #FACC15, 0 0 16px #fff}50%{transform:scale(1.08);box-shadow:0 0 36px #FDE047, 0 0 24px #fff, 0 0 40px #FACC15}}
+@keyframes thunderFlash{0%{filter:drop-shadow(0 0 6px #fff) drop-shadow(0 0 10px #FACC15) brightness(1)}100%{filter:drop-shadow(0 0 10px #fff) drop-shadow(0 0 16px #FDE047) brightness(1.4)}}
 .cc-cell.matched{animation:pop .38s cubic-bezier(.34,1.56,.64,1) forwards}
 @keyframes pop{0%{transform:scale(1)}25%{transform:scale(1.32)}100%{transform:scale(0) rotate(80deg);opacity:0}}
 .cc-cell.new{animation:newpop .28s cubic-bezier(.34,1.56,.64,1)}
 @keyframes newpop{0%{transform:scale(0)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
-.cc-explo{position:absolute;left:50%;top:50%;width:8px;height:8px;background:radial-gradient(circle, #fff, #FACC15, transparent);border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);animation:explo .4s ease-out forwards;z-index:20}
-@keyframes explo{0%{width:8px;height:8px;opacity:1}100%{width:90px;height:90px;opacity:0}}
+.cc-explo{position:absolute;left:50%;top:50%;width:8px;height:8px;background:radial-gradient(circle, #fff, #FACC15, #EAB308, transparent);border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);animation:explo .4s ease-out forwards;z-index:20}
+@keyframes explo{0%{width:8px;height:8px;opacity:1}100%{width:110px;height:110px;opacity:0}}
 .cc-combo{position:absolute;left:50%;top:16%;transform:translateX(-50%);background:linear-gradient(135deg,#FACC15,#F59E0B);color:#000;padding:5px 12px;border-radius:999px;font-weight:900;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.35);pointer-events:none;animation:combo .8s ease forwards;z-index:30;border:2px solid #fff}
 @keyframes combo{0%{opacity:0;transform:translateX(-50%) translateY(16px) scale(.6)}20%{opacity:1;transform:translateX(-50%) translateY(0) scale(1.15)}100%{opacity:0;transform:translateX(-50%) translateY(-32px) scale(1)}}
+.cc-thunder-fx{position:absolute;inset:0;pointer-events:none;z-index:25;overflow:visible}
+.cc-lightning{position:absolute;height:3px;background:linear-gradient(90deg, #fff, #FDE047, #FACC15, #fff);border-radius:2px;transform-origin:left center;box-shadow:0 0 6px #fff, 0 0 12px #FACC15;animation:lightningStrike .35s ease-out forwards}
+.cc-lightning::after{content:'⚡';position:absolute;right:-10px;top:50%;transform:translateY(-50%);font-size:14px;filter:drop-shadow(0 0 4px #fff)}
+@keyframes lightningStrike{0%{transform:scaleX(0);opacity:0}20%{opacity:1}100%{transform:scaleX(1);opacity:0}}
+.cc-lightning-hit{position:absolute;width:40px;height:40px;background:radial-gradient(circle, #fff 0%, #FEF08A 30%, #FACC15 60%, transparent 100%);border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);animation:lightningHit .4s ease-out forwards;z-index:26}
+@keyframes lightningHit{0%{transform:translate(-50%,-50%) scale(0);opacity:1}50%{transform:translate(-50%,-50%) scale(1.6);opacity:1}100%{transform:translate(-50%,-50%) scale(2.5);opacity:0}}
 .cc-bottom{width:100%;background:rgba(0,0,0,.25);backdrop-filter:blur(6px);padding:5px 10px;display:flex;justify-content:center;gap:8px;flex-shrink:0;border-top:1px solid rgba(255,255,255,.15)}
 .cc-bottom-info{font-size:8px;opacity:.7;text-align:center}
-@media(min-width:769px){
-  .cc-header-inner{max-width:1400px;margin:0 auto;padding:8px 16px}
-  .cc-main{padding:12px 12px 8px}
-  .cc-board{width:min(68vh, 500px)}
-}
-@media(max-width:768px){
-  .cc-header-inner{flex-wrap:wrap;gap:5px;padding:6px 8px;min-height:auto}
-  .cc-header-left{flex:1 1 auto}
-  .cc-header-center{flex:1 1 100%;order:3}
-  .cc-header-right{flex:0 0 auto}
-  .cc-stat-mini{min-width:44px;padding:3px 5px}.cc-stat-mini b{font-size:10px}
-  .cc-token-chip{width:20px;height:20px;font-size:10px}
-  .cc-board{width:min(96vw, 420px);padding:5px;border-radius:16px}
-  .cc-grid{gap:3px}
-  .cc-main{padding:8px 6px 6px}
-}
 </style>
 <div class="cc" id="root">
   <div class="cc-header">
@@ -211,12 +202,12 @@ html,body{overscroll-behavior:none}
       </div>
     </div>
   </div>
-  <div class="cc-main" id="mainArea"><div class="cc-board" id="board"><div class="cc-grid" id="grid"></div></div></div>
-  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">v5.5 fix alineacion modal</div></div>
+  <div class="cc-main" id="mainArea"><div class="cc-board" id="board"><div class="cc-grid" id="grid"></div><div class="cc-thunder-fx" id="thunderFx"></div></div></div>
+  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">v5.9 RAYO con animacion ⚡</div></div>
   <div id="ui"></div>
 </div>`;
 
-  const root=container.querySelector('#root'); const ui=root.querySelector('#ui'); const gridEl=root.querySelector('#grid'); const mainArea=root.querySelector('#mainArea'); const debugInfo=root.querySelector('#debugInfo');
+  const root=container.querySelector('#root'); const ui=root.querySelector('#ui'); const gridEl=root.querySelector('#grid'); const mainArea=root.querySelector('#mainArea'); const boardEl=root.querySelector('#board'); const thunderFx=root.querySelector('#thunderFx'); const debugInfo=root.querySelector('#debugInfo');
   let best=parseInt(localStorage.getItem('wcrush_best')||'0');
   let currentLevelNum=parseInt(localStorage.getItem('wcrush_level')||'1');
   let level=null; let board=[], score=0, totalReward=parseFloat(localStorage.getItem('wcrush_wasa')||'0'), moves=0, timeLeft=0, timerInt=null, busy=false, sel=null, lastSwap=null;
@@ -248,10 +239,62 @@ html,body{overscroll-behavior:none}
     tryNextBase(); wrapper.appendChild(img); return wrapper;
   }
 
-  // FIX ALINEACION: crea icono alineado perfecto
   function createModalTokenIcon(token){
     const base = workingBase || '/games/crypto-crush/assets/';
     return `<div style="width:32px;height:32px;flex-shrink:0;border-radius:9px;background:linear-gradient(180deg,${token.light},${token.bg});border:2px solid ${token.bd};display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px rgba(0,0,0,.12)"><img src="${base}${token.img}" alt="${token.name}" style="width:20px;height:20px;object-fit:contain;display:block" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div style="display:none;width:20px;height:20px;align-items:center;justify-content:center;font-weight:900;font-size:12px">${token.icon}</div></div>`;
+  }
+
+  // NUEVA FUNCION: animacion de rayo desde origen a cada token eliminado
+  function animateThunder(originR, originC, targetKeys){
+    thunderFx.innerHTML='';
+    const originEl = gridEl.querySelector(`[data-r="${originR}"][data-c="${originC}"]`);
+    if(!originEl) return;
+    const boardRect = boardEl.getBoundingClientRect();
+    const originRect = originEl.getBoundingClientRect();
+    const ox = originRect.left - boardRect.left + originRect.width/2;
+    const oy = originRect.top - boardRect.top + originRect.height/2;
+
+    targetKeys.forEach((key, idx)=>{
+      const [r,c]=key.split(',').map(Number);
+      if(r===originR && c===originC) return;
+      const targetEl = gridEl.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+      if(!targetEl) return;
+      const tr = targetEl.getBoundingClientRect();
+      const tx = tr.left - boardRect.left + tr.width/2;
+      const ty = tr.top - boardRect.top + tr.height/2;
+      const dx = tx-ox, dy = ty-oy;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      const angle = Math.atan2(dy,dx)*180/Math.PI;
+
+      // linea de rayo
+      const lightning = document.createElement('div');
+      lightning.className='cc-lightning';
+      lightning.style.left = ox+'px';
+      lightning.style.top = oy+'px';
+      lightning.style.width = dist+'px';
+      lightning.style.transform = `rotate(${angle}deg) scaleX(0)`;
+      lightning.style.animationDelay = (idx*0.06)+'s';
+      // zigzag effect con clip path random
+      const zig = Math.random()>0.5 ? '2px' : '-2px';
+      lightning.style.marginTop = zig;
+      thunderFx.appendChild(lightning);
+      requestAnimationFrame(()=>{ lightning.style.transform = `rotate(${angle}deg) scaleX(1)`; });
+
+      // hit explosion en destino
+      setTimeout(()=>{
+        const hit = document.createElement('div');
+        hit.className='cc-lightning-hit';
+        hit.style.left = tx+'px';
+        hit.style.top = ty+'px';
+        thunderFx.appendChild(hit);
+        setTimeout(()=>hit.remove(), 400);
+      }, idx*60 + 120);
+
+      setTimeout(()=>lightning.remove(), 500 + idx*60);
+    });
+
+    // limpia todo despues de animacion
+    setTimeout(()=>{ thunderFx.innerHTML=''; }, targetKeys.length*60 + 800);
   }
 
   function showLevelIntro(){
@@ -261,7 +304,7 @@ html,body{overscroll-behavior:none}
     const title = isTimeLevel ? '⏰ NIVEL POR TIEMPO' : '🎯 NIVEL POR MOVIMIENTOS';
     const desc = isTimeLevel 
       ? `¡Alcanza <b style="color:#F59E0B">${level.objectives.find(o=>o.type==='score')?.target || 1000} puntos</b> antes de que se acabe el tiempo!<br>Tienes <b>${level.time} segundos</b>.`
-      : `Consigue los objetivos con solo <b style="color:#4C1D95">${level.moves} movimientos</b>.`;
+      : `Consigue los objetivos con solo <b style="color:#F59E0B">${level.moves} movimientos</b>.`;
     
     const objsHtml = level.objectives.map(o=>{
       if(o.type==='score'){
@@ -275,18 +318,17 @@ html,body{overscroll-behavior:none}
         const isBomb = o.special==='bomb';
         return `<div style="min-height:48px;background:#F5F3FF;border:2px solid #DDD6FE;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:12px"><div style="width:32px;height:32px;flex-shrink:0;border-radius:9px;background:#fff;border:2px solid #E5E7EB;display:flex;align-items:center;justify-content:center;font-size:18px">${isBomb?'💥':'↔️'}</div><div style="flex:1;display:flex;align-items:center"><b style="font-size:13px;line-height:32px">${o.name} ${o.target}</b></div></div>`;
       }
-      // rainbow
-      return `<div style="min-height:48px;background:#FFFBEB;border:2px solid #FCD34D;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:12px"><div style="width:32px;height:32px;flex-shrink:0;border-radius:9px;background:radial-gradient(circle at 30% 30%, #fff, #ffd700 20%, #ff8c00 45%, #444 100%);border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 10px #FFD700">🌈</div><div style="flex:1;display:flex;align-items:center"><b style="font-size:13px;line-height:32px">${o.name} ${o.target}</b></div></div>`;
+      return `<div style="min-height:48px;background:linear-gradient(180deg,#FEF9C3,#FDE047);border:2px solid #EAB308;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:12px"><div style="width:32px;height:32px;flex-shrink:0;border-radius:9px;background:radial-gradient(circle at 30% 30%, #FEF08A, #FACC15 30%, #CA8A04 100%);border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 14px #FACC15, inset 0 0 8px rgba(255,255,255,.9)">⚡</div><div style="flex:1;display:flex;align-items:center"><b style="font-size:13px;line-height:32px;color:#854D0E">${o.name} ${o.target}</b></div></div>`;
     }).join('');
 
-    ui.innerHTML=`<div id="introModal" style="position:fixed;inset:0;background:rgba(18,10,42,.92);backdrop-filter:blur(16px);display:grid;place-items:center;z-index:50;padding:16px">
-      <div style="background:linear-gradient(180deg,#fff,#F3F0FF);border:3px solid ${isTimeLevel?'#EF4444':'#4C1D95'};border-radius:22px;padding:20px;text-align:center;width:min(380px,94vw);color:#2a1a5e;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+    ui.innerHTML=`<div id="introModal" style="position:fixed;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(16px);display:grid;place-items:center;z-index:50;padding:16px">
+      <div style="background:linear-gradient(180deg,#fff,#FFFBEB);border:3px solid ${isTimeLevel?'#EF4444':'#EAB308'};border-radius:22px;padding:20px;text-align:center;width:min(380px,94vw);color:#0F172A;box-shadow:0 20px 60px rgba(0,0,0,.5)">
         <div style="font-size:11px;font-weight:900;letter-spacing:.12em;opacity:.6;text-transform:uppercase">${title}</div>
-        <div style="font-size:32px;font-weight:900;margin:8px 0;color:${isTimeLevel?'#DC2626':'#4C1D95'};line-height:1">NIVEL ${currentLevelNum}</div>
-        <div style="background:${isTimeLevel?'#FEF2F2':'#F5F3FF'};border:1.5px solid ${isTimeLevel?'#FECACA':'#DDD6FE'};border-radius:12px;padding:12px;margin:12px 0;font-size:13px;line-height:1.4">${desc}</div>
+        <div style="font-size:32px;font-weight:900;margin:8px 0;color:${isTimeLevel?'#DC2626':'#854D0E'};line-height:1">NIVEL ${currentLevelNum}</div>
+        <div style="background:${isTimeLevel?'#FEF2F2':'#FEF9C3'};border:1.5px solid ${isTimeLevel?'#FECACA':'#FDE047'};border-radius:12px;padding:12px;margin:12px 0;font-size:13px;line-height:1.4">${desc}</div>
         <div style="display:grid;gap:8px;margin:14px 0;text-align:left">${objsHtml}</div>
         <div style="font-size:10px;opacity:.5;margin:10px 0;letter-spacing:.02em">Tokens: ${level.activeTokens.map(t=>t.name).join(', ')}</div>
-        <button id="btnStart" style="width:100%;height:52px;border-radius:14px;font-weight:900;font-size:15px;border:0;background:${isTimeLevel?'linear-gradient(135deg,#EF4444,#DC2626)':'linear-gradient(135deg,#4C1D95,#6D28D9)'};color:#fff;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;gap:8px">▶ ACEPTAR Y EMPEZAR</button>
+        <button id="btnStart" style="width:100%;height:52px;border-radius:14px;font-weight:900;font-size:15px;border:0;background:${isTimeLevel?'linear-gradient(135deg,#EF4444,#DC2626)':'linear-gradient(135deg,#EAB308,#CA8A04)'};color:#fff;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;gap:8px">▶ ACEPTAR Y EMPEZAR</button>
       </div>
     </div>`;
     
@@ -300,21 +342,7 @@ html,body{overscroll-behavior:none}
     }
   }
 
-  function startGameTimer(){
-    gameStarted=true; busy=false; startTime=Date.now();
-    debugInfo.textContent=`N${currentLevelNum} ${level.type==='time'?'⏰ '+level.time+'s':'🎯 '+level.moves+' movs'} - ¡A jugar!`;
-    if(level.type==='time'){
-      if(timerInt) clearInterval(timerInt);
-      timerInt=setInterval(()=>{
-        if(!gameStarted) return;
-        timeLeft--;
-        if(timeLeft<=0){ timeLeft=0; clearInterval(timerInt); checkFail(); }
-        updateUI();
-      },1000);
-    }
-    updateUI();
-  }
-
+  function startGameTimer(){ gameStarted=true; busy=false; startTime=Date.now(); debugInfo.textContent=`N${currentLevelNum} ${level.type==='time'?'⏰ '+level.time+'s':'🎯 '+level.moves+' movs'} ⚡`; if(level.type==='time'){ if(timerInt) clearInterval(timerInt); timerInt=setInterval(()=>{ if(!gameStarted) return; timeLeft--; if(timeLeft<=0){ timeLeft=0; clearInterval(timerInt); checkFail(); } updateUI(); },1000); } updateUI(); }
   function loadLevel(n){
     currentLevelNum=n; localStorage.setItem('wcrush_level', n);
     const activeTokens=getActiveTokensForLevel(n);
@@ -323,6 +351,7 @@ html,body{overscroll-behavior:none}
     if(timerInt) clearInterval(timerInt);
     let tries=0; do{ board=Array(SZ).fill(0).map(()=>Array(SZ).fill(0).map(()=>makeCell(randColorFromActive(activeTokens)))); tries++; }while(findMatches().groups.length>0 && tries<100);
     gridEl.innerHTML=''; for(let r=0;r<SZ;r++) for(let c=0;c<SZ;c++){ const cell=document.createElement('div'); cell.className='cc-cell'; cell.dataset.r=r; cell.dataset.c=c; gridEl.appendChild(cell); }
+    thunderFx.innerHTML='';
     const activeDiv=root.querySelector('#activeTokens'); activeDiv.innerHTML='';
     const neededNames=new Set(level.objectives.filter(o=>o.type==='collect_color').map(o=>o.name));
     activeTokens.forEach(tok=>{
@@ -335,29 +364,16 @@ html,body{overscroll-behavior:none}
       chip.appendChild(createTokenImg(tok, tok.icon));
       activeDiv.appendChild(chip);
     });
-    startSession(); draw(); updateObjectivesUI(); updateUI();
-    showLevelIntro();
+    startSession(); draw(); updateObjectivesUI(); updateUI(); showLevelIntro();
   }
 
   function updateUI(){
     const badge=root.querySelector('#lvlBadge');
-    if(level.type==='time'){
-      badge.classList.add('timed');
-      badge.innerHTML=`<b id="lvlNum">N${currentLevelNum} ⏰</b><span id="lvlUnlock">${level.time}s</span>`;
-    } else {
-      badge.classList.remove('timed');
-      badge.innerHTML=`<b id="lvlNum">N${currentLevelNum}</b><span id="lvlUnlock">${getUnlockedTokens(currentLevelNum).length}/11</span>`;
-    }
-    if(level.type==='time'){
-      root.querySelector('#moves').textContent=gameStarted ? timeLeft+'s' : level.time+'s';
-      root.querySelector('#movesLabel').textContent=gameStarted ? 'TIEMPO' : 'LISTO';
-    } else {
-      root.querySelector('#moves').textContent=moves;
-      root.querySelector('#movesLabel').textContent='MOVS';
-    }
-    root.querySelector('#cScore').textContent=score;
-    root.querySelector('#cBest').textContent=best;
-    root.querySelector('#cReward').textContent='+'+fmt(totalReward).slice(0,6);
+    if(level.type==='time'){ badge.classList.add('timed'); badge.innerHTML=`<b id="lvlNum">N${currentLevelNum} ⏰</b><span id="lvlUnlock">${level.time}s</span>`; }
+    else { badge.classList.remove('timed'); badge.innerHTML=`<b id="lvlNum">N${currentLevelNum}</b><span id="lvlUnlock">${getUnlockedTokens(currentLevelNum).length}/11</span>`; }
+    if(level.type==='time'){ root.querySelector('#moves').textContent=gameStarted ? timeLeft+'s' : level.time+'s'; root.querySelector('#movesLabel').textContent=gameStarted ? 'TIEMPO' : 'LISTO'; }
+    else { root.querySelector('#moves').textContent=moves; root.querySelector('#movesLabel').textContent='MOVS'; }
+    root.querySelector('#cScore').textContent=score; root.querySelector('#cBest').textContent=best; root.querySelector('#cReward').textContent='+'+fmt(totalReward).slice(0,6);
   }
 
   function updateObjectivesUI(){
@@ -386,15 +402,8 @@ html,body{overscroll-behavior:none}
       const tok=ALL_TOKENS[obj.c];
       let cls='cc-candy'; if(tok?.name==='WASA') cls+=' wasa-candy'; if(tok?.name==='DASH') cls+=' dash-candy'; if(obj.s==='bomb') cls+=' bomb'; else if(obj.s==='h') cls+=' striped-h'; else if(obj.s==='v') cls+=' striped-v'; else if(obj.s==='color') cls+=' color-bomb';
       candy.className=cls;
-      if(obj.s==='color'){ candy.innerHTML='🌈'; }
-      else {
-        candy.innerHTML='';
-        candy.appendChild(createTokenImg(tok, tok.icon));
-        if(tok.name!=='WASA' && tok.name!=='DASH'){
-          candy.style.background=`linear-gradient(180deg, ${tok.light}, ${tok.bg})`;
-          candy.style.borderColor=tok.bd;
-        }
-      }
+      if(obj.s==='color'){ candy.innerHTML='⚡'; candy.style.fontSize='24px'; }
+      else { candy.innerHTML=''; candy.appendChild(createTokenImg(tok, tok.icon)); if(tok.name!=='WASA' && tok.name!=='DASH'){ candy.style.background=`linear-gradient(180deg, ${tok.light}, ${tok.bg})`; candy.style.borderColor=tok.bd; } }
       cellEl.classList.remove('sel','matched','new'); if(sel && sel.r==r && sel.c==c) cellEl.classList.add('sel');
     }
   }
@@ -407,18 +416,8 @@ html,body{overscroll-behavior:none}
     if(busy || !gameStarted) return;
     const obj=board[r][c];
     if(obj.s==='color'){
-      if(sel===null){ sel={r,c}; draw(); return; }
-      else {
-        const other=board[sel.r][sel.c];
-        if(other.s==='color' || obj.s==='color'){
-          const targetColor = other.s==='color' ? obj.c : other.c;
-          const rainbowR = other.s==='color' ? sel.r : r;
-          const rainbowC = other.s==='color' ? sel.c : c;
-          const isDoubleRainbow = other.s==='color' && obj.s==='color';
-          if(isDoubleRainbow){ await activateColorBombRainbowAll(); } else { await activateColorBomb(rainbowR, rainbowC, targetColor); }
-          return;
-        }
-      }
+      if(sel===null){ sel={r,c}; draw(); debugInfo.textContent='⚡ Rayo seleccionado - cambia con un color'; return; }
+      else { const other=board[sel.r][sel.c]; if(other.s==='color' || obj.s==='color'){ const targetColor = other.s==='color' ? obj.c : other.c; const rainbowR = other.s==='color' ? sel.r : r; const rainbowC = other.s==='color' ? sel.c : c; const isDoubleRainbow = other.s==='color' && obj.s==='color'; if(isDoubleRainbow){ await activateColorBombRainbowAll(); } else { await activateColorBomb(rainbowR, rainbowC, targetColor); } return; } }
     }
     if(obj.s && sel===null && (obj.s==='h'||obj.s==='v'||obj.s==='bomb')){ await activateSpecial(r,c); return; }
     if(!sel){ sel={r,c}; draw(); return; }
@@ -436,37 +435,33 @@ html,body{overscroll-behavior:none}
     const allMatchedForCount = Array.from(toRemove);
     allMatchedForCount.forEach(k=>{ const [rr,cc]=k.split(',').map(Number); const col=board[rr][cc]?.c; if(col!==undefined) level.objectives.forEach(o=>{ if(o.type==='collect_color' && o.color===col) o.current++; }); });
     if(obj.s==='bomb' || obj.s==='h' || obj.s==='v') level.objectives.forEach(o=>{ if(o.type==='collect_special') o.current++; });
-    await processMatchesWithSet(Array.from(toRemove), null, 1, []);
-    await runAutoCascade();
-    if(level.type==='moves') moves--;
-    updateObjectivesUI(); updateUI(); busy=false;
-    if(checkWin()) showWin(); else checkFail();
+    await processMatchesWithSet(Array.from(toRemove), null, 1, []); await runAutoCascade();
+    if(level.type==='moves') moves--; updateObjectivesUI(); updateUI(); busy=false; if(checkWin()) showWin(); else checkFail();
   }
 
   async function activateColorBombRainbowAll(){
-    if(busy || !gameStarted) return; busy=true; sel=null;
-    let toRemove=new Set();
-    for(let rr=0;rr<SZ;rr++) for(let cc=0;cc<SZ;cc++) toRemove.add(rr+','+cc);
+    if(busy || !gameStarted) return; busy=true; sel=null; 
+    let toRemove=new Set(); for(let rr=0;rr<SZ;rr++) for(let cc=0;cc<SZ;cc++) toRemove.add(rr+','+cc);
+    const keys = Array.from(toRemove);
+    // animacion de rayos desde centro a todo el tablero
+    const centerR = Math.floor(SZ/2), centerC = Math.floor(SZ/2);
+    animateThunder(centerR, centerC, keys);
+    await new Promise(r=>setTimeout(r, 400));
     toRemove.forEach(k=>{ const [rr,cc]=k.split(',').map(Number); const col=board[rr][cc]?.c; if(col!==undefined) level.objectives.forEach(o=>{ if(o.type==='collect_color' && o.color===col) o.current++; }); });
-    level.objectives.forEach(o=>{ if(o.type==='collect_rainbow') o.current++; });
-    await processMatchesWithSet(Array.from(toRemove), null, 2, []);
-    await runAutoCascade();
-    if(level.type==='moves') moves--;
-    updateObjectivesUI(); updateUI(); busy=false;
-    if(checkWin()) showWin(); else checkFail();
+    level.objectives.forEach(o=>{ if(o.type==='collect_rainbow') o.current++; }); await processMatchesWithSet(keys, null, 2, []); await runAutoCascade();
+    if(level.type==='moves') moves--; updateObjectivesUI(); updateUI(); busy=false; if(checkWin()) showWin(); else checkFail();
   }
 
   async function activateColorBomb(r,c,targetColor){
-    if(busy || !gameStarted) return; busy=true; sel=null;
-    let toRemove=new Set(); toRemove.add(r+','+c);
+    if(busy || !gameStarted) return; busy=true; sel=null; let toRemove=new Set(); toRemove.add(r+','+c);
     for(let rr=0;rr<SZ;rr++) for(let cc=0;cc<SZ;cc++) if(board[rr][cc]?.c===targetColor) toRemove.add(rr+','+cc);
+    const keys = Array.from(toRemove);
+    // animacion: rayo desde origen a cada token
+    animateThunder(r,c, keys);
+    await new Promise(r=>setTimeout(r, 350 + keys.length*25));
     toRemove.forEach(k=>{ const [rr,cc]=k.split(',').map(Number); const col=board[rr][cc]?.c; if(col!==undefined) level.objectives.forEach(o=>{ if(o.type==='collect_color' && o.color===col) o.current++; }); });
-    level.objectives.forEach(o=>{ if(o.type==='collect_rainbow') o.current++; });
-    await processMatchesWithSet(Array.from(toRemove), null, 1, []);
-    await runAutoCascade();
-    if(level.type==='moves') moves--;
-    updateObjectivesUI(); updateUI(); busy=false;
-    if(checkWin()) showWin(); else checkFail();
+    level.objectives.forEach(o=>{ if(o.type==='collect_rainbow') o.current++; }); await processMatchesWithSet(keys, null, 1, []); await runAutoCascade();
+    if(level.type==='moves') moves--; updateObjectivesUI(); updateUI(); busy=false; if(checkWin()) showWin(); else checkFail();
   }
 
   async function trySwap(r1,c1,r2,c2){
@@ -477,20 +472,18 @@ html,body{overscroll-behavior:none}
       let toRemove=new Set(); toRemove.add(br+','+bc);
       if(other.s==='color'){ for(let rr=0;rr<SZ;rr++) for(let cc=0;cc<SZ;cc++) toRemove.add(rr+','+cc); }
       else { for(let rr=0;rr<SZ;rr++) for(let cc=0;cc<SZ;cc++) if(board[rr][cc]?.c===other.c) toRemove.add(rr+','+cc); }
-      sel=null; draw(); await new Promise(r=>setTimeout(r,100));
+      const keys = Array.from(toRemove);
+      sel=null; draw(); 
+      // animacion inmediata al hacer swap
+      animateThunder(br,bc, keys);
+      await new Promise(r=>setTimeout(r, 350 + keys.length*25));
       toRemove.forEach(k=>{ const [rr,cc]=k.split(',').map(Number); const col=board[rr][cc]?.c; if(col!==undefined) level.objectives.forEach(o=>{ if(o.type==='collect_color' && o.color===col) o.current++; }); });
-      level.objectives.forEach(o=>{ if(o.type==='collect_rainbow') o.current++; });
-      await processMatchesWithSet(Array.from(toRemove), null, 1, []);
-      await runAutoCascade();
-      if(level.type==='moves') moves--; updateObjectivesUI(); updateUI(); busy=false;
-      if(checkWin()) showWin(); else checkFail(); return;
+      level.objectives.forEach(o=>{ if(o.type==='collect_rainbow') o.current++; }); await processMatchesWithSet(keys, null, 1, []); await runAutoCascade();
+      if(level.type==='moves') moves--; updateObjectivesUI(); updateUI(); busy=false; if(checkWin()) showWin(); else checkFail(); return;
     }
     swap(r1,c1,r2,c2); draw(); await new Promise(res=>setTimeout(res,120));
-    let found=findMatches();
-    if(found.groups.length===0){ swap(r1,c1,r2,c2); draw(); busy=false; sel=null; return; }
-    sel=null; await processCascade(found);
-    if(level.type==='moves') moves--; updateObjectivesUI(); updateUI(); busy=false;
-    if(checkWin()) showWin(); else checkFail();
+    let found=findMatches(); if(found.groups.length===0){ swap(r1,c1,r2,c2); draw(); busy=false; sel=null; return; }
+    sel=null; await processCascade(found); if(level.type==='moves') moves--; updateObjectivesUI(); updateUI(); busy=false; if(checkWin()) showWin(); else checkFail();
   }
 
   function swap(r1,c1,r2,c2){ const t=board[r1][c1]; board[r1][c1]=board[r2][c2]; board[r2][c2]=t; }
@@ -570,33 +563,21 @@ html,body{overscroll-behavior:none}
   }
 
   function showWin(){
-    gameStarted=false; busy=false;
-    if(timerInt) clearInterval(timerInt);
+    gameStarted=false; busy=false; if(timerInt) clearInterval(timerInt);
     const reward=level.reward; totalReward+=reward; localStorage.setItem('wcrush_wasa', totalReward);
     if(score>best){ best=score; localStorage.setItem('wcrush_best',best); }
     const isTimeLevel=level.type==='time';
-    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(18,10,42,.88);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#F3F0FF);border:3px solid #22C55E;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#2a1a5e"><div style="font-size:48px">🎉</div><div style="font-weight:900;font-size:11px;opacity:.6">${isTimeLevel?'⏰ TIEMPO':'🎯 MOVIMIENTOS'} COMPLETADO</div><div style="font-weight:900;font-size:22px;color:#065F46">¡NIVEL ${currentLevelNum}!</div><div style="background:linear-gradient(180deg,#DCFCE7,#86EFAC);border:2px solid #22C55E;border-radius:14px;padding:12px;margin:12px 0;font-weight:900;color:#065F46">💰 +${fmt(reward)} WASA</div><button id="btnNext" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:linear-gradient(135deg,#22C55E,#16A34A);color:#000;cursor:pointer">SIGUIENTE NIVEL ${currentLevelNum+1}</button><button id="btnDouble" style="width:100%;height:44px;border-radius:14px;font-weight:900;border:2.5px solid #FACC15;background:linear-gradient(135deg,#FEF08A,#FACC15);color:#000;margin-top:8px;cursor:pointer">📺 X2 = ${fmt(reward*2)} WASA</button></div></div>`;
-    const btnNext=ui.querySelector('#btnNext');
-    const btnDouble=ui.querySelector('#btnDouble');
-    if(btnNext){
-      btnNext.onclick=()=>{
-        btnNext.disabled=true; btnNext.textContent='CARGANDO...';
-        claim(false,false).catch(()=>{});
-        ui.innerHTML='';
-        setTimeout(()=>{ currentLevelNum++; loadLevel(currentLevelNum); },100);
-      };
-    }
+    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(15,15,26,.88);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#FFFBEB);border:3px solid #22C55E;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#0F172A"><div style="font-size:48px">🎉</div><div style="font-weight:900;font-size:11px;opacity:.6">${isTimeLevel?'⏰ TIEMPO':'🎯 MOVIMIENTOS'} COMPLETADO</div><div style="font-weight:900;font-size:22px;color:#065F46">¡NIVEL ${currentLevelNum}!</div><div style="background:linear-gradient(180deg,#DCFCE7,#86EFAC);border:2px solid #22C55E;border-radius:14px;padding:12px;margin:12px 0;font-weight:900;color:#065F46">💰 +${fmt(reward)} WASA</div><button id="btnNext" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:linear-gradient(135deg,#22C55E,#16A34A);color:#000;cursor:pointer">SIGUIENTE NIVEL ${currentLevelNum+1}</button><button id="btnDouble" style="width:100%;height:44px;border-radius:14px;font-weight:900;border:2.5px solid #FACC15;background:linear-gradient(135deg,#FEF08A,#FACC15);color:#000;margin-top:8px;cursor:pointer">📺 X2 = ${fmt(reward*2)} WASA</button></div></div>`;
+    const btnNext=ui.querySelector('#btnNext'); const btnDouble=ui.querySelector('#btnDouble');
+    if(btnNext){ btnNext.onclick=()=>{ btnNext.disabled=true; btnNext.textContent='CARGANDO...'; claim(false,false).catch(()=>{}); ui.innerHTML=''; setTimeout(()=>{ currentLevelNum++; loadLevel(currentLevelNum); },100); }; }
     if(btnDouble){ btnDouble.onclick=()=>openAd('double_level'); }
   }
 
   function showFail(){
-    gameStarted=false; busy=false;
-    if(timerInt) clearInterval(timerInt);
-    const isTimeLevel=level.type==='time';
-    const reason=isTimeLevel ? `⏰ Tiempo agotado` : `Sin movimientos`;
-    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(18,10,42,.88);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#F3F0FF);border:3px solid #EF4444;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#2a1a5e"><div style="font-size:40px">${isTimeLevel?'⏰':'😵'}</div><div style="font-weight:900;font-size:20px;color:#991B1B">${reason}</div><div style="font-size:12px;opacity:.7;margin:8px 0">Te faltó ${level.objectives.filter(o=>o.current<o.target).map(o=>o.name+' '+o.current+'/'+o.target).join(', ')}</div><button id="btnRetry" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:#EF4444;color:#fff;cursor:pointer">REINTENTAR</button><button id="btnSkip" style="width:100%;height:44px;border-radius:14px;border:2.5px solid #DDD6FE;background:#fff;color:#4C1D95;margin-top:8px;cursor:pointer">${isTimeLevel?'VER ANUNCIO +15s':'VER ANUNCIO +5 MOVS'}</button></div></div>`;
-    const btnRetry=ui.querySelector('#btnRetry');
-    const btnSkip=ui.querySelector('#btnSkip');
+    gameStarted=false; busy=false; if(timerInt) clearInterval(timerInt);
+    const isTimeLevel=level.type==='time'; const reason=isTimeLevel ? `⏰ Tiempo agotado` : `Sin movimientos`;
+    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(15,15,26,.88);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#FFFBEB);border:3px solid #EF4444;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#0F172A"><div style="font-size:40px">${isTimeLevel?'⏰':'😵'}</div><div style="font-weight:900;font-size:20px;color:#991B1B">${reason}</div><div style="font-size:12px;opacity:.7;margin:8px 0">Te faltó ${level.objectives.filter(o=>o.current<o.target).map(o=>o.name+' '+o.current+'/'+o.target).join(', ')}</div><button id="btnRetry" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:#EF4444;color:#fff;cursor:pointer">REINTENTAR</button><button id="btnSkip" style="width:100%;height:44px;border-radius:14px;border:2.5px solid #DDD6FE;background:#fff;color:#854D0E;margin-top:8px;cursor:pointer">${isTimeLevel?'VER ANUNCIO +15s':'VER ANUNCIO +5 MOVS'}</button></div></div>`;
+    const btnRetry=ui.querySelector('#btnRetry'); const btnSkip=ui.querySelector('#btnSkip');
     if(btnRetry) btnRetry.onclick=()=>{ ui.innerHTML=''; loadLevel(currentLevelNum); };
     if(btnSkip) btnSkip.onclick=()=>openAd(isTimeLevel?'extra_time':'extra_moves');
   }
