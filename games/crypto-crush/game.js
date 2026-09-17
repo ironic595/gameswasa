@@ -1,4 +1,4 @@
-// games/crypto-crush/game.js - v7.1 WASA PASS X5 integrado + MENU + BOMBA 💣 + RAYO ⚡
+// games/crypto-crush/game.js - v7.4 SOUND + PASS + MODAL FIX integrado + MENU + BOMBA 💣 + RAYO ⚡
 export function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javisimes.workers.dev/';
   function getDeviceId(){ let id=localStorage.getItem('wasa_device_id'); if(!id){ id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id; }
@@ -17,6 +17,77 @@ export function init(container, args){
     bases.push('/games/crypto-crush/assets/','games/crypto-crush/assets/','./games/crypto-crush/assets/','./assets/','assets/','/assets/','./','/');
     return [...new Set(bases)];
   }
+
+  // ---- SOUND SYSTEM v7.3 ----
+  let audioCtx=null;
+  let muted = localStorage.getItem('wcrush_muted')==='1';
+  function getAudio(){
+    if(muted) return null;
+    if(!audioCtx){
+      try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch{ return null; }
+    }
+    if(audioCtx.state==='suspended') audioCtx.resume();
+    return audioCtx;
+  }
+  function tone(freq, dur, type='sine', vol=0.25, delay=0){
+    const ctx=getAudio(); if(!ctx) return;
+    const t=ctx.currentTime+delay;
+    const osc=ctx.createOscillator();
+    const gain=ctx.createGain();
+    osc.type=type; osc.frequency.value=freq;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(vol, t+0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, t+dur);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t); osc.stop(t+dur+0.05);
+  }
+  function noiseBurst(dur=0.3, vol=0.3){
+    const ctx=getAudio(); if(!ctx) return;
+    const bufferSize = ctx.sampleRate * dur;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let i=0;i<bufferSize;i++) data[i]=(Math.random()*2-1)*Math.pow(1-i/bufferSize,1.5);
+    const src=ctx.createBufferSource(); src.buffer=buffer;
+    const gain=ctx.createGain(); gain.gain.value=vol;
+    const filt=ctx.createBiquadFilter(); filt.type='lowpass'; filt.frequency.value=800;
+    src.connect(filt); filt.connect(gain); gain.connect(ctx.destination);
+    src.start();
+  }
+  const SFX={
+    init(){ getAudio(); },
+    click(){ tone(440,0.08,'sine',0.18); },
+    select(){ tone(660,0.07,'sine',0.15); },
+    swap(){ tone(300,0.12,'sine',0.2); tone(450,0.12,'sine',0.12,0.06); },
+    invalid(){ tone(180,0.25,'sawtooth',0.18); },
+    match(len=3){
+      if(len>=5){ tone(600,0.12,'sine',0.22); tone(900,0.12,'sine',0.22,0.08); tone(1200,0.18,'sine',0.22,0.16); }
+      else if(len===4){ tone(500,0.1,'sine',0.2); tone(800,0.14,'sine',0.2,0.07); }
+      else { tone(550+Math.random()*100,0.12,'sine',0.18); }
+    },
+    bomb(){
+      noiseBurst(0.35,0.35); tone(120,0.35,'sine',0.4); tone(60,0.4,'triangle',0.5,0.05);
+    },
+    striped(){
+      tone(800,0.08,'square',0.18); tone(400,0.18,'sawtooth',0.22,0.08);
+    },
+    rayo(){
+      // zap zap
+      for(let i=0;i<5;i++){ tone(900+Math.random()*800,0.06,'sawtooth',0.25, i*0.04); }
+      tone(80,0.6,'triangle',0.35,0.1); noiseBurst(0.2,0.15);
+    },
+    combo(c){
+      const base=400+c*120; tone(base,0.12,'sine',0.22); tone(base*1.5,0.14,'sine',0.22,0.08);
+    },
+    win(){
+      tone(400,0.2,'sine',0.25); tone(500,0.2,'sine',0.25,0.15); tone(600,0.2,'sine',0.25,0.3); tone(800,0.4,'sine',0.3,0.45);
+    },
+    lose(){
+      tone(300,0.25,'sine',0.2); tone(220,0.3,'sine',0.2,0.2); tone(150,0.5,'triangle',0.25,0.4);
+    },
+    levelStart(){ tone(300,0.15,'sine',0.2); tone(600,0.25,'sine',0.25,0.12); },
+    booster(){ tone(700,0.1,'sine',0.2); tone(1000,0.2,'sine',0.25,0.08); },
+  };
+
   const ASSET_BASES=getAssetBases();
 
   const ALL_TOKENS = [
@@ -160,7 +231,7 @@ export function init(container, args){
 
   container.innerHTML=`<style>
 *{box-sizing:border-box}
-.cc{width:100%;height:100%;display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% 0%, #0F0F1A 0%, #1A1A2E 25%, #16213E 60%, #0F0F1A 100%);color:#fff;font-family:Inter,system-ui;overflow:hidden;position:relative;touch-action:none}
+.cc{width:100%;height:100%;display:flex;flex-direction:column;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 0%, #0F0F1A 0%, #1A1A2E 25%, #16213E 60%, #0F0F1A 100%);color:#fff;font-family:Inter,system-ui;overflow:hidden;position:relative;touch-action:none}
 .cc-header{width:100%;background:rgba(255,255,255,.97);color:#2a1a5e;box-shadow:0 4px 20px rgba(0,0,0,.3);z-index:10;flex-shrink:0;border-bottom:2px solid #E9D5FF}
 .cc-header-inner{width:100%;padding:8px 10px;display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:nowrap;min-height:48px}
 .cc-header-left{display:flex;align-items:center;gap:6px;flex-shrink:0}
@@ -235,13 +306,13 @@ export function init(container, args){
 @keyframes objScale{0%{transform:scale(.8)}100%{transform:scale(1.08)}}
 .cc-fail-meme{width:min(38vw, 160px);height:min(38vw, 160px);margin:0 auto 12px;filter:drop-shadow(0 6px 16px rgba(0,0,0,.5));animation:memeCry .7s ease-in-out infinite alternate}
 @keyframes memeCry{0%{transform:translateY(0) scale(1)}100%{transform:translateY(6px) scale(1.02)}}
-.cc-menu{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 0%, #0F0F1A 0%, #1A1A2E 60%, #0F0F1A 100%);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow:auto}
+.cc-menu{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%, #0F0F1A 0%, #1A1A2E 60%, #0F0F1A 100%);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow:auto}
 .cc-menu-card{background:linear-gradient(180deg,#fff,#F5F3FF);border-radius:24px;padding:24px;width:min(420px,96vw);color:#0F172A;box-shadow:0 24px 60px rgba(0,0,0,.5);text-align:center}
 .cc-menu-title{font-size:28px;font-weight:900;letter-spacing:-.02em;margin:4px 0}
 .cc-menu-sub{font-size:12px;opacity:.6;font-weight:700;letter-spacing:.08em}
 .cc-menu-btn{width:100%;height:54px;border-radius:14px;font-weight:900;font-size:14px;border:0;cursor:pointer;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 16px rgba(0,0,0,.15)}
 .cc-menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-.cc-howto{position:fixed;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(14px);z-index:110;padding:16px;display:grid;place-items:center;overflow:auto}
+.cc-howto{position:absolute;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(14px);z-index:110;padding:16px;display:grid;place-items:center;overflow:auto}
 .cc-howto-card{background:#fff;border-radius:20px;padding:18px;width:min(440px,96vw);color:#0F172A;max-height:90vh;overflow:auto}
 .cc-howto-item{display:flex;gap:12px;align-items:flex-start;background:#F5F3FF;border:1.5px solid #DDD6FE;border-radius:14px;padding:12px;margin-top:10px}
 .cc-howto-icon{width:44px;height:44px;border-radius:12px;background:#fff;border:2px solid #E9D5FF;display:grid;place-items:center;font-size:22px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.1)}
@@ -254,7 +325,7 @@ export function init(container, args){
   <div class="cc-header">
     <div class="cc-header-inner">
       <div class="cc-header-left">
-        <button class="cc-icon-btn" id="btnMenu" title="Menú">☰</button>
+        <button class="cc-icon-btn" id="btnMute" title="Sonido">🔊</button><button class="cc-icon-btn" id="btnMenu" title="Menú">☰</button>
         <div class="cc-level-badge" id="lvlBadge"><b id="lvlNum">N1</b><span id="lvlUnlock">5/11</span></div>
         <div class="cc-pass-badge" id="passBadge" style="display:${hasPass?'flex':'none'}"><span style="font-size:10px">💎</span> PASS X5</div>
         <div class="cc-tokens" id="activeTokens"></div>
@@ -270,7 +341,7 @@ export function init(container, args){
     </div>
   </div>
   <div class="cc-main" id="mainArea"><div class="cc-board" id="board"><div class="cc-grid" id="grid"></div><div class="cc-thunder-fx" id="thunderFx"></div></div></div>
-  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">v7.1 WASA PASS X5 ${hasPass?'✅ ACTIVO':'⏳ verificando...'}</div></div>
+  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">v7.4 SOUND + PASS + MODAL FIX ${hasPass?'✅ ACTIVO':'⏳ verificando...'}</div></div>
   <div id="ui"></div>
 </div>`;
 
@@ -285,7 +356,7 @@ export function init(container, args){
   function pickRandomMeme(type){ const list = type==='laugh' ? MEME_LAUGH_FILES : MEME_CRY_FILES; return list[Math.floor(Math.random()*list.length)]; }
   async function startSession(){ try{ const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'start_game_session', email:localStorage.getItem('wasa_email'), wallet:localStorage.getItem('wasa_wallet'), device_id:getDeviceId(), game_slug:'crypto-crush', level:currentLevelNum})}); const j=await r.json(); if(j.ok) session=j.session_id; }catch{} }
   async function claim(isDouble, ad, rewardToClaim){ if(claiming) return {ok:false}; if(!session) await startSession(); if(!session) return {ok:false}; claiming=true; try{ const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward', session_id:session, email:localStorage.getItem('wasa_email'), wallet:localStorage.getItem('wasa_wallet'), device_id:getDeviceId(), game_slug:'crypto-crush', level:currentLevelNum, ad_watched:ad, double_reward:isDouble, reward_amount:rewardToClaim, has_pass:hasPass, pass_multiplier:passMultiplier, time_taken:(Date.now()-startTime)/1000})}); const j=await r.json(); if(j.ok){ const b=j.wasa_balance??j.guest_balance??0; localStorage.setItem(j.is_guest?'wasa_coins_guest':'wasa_coins',b); if(window.setCoinsUI) window.setCoinsUI(b); session=null; claiming=false; return j; } claiming=false; return {ok:false, error:j.error}; }catch{ claiming=false; return {ok:false}; } }
-  function openAd(t){ if(window.vrAd!==0 && window.vrAd!==undefined) return; pendingAd=t; window.vrAdType=t; window.vrAd=1; ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(0,0,0,.7);display:grid;place-items:center;z-index:50;color:white;font-weight:800">Cargando anuncio...</div>`; }
+  function openAd(t){ if(window.vrAd!==0 && window.vrAd!==undefined) return; pendingAd=t; window.vrAdType=t; window.vrAd=1; ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.7);display:grid;place-items:center;z-index:50;color:white;font-weight:800">Cargando anuncio...</div>`; }
   function randColorFromActive(active){ const tok=active[Math.floor(Math.random()*active.length)]; return ALL_TOKENS.indexOf(tok); }
   function makeCell(color, special=null){ return {c:color, s:special}; }
   function saveBoosters(){ localStorage.setItem('wcrush_boosters', JSON.stringify(boosters)); }
@@ -382,7 +453,7 @@ export function init(container, args){
   }
 
   function triggerWinSequence(){
-    if(busy) return; busy=true; gameStarted=false; if(timerInt) clearInterval(timerInt);
+    if(busy) return; busy=true; gameStarted=false; if(timerInt) clearInterval(timerInt); SFX.win();
     const laughFile = pickRandomMeme('laugh'); const laughUrl = getMemeUrl(laughFile);
     const completeOverlay = document.createElement('div'); completeOverlay.className='cc-obj-complete';
     completeOverlay.innerHTML=`<div style="text-align:center;padding:12px"><img class="cc-obj-complete-meme" src="${laughUrl}" alt="laugh" onerror="this.style.display='none'"><div class="cc-obj-complete-text">⚡ OBJETIVOS<br>COMPLETADOS ⚡</div><div class="cc-obj-complete-sub">¡NIVEL ${currentLevelNum} SUPERADO! ${hasPass?'<br><span style="background:#A855F7;color:#fff;padding:2px 8px;border-radius:8px;font-size:11px">💎 PASS X5 ACTIVO</span>':''}</div></div>`;
@@ -407,7 +478,7 @@ export function init(container, args){
 
     const passBanner = hasPass ? `<div style="background:linear-gradient(135deg,#A855F7,#7E22CE);color:#fff;border-radius:12px;padding:10px;font-weight:900;font-size:12px;text-align:center;margin-bottom:10px;box-shadow:0 0 14px #A855F7">💎 WASA PASS X5 ACTIVO<br><span style="font-size:10px;font-weight:700;opacity:.9">Recompensa base x5 = ${fmt(getRewardForLevel(level.reward))} WASA (sin anuncio)</span></div>` : `<div style="background:#F5F3FF;border:1.5px dashed #A855F7;border-radius:12px;padding:8px;font-size:11px;text-align:center;margin-bottom:10px">💎 ¿Tenés WASA PASS? Multiplica x5<br><a href="/wasa-pass.html" target="_blank" style="color:#7E22CE;font-weight:900">Comprar por 5 USDT →</a></div>`;
 
-    ui.innerHTML=`<div id="introModal" style="position:fixed;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(16px);display:grid;place-items:center;z-index:50;padding:16px">
+    ui.innerHTML=`<div id="introModal" style="position:absolute;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(16px);display:grid;place-items:center;z-index:50;padding:16px">
       <div style="background:linear-gradient(180deg,#fff,#FFFBEB);border:3px solid ${isTimeLevel?'#EF4444':'#EAB308'};border-radius:22px;padding:20px;text-align:center;width:min(380px,94vw);color:#0F172A;box-shadow:0 20px 60px rgba(0,0,0,.5)">
         <div style="font-size:11px;font-weight:900;letter-spacing:.12em;opacity:.6;text-transform:uppercase">${title}</div>
         <div style="font-size:32px;font-weight:900;margin:8px 0;color:${isTimeLevel?'#DC2626':'#854D0E'};line-height:1">NIVEL ${currentLevelNum}</div>
@@ -436,11 +507,11 @@ export function init(container, args){
     if(pending.bomb){ for(let i=0;i<pending.bomb;i++){ const r=Math.floor(Math.random()*SZ), c=Math.floor(Math.random()*SZ); board[r][c]=makeCell(board[r][c].c, 'bomb'); applied.push('💣'); } boosters.bomb=Math.max(0,(boosters.bomb||0)-pending.bomb); }
     if(pending.rayo){ for(let i=0;i<pending.rayo;i++){ const r=Math.floor(Math.random()*SZ), c=Math.floor(Math.random()*SZ); board[r][c]=makeCell(board[r][c].c, 'color'); applied.push('⚡'); } boosters.rayo=Math.max(0,(boosters.rayo||0)-pending.rayo); }
     saveBoosters(); localStorage.removeItem('wcrush_pending_boosters');
-    if(applied.length) debugInfo.textContent=`Boosters aplicados: ${applied.join(' ')}`;
+    if(applied.length){ debugInfo.textContent=`Boosters aplicados: ${applied.join(' ')}`; SFX.booster(); }
     draw();
   }
 
-  function startGameTimer(){ gameStarted=true; busy=false; startTime=Date.now(); debugInfo.textContent=`N${currentLevelNum} ${level.type==='time'?'⏰ '+level.time+'s':'🎯 '+level.moves+' movs'} ${hasPass?'💎X5':''} 💣⚡`; if(level.type==='time'){ if(timerInt) clearInterval(timerInt); timerInt=setInterval(()=>{ if(!gameStarted) return; timeLeft--; if(timeLeft<=0){ timeLeft=0; clearInterval(timerInt); checkFail(); } updateUI(); },1000); } updateUI(); }
+  function startGameTimer(){ gameStarted=true; busy=false; startTime=Date.now(); SFX.levelStart(); debugInfo.textContent=`N${currentLevelNum} ${level.type==='time'?'⏰ '+level.time+'s':'🎯 '+level.moves+' movs'} ${hasPass?'💎X5':''} 💣⚡`; if(level.type==='time'){ if(timerInt) clearInterval(timerInt); timerInt=setInterval(()=>{ if(!gameStarted) return; timeLeft--; if(timeLeft<=0){ timeLeft=0; clearInterval(timerInt); checkFail(); } updateUI(); },1000); } updateUI(); }
   function loadLevel(n){
     currentLevelNum=n; localStorage.setItem('wcrush_level', n);
     const activeTokens=getActiveTokensForLevel(n); level=generateLevel(n, activeTokens);
@@ -497,19 +568,19 @@ export function init(container, args){
   function checkWin(){ return level.objectives.every(o=>o.current>=o.target); }
   function checkFail(){ if(!gameStarted) return; if(level.type==='time' && timeLeft<=0 && !checkWin()){ showFail(); } if(level.type==='moves' && moves<=0 && !checkWin()){ showFail(); } }
   async function handleSelect(r,c){
-    if(busy || !gameStarted) return; const obj=board[r][c];
+    if(busy || !gameStarted) return; SFX.init(); const obj=board[r][c];
     if(obj.s==='color'){
       if(sel===null){ sel={r,c}; draw(); debugInfo.textContent='⚡ Rayo seleccionado - cambia con un color'; return; }
       else { const other=board[sel.r][sel.c]; if(other.s==='color' || obj.s==='color'){ const targetColor = other.s==='color' ? obj.c : other.c; const rainbowR = other.s==='color' ? sel.r : r; const rainbowC = other.s==='color' ? sel.c : c; const isDoubleRainbow = other.s==='color' && obj.s==='color'; if(isDoubleRainbow){ await activateColorBombRainbowAll(); } else { await activateColorBomb(rainbowR, rainbowC, targetColor); } return; } }
     }
     if(obj.s && sel===null && (obj.s==='h'||obj.s==='v'||obj.s==='bomb')){ await activateSpecial(r,c); return; }
-    if(!sel){ sel={r,c}; draw(); return; }
+    if(!sel){ sel={r,c}; draw(); SFX.select(); return; }
     if(sel.r===r && sel.c===c){ sel=null; draw(); return; }
     if(!isAdj(sel.r,sel.c,r,c)){ sel={r,c}; draw(); return; }
     await trySwap(sel.r,sel.c,r,c);
   }
   async function activateSpecial(r,c){
-    if(busy || !gameStarted) return; busy=true; sel=null; const obj=board[r][c]; let toRemove=new Set();
+    if(busy || !gameStarted) return; busy=true; sel=null; const _obj=board[r][c]; if(_obj.s==='bomb') SFX.bomb(); else SFX.striped(); const obj=board[r][c]; let toRemove=new Set();
     if(obj.s==='h'){ for(let cc=0;cc<SZ;cc++) toRemove.add(r+','+cc); }
     else if(obj.s==='v'){ for(let rr=0;rr<SZ;rr++) toRemove.add(rr+','+c); }
     else if(obj.s==='bomb'){ for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){ const nr=r+dr, nc=c+dc; if(nr>=0&&nr<SZ&&nc>=0&&nc<SZ) toRemove.add(nr+','+nc); } }
@@ -519,14 +590,14 @@ export function init(container, args){
     if(level.type==='moves') moves--; updateObjectivesUI(); updateUI(); busy=false; if(checkWin()) triggerWinSequence(); else checkFail();
   }
   async function activateColorBombRainbowAll(){
-    if(busy || !gameStarted) return; busy=true; sel=null; let toRemove=new Set(); for(let rr=0;rr<SZ;rr++) for(let cc=0;cc<SZ;cc++) toRemove.add(rr+','+cc);
+    if(busy || !gameStarted) return; busy=true; sel=null; SFX.rayo(); let toRemove=new Set(); for(let rr=0;rr<SZ;rr++) for(let cc=0;cc<SZ;cc++) toRemove.add(rr+','+cc);
     const keys = Array.from(toRemove); const centerR = Math.floor(SZ/2), centerC = Math.floor(SZ/2); animateThunder(centerR, centerC, keys); await new Promise(r=>setTimeout(r, 400));
     toRemove.forEach(k=>{ const [rr,cc]=k.split(',').map(Number); const col=board[rr][cc]?.c; if(col!==undefined) level.objectives.forEach(o=>{ if(o.type==='collect_color' && o.color===col) o.current++; }); });
     level.objectives.forEach(o=>{ if(o.type==='collect_rainbow') o.current++; }); await processMatchesWithSet(keys, null, 2, []); await runAutoCascade();
     if(level.type==='moves') moves--; updateObjectivesUI(); updateUI(); busy=false; if(checkWin()) triggerWinSequence(); else checkFail();
   }
   async function activateColorBomb(r,c,targetColor){
-    if(busy || !gameStarted) return; busy=true; sel=null; let toRemove=new Set(); toRemove.add(r+','+c);
+    if(busy || !gameStarted) return; busy=true; sel=null; SFX.rayo(); let toRemove=new Set(); toRemove.add(r+','+c);
     for(let rr=0;rr<SZ;rr++) for(let cc=0;cc<SZ;cc++) if(board[rr][cc]?.c===targetColor) toRemove.add(rr+','+cc);
     const keys = Array.from(toRemove); animateThunder(r,c, keys); await new Promise(r=>setTimeout(r, 350 + keys.length*25));
     toRemove.forEach(k=>{ const [rr,cc]=k.split(',').map(Number); const col=board[rr][cc]?.c; if(col!==undefined) level.objectives.forEach(o=>{ if(o.type==='collect_color' && o.color===col) o.current++; }); });
@@ -544,7 +615,7 @@ export function init(container, args){
       level.objectives.forEach(o=>{ if(o.type==='collect_rainbow') o.current++; }); await processMatchesWithSet(keys, null, 1, []); await runAutoCascade();
       if(level.type==='moves') moves--; updateObjectivesUI(); updateUI(); busy=false; if(checkWin()) triggerWinSequence(); else checkFail(); return;
     }
-    swap(r1,c1,r2,c2); draw(); await new Promise(res=>setTimeout(res,120)); let found=findMatches(); if(found.groups.length===0){ swap(r1,c1,r2,c2); draw(); busy=false; sel=null; return; }
+    SFX.swap(); swap(r1,c1,r2,c2); draw(); await new Promise(res=>setTimeout(res,120)); let found=findMatches(); if(found.groups.length===0){ SFX.invalid(); swap(r1,c1,r2,c2); draw(); busy=false; sel=null; return; }
     sel=null; await processCascade(found); if(level.type==='moves') moves--; updateObjectivesUI(); updateUI(); busy=false; if(checkWin()) triggerWinSequence(); else checkFail();
   }
   function swap(r1,c1,r2,c2){ const t=board[r1][c1]; board[r1][c1]=board[r2][c2]; board[r2][c2]=t; }
@@ -580,6 +651,8 @@ export function init(container, args){
     if(countAlready){ keys.forEach(k=>{ const [r,c]=k.split(',').map(Number); const col=board[r]?.[c]?.c; if(col!==undefined) level.objectives.forEach(o=>{ if(o.type==='collect_color' && o.color===col) o.current++; }); }); specialsToCreate.forEach(s=>{ if(s.type==='bomb' || s.type==='h' || s.type==='v') level.objectives.forEach(o=>{ if(o.type==='collect_special') o.current++; }); if(s.type==='color') level.objectives.forEach(o=>{ if(o.type==='collect_rainbow') o.current++; }); }); level.objectives.forEach(o=>{ if(o.type==='score') o.current=score; }); }
     keys.forEach(k=>{ const [r,c]=k.split(',').map(Number); const el=gridEl.querySelector(`[data-r="${r}"][data-c="${c}"]`); if(el){ el.classList.add('matched'); const explo=document.createElement('div'); explo.className='cc-explo'; el.appendChild(explo); } if(board[r] && board[r][c]!==undefined) board[r][c]=null; });
     score+=keys.length*10*combo*(currentLevelNum<20?1:2) + (specialsToCreate.length>0 ? 50*combo : 0);
+    if(keys.length>=3){ if(specialsToCreate.some(s=>s.type==='color')) SFX.rayo(); else if(specialsToCreate.some(s=>s.type==='bomb')) SFX.bomb(); else if(specialsToCreate.some(s=>s.type==='h'||s.type==='v')) SFX.striped(); else SFX.match(Math.max(...[3,...keys.map(k=>3)])); }
+    if(combo>1) SFX.combo(combo);
     if(combo>1){ const comboEl=document.createElement('div'); comboEl.className='cc-combo'; comboEl.textContent=`COMBO x${combo}!`; root.querySelector('#board').appendChild(comboEl); setTimeout(()=>comboEl.remove(),800); }
     await new Promise(r=>setTimeout(r,300)); for(let c=0;c<SZ;c++){ let write=SZ-1; for(let r=SZ-1;r>=0;r--){ if(board[r][c]!==null){ if(write!==r){ board[write][c]=board[r][c]; board[r][c]=null; } write--; } } for(let r=write;r>=0;r--) board[r][c]=makeCell(randColorFromActive(level.activeTokens)); }
     specialsToCreate.forEach(s=>{ if(board[s.r]) board[s.r][s.c]=makeCell(s.color, s.type); }); draw();
@@ -592,18 +665,29 @@ export function init(container, args){
     const finalReward = getRewardForLevel(baseReward);
     totalReward+=finalReward; localStorage.setItem('wcrush_wasa', totalReward);
     if(score>best){ best=score; localStorage.setItem('wcrush_best',best); }
-    const isTimeLevel=level.type==='time'; const laughFile = laughFileFromSeq || pickRandomMeme('laugh'); const laughUrl = getMemeUrl(laughFile);
-    const passText = hasPass ? `<div style="background:linear-gradient(135deg,#A855F7,#7E22CE);color:#fff;border-radius:10px;padding:6px 10px;font-weight:900;font-size:11px;margin:8px 0;box-shadow:0 0 12px #A855F7">💎 WASA PASS X5: ${fmt(baseReward)} → ${fmt(finalReward)} WASA</div>` : `<div style="font-size:10px;opacity:.6;margin:6px 0">💎 Compra PASS para x5 • <a href="/wasa-pass.html" target="_blank" style="color:#7E22CE">5 USDT</a></div>`;
-    const doubleReward = finalReward*2;
-    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#FFFBEB);border:3px solid #22C55E;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#0F172A"><img src="${laughUrl}" style="width:110px;height:110px;object-fit:contain;margin:0 auto 10px;display:block;filter:drop-shadow(0 4px 12px rgba(0,0,0,.3))" onerror="this.style.display='none'"><div style="font-size:48px">🎉</div><div style="font-weight:900;font-size:11px;opacity:.6">${isTimeLevel?'⏰ TIEMPO':'🎯 MOVIMIENTOS'} COMPLETADO</div><div style="font-weight:900;font-size:22px;color:#065F46">¡NIVEL ${currentLevelNum}!</div>${passText}<div style="background:linear-gradient(180deg,#DCFCE7,#86EFAC);border:2px solid #22C55E;border-radius:14px;padding:12px;margin:12px 0;font-weight:900;color:#065F46">💰 +${fmt(finalReward)} WASA ${hasPass?'<span style="background:#A855F7;color:#fff;padding:2px 6px;border-radius:6px;font-size:9px">X5 PASS</span>':''}</div><button id="btnNext" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:linear-gradient(135deg,#22C55E,#16A34A);color:#000;cursor:pointer">SIGUIENTE NIVEL ${currentLevelNum+1}</button><button id="btnDouble" style="width:100%;height:44px;border-radius:14px;font-weight:900;border:2.5px solid #FACC15;background:linear-gradient(135deg,#FEF08A,#FACC15);color:#000;margin-top:8px;cursor:pointer">📺 X2 = ${fmt(doubleReward)} WASA ${hasPass?'(X5 x2 = X10)':''}</button><button id="btnMenuAfter" style="width:100%;height:38px;border-radius:10px;border:1.5px solid #DDD6FE;background:#fff;margin-top:8px;font-weight:800;cursor:pointer">☰ MENÚ</button></div></div>`;
+    const laughFile = laughFileFromSeq || pickRandomMeme('laugh'); const laughUrl = getMemeUrl(laughFile);
+    
+    let rewardBox = '';
+    let doubleBox = '';
+    
+    if(hasPass){
+      rewardBox = `<div style="background:linear-gradient(180deg,#DCFCE7,#86EFAC);border:2px solid #22C55E;border-radius:14px;padding:14px;margin:12px 0;font-weight:900;color:#065F46;display:flex;align-items:center;justify-content:center;gap:8px"><span style="font-size:20px">💰</span> +${fmt(finalReward)} WASA <span style="background:linear-gradient(135deg,#A855F7,#7E22CE);color:#fff;padding:3px 8px;border-radius:999px;font-size:9px;letter-spacing:.05em">💎 PASS X5</span></div>`;
+      doubleBox = `<button id="btnDouble" style="width:100%;height:44px;border-radius:14px;font-weight:900;border:2.5px solid #FACC15;background:linear-gradient(135deg,#FEF08A,#FACC15);color:#000;margin-top:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><span>📺</span> X2 = ${fmt(finalReward*2)} WASA <span style="opacity:.6;font-size:10px">→ X10</span></button>`;
+    } else {
+      rewardBox = `<div style="background:linear-gradient(180deg,#DCFCE7,#86EFAC);border:2px solid #22C55E;border-radius:14px;padding:14px;margin:12px 0;font-weight:900;color:#065F46">💰 +${fmt(finalReward)} WASA</div><div style="font-size:10px;margin:-6px 0 10px;opacity:.7">💎 <a href="/wasa-pass.html" target="_blank" style="color:#7E22CE;font-weight:800;text-decoration:none">Con PASS X5 sería ${fmt(baseReward*5)} WASA → 5 USDT</a></div>`;
+      doubleBox = `<button id="btnDouble" style="width:100%;height:44px;border-radius:14px;font-weight:900;border:2.5px solid #FACC15;background:linear-gradient(135deg,#FEF08A,#FACC15);color:#000;margin-top:8px;cursor:pointer">📺 X2 = ${fmt(finalReward*2)} WASA</button>`;
+    }
+
+    ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#FFFBEB);border:3px solid #22C55E;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#0F172A"><img src="${laughUrl}" style="width:110px;height:110px;object-fit:contain;margin:0 auto 10px;display:block;filter:drop-shadow(0 4px 12px rgba(0,0,0,.3))" onerror="this.style.display='none'"><div style="font-size:11px;font-weight:900;opacity:.6;letter-spacing:.08em">${level.type==='time'?'⏰ TIEMPO':'🎯 NIVEL'} COMPLETADO</div><div style="font-weight:900;font-size:22px;color:#065F46;margin:4px 0">¡NIVEL ${currentLevelNum}!</div>${rewardBox}<button id="btnNext" style="width:100%;height:48px;border-radius:14px;font-weight:900;border:0;background:linear-gradient(135deg,#22C55E,#16A34A);color:#fff;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.15)">SIGUIENTE NIVEL ${currentLevelNum+1}</button>${doubleBox}<button id="btnMenuAfter" style="width:100%;height:38px;border-radius:10px;border:1.5px solid #DDD6FE;background:#fff;margin-top:8px;font-weight:800;cursor:pointer">☰ MENÚ</button></div></div>`;
+    
     const btnNext=ui.querySelector('#btnNext'); const btnDouble=ui.querySelector('#btnDouble'); const btnMenuAfter=ui.querySelector('#btnMenuAfter');
     if(btnNext){ btnNext.onclick=()=>{ btnNext.disabled=true; btnNext.textContent='CARGANDO...'; claim(false,false,finalReward).catch(()=>{}); ui.innerHTML=''; setTimeout(()=>{ currentLevelNum++; loadLevel(currentLevelNum); },100); }; }
-    if(btnDouble){ btnDouble.onclick=()=>{ pendingAd='double_level'; window._pendingReward=doubleReward; openAd('double_level'); }; }
+    if(btnDouble){ btnDouble.onclick=()=>{ pendingAd='double_level'; window._pendingReward=finalReward*2; openAd('double_level'); }; }
     if(btnMenuAfter){ btnMenuAfter.onclick=()=>{ ui.innerHTML=''; showMainMenu(); }; }
   }
   function showFail(){
-    gameStarted=false; busy=false; if(timerInt) clearInterval(timerInt); const isTimeLevel=level.type==='time'; const reason=isTimeLevel ? `⏰ Tiempo agotado` : `Sin movimientos`; const cryFile = pickRandomMeme('cry'); const cryUrl = getMemeUrl(cryFile);
-    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#FEF2F2);border:3px solid #EF4444;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#0F172A"><img src="${cryUrl}" class="cc-fail-meme" style="width:130px;height:130px;object-fit:contain;margin:0 auto 12px;display:block" onerror="this.style.display='none'"><div style="font-size:40px">${isTimeLevel?'⏰':'😭'}</div><div style="font-weight:900;font-size:20px;color:#991B1B">${reason}</div><div style="font-size:12px;opacity:.7;margin:8px 0">Te faltó ${level.objectives.filter(o=>o.current<o.target).map(o=>o.name+' '+o.current+'/'+o.target).join(', ')}</div><button id="btnRetry" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:#EF4444;color:#fff;cursor:pointer">REINTENTAR</button><button id="btnSkip" style="width:100%;height:44px;border-radius:14px;border:2.5px solid #DDD6FE;background:#fff;color:#854D0E;margin-top:8px;cursor:pointer">${isTimeLevel?'VER ANUNCIO +15s':'VER ANUNCIO +5 MOVS'}</button><button id="btnFailMenu" style="width:100%;height:38px;border-radius:10px;border:1.5px solid #DDD6FE;background:#fff;margin-top:8px;font-weight:800;cursor:pointer">☰ MENÚ / TIENDA ${hasPass?'💎 X5':''}</button></div></div>`;
+    gameStarted=false; busy=false; if(timerInt) clearInterval(timerInt); SFX.lose(); const isTimeLevel=level.type==='time'; const reason=isTimeLevel ? `⏰ Tiempo agotado` : `Sin movimientos`; const cryFile = pickRandomMeme('cry'); const cryUrl = getMemeUrl(cryFile);
+    ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#FEF2F2);border:3px solid #EF4444;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#0F172A"><img src="${cryUrl}" class="cc-fail-meme" style="width:130px;height:130px;object-fit:contain;margin:0 auto 12px;display:block" onerror="this.style.display='none'"><div style="font-size:40px">${isTimeLevel?'⏰':'😭'}</div><div style="font-weight:900;font-size:20px;color:#991B1B">${reason}</div><div style="font-size:12px;opacity:.7;margin:8px 0">Te faltó ${level.objectives.filter(o=>o.current<o.target).map(o=>o.name+' '+o.current+'/'+o.target).join(', ')}</div><button id="btnRetry" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:#EF4444;color:#fff;cursor:pointer">REINTENTAR</button><button id="btnSkip" style="width:100%;height:44px;border-radius:14px;border:2.5px solid #DDD6FE;background:#fff;color:#854D0E;margin-top:8px;cursor:pointer">${isTimeLevel?'VER ANUNCIO +15s':'VER ANUNCIO +5 MOVS'}</button><button id="btnFailMenu" style="width:100%;height:38px;border-radius:10px;border:1.5px solid #DDD6FE;background:#fff;margin-top:8px;font-weight:800;cursor:pointer">☰ MENÚ / TIENDA ${hasPass?'💎 X5':''}</button></div></div>`;
     const btnRetry=ui.querySelector('#btnRetry'); const btnSkip=ui.querySelector('#btnSkip'); const btnFailMenu=ui.querySelector('#btnFailMenu');
     if(btnRetry) btnRetry.onclick=()=>{ ui.innerHTML=''; loadLevel(currentLevelNum); };
     if(btnSkip) btnSkip.onclick=()=>openAd(isTimeLevel?'extra_time':'extra_moves');
@@ -621,13 +705,22 @@ export function init(container, args){
     else { handleSelect(dragStart.r,dragStart.c); } dragStart=null;
   });
   gridEl.addEventListener('pointercancel', ()=>{ dragStart=null; });
+  const btnMuteEl = root.querySelector('#btnMute');
+  if(btnMuteEl){
+    btnMuteEl.textContent = muted ? '🔇' : '🔊';
+    btnMuteEl.onclick=()=>{
+      muted=!muted; localStorage.setItem('wcrush_muted', muted?'1':'0');
+      btnMuteEl.textContent = muted ? '🔇' : '🔊';
+      if(!muted){ SFX.init(); SFX.click(); }
+    };
+  }
   root.querySelector('#btnMenu').onclick=()=>showMainMenu();
   root.querySelector('#btnHelp').onclick=()=>showHowToPlay();
   root.querySelector('#btnShop').onclick=()=>showBoosterShop();
   const watcher=setInterval(()=>{ if(window.vrAd===4 && pendingAd){ const t=pendingAd; pendingAd=null; window.vrAd=0; window.vrAdType=null; (async()=>{
     if(t==='double_level'){
       const rewardToClaim = window._pendingReward || getRewardForLevel(level.reward)*2;
-      ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(0,0,0,.7);display:grid;place-items:center;z-index:40;color:white">Validando X2 ${hasPass?'X10':''}...</div>`;
+      ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.7);display:grid;place-items:center;z-index:40;color:white">Validando X2 ${hasPass?'X10':''}...</div>`;
       const res=await claim(true,true,rewardToClaim);
       if(res.ok){ totalReward+= (level.reward*passMultiplier); localStorage.setItem('wcrush_wasa', totalReward); currentLevelNum++; ui.innerHTML=''; setTimeout(()=>loadLevel(currentLevelNum),100); }
       else { ui.innerHTML=''; showWin(); }
