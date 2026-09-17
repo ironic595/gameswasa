@@ -33,65 +33,20 @@ main{flex:1;padding:20px;min-width:0}
 .filter button.active{background:linear-gradient(135deg, rgba(56,189,248,0.15), rgba(129,140,248,0.15));color:#38bdf8;border:1px solid rgba(56,189,248,0.25)}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 @media(max-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}}
-.hero-carousel{position:relative;border-radius:18px;overflow:hidden;background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 100%);border:1px solid rgba(56,189,248,0.22);box-shadow:0 10px 28px rgba(0,0,0,.38);cursor:pointer}
-.hero-slide{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .6s ease;display:flex;flex-direction:column;justify-content:flex-end;padding:16px;background-size:cover;background-position:center}
-.hero-slide::before{content:'';position:absolute;inset:0;background:linear-gradient(0deg, rgba(5,8,20,0.92) 0%, rgba(5,8,20,0.45) 50%, rgba(5,8,20,0.15) 100%);z-index:1}
+.hero-carousel{position:relative;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 100%);border:1px solid rgba(56,189,248,0.25);box-shadow:0 8px 24px rgba(0,0,0,.35);cursor:pointer}
+.hero-slide{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .6s ease;display:flex;flex-direction:column;justify-content:flex-end;padding:14px;background-size:cover;background-position:center}
+.hero-slide::before{content:'';position:absolute;inset:0;background:linear-gradient(0deg, rgba(5,8,20,0.92) 0%, rgba(5,8,20,0.4) 50%, rgba(5,8,20,0.1) 100%);z-index:1}
 .hero-slide.active{opacity:1;pointer-events:auto}
-.hero-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:0}
-.hero-badge{display:inline-flex;font-size:8.5px;letter-spacing:.07em;padding:4px 9px;border-radius:9999px;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-weight:900;margin-bottom:8px;box-shadow:0 2px 8px rgba(251,191,36,.25);white-space:nowrap}
-.hero-title{font-size:13px;font-weight:900;line-height:1.12;color:#fff;text-transform:uppercase;margin-bottom:5px}
-.hero-sub{font-size:11px;color:#cbd5e1;line-height:1.35;margin-bottom:12px;opacity:.92}
-.hero-cta{display:inline-flex;align-items:center;gap:6px;background:#fff;color:#0f172a;font-weight:900;font-size:11px;padding:8px 14px;border-radius:9999px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
-.hero-dots{position:absolute;bottom:12px;right:14px;z-index:3;display:flex;gap:5px}
+.hero-content{position:relative;z-index:2}
+.hero-badge{display:inline-block;font-size:9px;letter-spacing:.08em;padding:3px 8px;border-radius:20px;background:linear-gradient(135deg,#38bdf8,#818cf8);color:#0f172a;font-weight:800;margin-bottom:6px}
+.hero-title{font-size:12px;font-weight:900;line-height:1.1;color:#fff;text-transform:uppercase;margin-bottom:3px}
+.hero-sub{font-size:11px;color:#cbd5e1;line-height:1.3;margin-bottom:8px}
+.hero-cta{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-weight:800;font-size:11px;padding:6px 12px;border-radius:20px;box-shadow:0 4px 12px rgba(251,191,36,.35)}
+.hero-dots{position:absolute;bottom:10px;right:12px;z-index:3;display:flex;gap:5px}
 .hero-dot{width:18px;height:4px;border-radius:10px;background:rgba(255,255,255,.35);transition:.3s;cursor:pointer}
 .hero-dot.active{background:#38bdf8;width:22px}
-.hero-pc{height:240px;flex-shrink:0;margin-top:18px;display:block;width:100%}
-.hero-pc .hero-slide{padding:14px 12px 16px;justify-content:space-between}
-.hero-pc .hero-content{gap:4px;max-width:100%}
-.hero-pc .hero-badge{font-size:7px;padding:3px 7px;margin-bottom:6px;letter-spacing:.05em}
-.hero-pc .hero-title{font-size:11.5px;line-height:1.15;margin-bottom:4px}
-.hero-pc .hero-sub{font-size:9.5px;line-height:1.3;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.hero-pc .hero-cta{font-size:10px;padding:7px 11px}
+.hero-pc{height:168px;flex-shrink:0;margin-top:18px;display:block;width:100%}
 .hero-mobile{display:none}
-.section-block{margin-bottom:28px}
-.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(56,189,248,0.12)}
-.section-head h2{font-size:13px;font-weight:900;letter-spacing:.04em;color:#f8fafc;text-transform:uppercase;display:flex;align-items:center;gap:8px}
-.section-head .count{font-size:11px;color:#94a3b8;font-weight:600}
-.view-all-wrap{text-align:right;margin-top:14px}
-.view-all-link{color:#38bdf8;cursor:pointer;font-size:12px;font-weight:700;text-decoration:none;border:1px solid rgba(56,189,248,0.25);padding:6px 14px;border-radius:9999px;background:rgba(56,189,248,0.08);transition:.2s;display:inline-flex;align-items:center;gap:6px}
-.view-all-link:hover{background:rgba(56,189,248,0.15);border-color:#38bdf8;color:#7dd3fc}
-
-/* NUEVOS - 12s por juego - 100% CSS - FIX no tapa anuncios */
-.section-new{background:linear-gradient(135deg, rgba(15,23,42,0.92) 0%, rgba(30,27,75,0.7) 50%, rgba(49,46,129,0.6) 100%);border:1px solid rgba(251,191,36,0.22);border-radius:20px;padding:0;box-shadow:0 10px 32px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,0.07);position:relative;overflow:hidden}
-.section-new .section-head{margin:0;padding:14px 18px 12px;border-bottom:1px solid rgba(251,191,36,0.18)}
-.section-new h2{color:#fde68a}
-.new-wrapper{position:relative;overflow:hidden;height:260px;isolation:isolate}
-.new-track{display:flex;width:300%;height:100%;animation:newAuto 36s infinite linear;will-change:transform}
-.new-wrapper:hover .new-track{animation-play-state:paused}
-.new-wrapper:hover .new-progress-bar{animation-play-state:paused}
-@keyframes newAuto{
-  0%{transform:translateX(0)}
-  30.55%{transform:translateX(0)}
-  33.33%{transform:translateX(-33.3333%)}
-  63.88%{transform:translateX(-33.3333%)}
-  66.66%{transform:translateX(-66.6666%)}
-  97.22%{transform:translateX(-66.6666%)}
-  100%{transform:translateX(0)}
-}
-.new-slide{flex:0 0 33.3333%;display:grid;grid-template-columns:38% 62%;background:linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(30,27,75,0.6) 100%);position:relative;min-width:0}
-.new-thumb{position:relative;background:#0b1329;overflow:hidden}
-.new-thumb img{width:100%;height:100%;object-fit:cover;display:block}
-.new-thumb::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg, transparent 60%, rgba(15,23,42,0.88) 100%)}
-.new-badge{position:absolute;top:12px;left:12px;z-index:2;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-weight:900;font-size:9px;padding:4px 10px;border-radius:9999px}
-.new-content{padding:18px 20px;display:flex;flex-direction:column;justify-content:center;gap:6px}
-.new-cat{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#fbbf24;font-weight:800}
-.new-title{font-size:19px;font-weight:900;color:#fff;text-transform:uppercase;line-height:1.1}
-.new-desc{font-size:11.5px;color:#cbd5e1;line-height:1.45;margin:4px 0 8px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.new-meta{display:flex;gap:10px;font-size:10px;color:#94a3b8;margin-bottom:12px;flex-wrap:wrap}
-.new-cta{display:inline-flex;align-items:center;gap:6px;background:#fff;color:#0f172a;font-weight:900;font-size:11px;padding:9px 18px;border-radius:9999px;width:fit-content;cursor:pointer}
-.new-progress{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.08);z-index:1;pointer-events:none}
-.new-progress-bar{height:100%;width:0;background:linear-gradient(90deg,#fbbf24,#f59e0b);animation:newProg 12s linear infinite}
-@keyframes newProg{0%{width:0}100%{width:100%}}
 @media(max-width:700px){
 header{height:auto;padding:12px 16px;display:grid;grid-template-columns:1fr auto;grid-template-areas:"logo walletgroup" "search coins";gap:14px;align-items:center}
 .search{grid-area:search;max-width:none;margin:0;width:100%}
@@ -100,31 +55,14 @@ header{height:auto;padding:12px 16px;display:grid;grid-template-columns:1fr auto
 .wrap{flex-direction:column}
 aside{width:100%;height:auto;position:static;border-right:0;padding:0 16px 8px;background:transparent;display:block}
 .hero-pc{display:none!important}
-.hero-mobile{display:block;height:200px;margin-bottom:16px}
-.hero-mobile .hero-slide{padding:20px 18px 26px;justify-content:center}
-.hero-mobile .hero-badge{font-size:9px;padding:5px 11px;margin-bottom:10px}
-.hero-mobile .hero-title{font-size:17px;margin-bottom:6px}
-.hero-mobile .hero-sub{font-size:12px;margin-bottom:14px}
-.hero-mobile .hero-cta{font-size:12px;padding:10px 16px}
-.grid{grid-template-columns:repeat(2,1fr);gap:10px}
-#searchGrid{grid-template-columns:repeat(2,1fr);gap:10px}
-main{padding:14px 12px}
-.new-wrapper{height:auto;overflow:visible}
-.new-track{width:100%;flex-direction:column;animation:none}
-.new-slide{flex:0 0 auto;grid-template-columns:1fr;grid-template-rows:180px auto;border-bottom:1px solid rgba(251,191,36,0.12)}
-.new-thumb::after{background:linear-gradient(0deg, rgba(15,23,42,0.92) 0%, transparent 60%)}
-.new-content{padding:14px 14px 18px}
-.new-title{font-size:15px}
-.new-progress{display:none}
+.hero-mobile{display:block;height:172px;margin-bottom:16px}
+.grid{grid-template-columns:1fr;gap:16px}
 }
-@media(max-width:380px){.grid{grid-template-columns:repeat(2,1fr);gap:8px}}
 .card{border:1px solid rgba(56,189,248,0.15);border-radius:12px;overflow:hidden;background:rgba(15,23,42,0.6);backdrop-filter:blur(8px);position:relative;transition:all .2s ease;cursor:pointer}
 .card:hover{border-color:#38bdf8;transform:translateY(-2px);box-shadow:0 8px 24px -6px rgba(56,189,248,0.3)}
-.card.new{border-color:rgba(251,191,36,0.35);box-shadow:0 0 0 1px rgba(251,191,36,0.15), 0 8px 24px rgba(0,0,0,.3)}
 .thumb{aspect-ratio:16/10;background:#0b1329;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
 .badge{position:absolute;top:8px;left:8px;font-size:9px;padding:2px 6px;border-radius:20px;background:#050814;border:1px solid rgba(56,189,248,0.2);color:#94a3b8;z-index:2}
 .badge.live{background:linear-gradient(135deg,#38bdf8,#818cf8);color:#0f172a;font-weight:700;border:none}
-.badge.new{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-weight:800;border:none}
 .info{padding:10px 12px}
 .title{font-size:13px;font-weight:600;text-transform:uppercase;color:#f1f5f9}
 .meta{font-size:11px;color:#94a3b8;margin-top:2px}
@@ -133,10 +71,7 @@ main{padding:14px 12px}
 .play span{border-radius:20px;padding:6px 14px;font-size:12px;background:linear-gradient(135deg,#38bdf8 0%,#818cf8 50%,#c084fc 100%);color:#0f172a;font-weight:700}
 #modal{display:none;position:fixed;inset:0;z-index:50;background:rgba(3,6,16,0.95);backdrop-filter:blur(10px);flex-direction:column}
 #modal.open{display:flex}
-#modalTop{min-height:52px;height:auto;border-bottom:1px solid rgba(56,189,248,0.2);display:flex;align-items:center;justify-content:space-between;padding:8px 16px;gap:12px;flex-shrink:0;background:#0a0f24;flex-wrap:wrap}
-#modalMeta{display:flex;align-items:center;gap:10px;flex-shrink:0}
-#modalClose{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:4px 12px;font-size:11px;color:#cbd5e1;cursor:pointer;white-space:nowrap}
-#modalContainer{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;background:#0a0f24;min-height:0;position:relative}
+#modalTop{height:52px;border-bottom:1px solid rgba(56,189,248,0.2);display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:12px;flex-shrink:0;background:#0a0f24}
 .pill{border:1px solid rgba(56,189,248,0.25);border-radius:20px;padding:4px 10px;font-size:11px;background:#0f172a}
 .pill.coins{background:linear-gradient(135deg,#38bdf8 0%,#818cf8 100%);color:#0f172a;border:none;font-weight:700}
 .logo{display:block;width:145px;height:32px;flex-shrink:0;background-image:url('/img/wasagames.png');background-repeat:no-repeat;background-size:contain;background-position:left center;}
@@ -169,28 +104,27 @@ main{padding:14px 12px}
 .profile-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:12px}
 .profile-row b{color:#94a3b8;font-weight:500}
 .profile-row span{color:white;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-footer.wasa-footer{background:rgba(5,8,20,0.85);backdrop-filter:blur(12px);border-top:1px solid rgba(56,189,248,0.15);margin-top:32px;padding:0}
-.footer-inner{max-width:1400px;margin:0 auto;padding:28px 20px 20px;display:grid;grid-template-columns:1.4fr 0.8fr 0.8fr 0.9fr;gap:28px}
-.footer-brand .logo{margin-bottom:12px}
-.footer-desc{font-size:11px;color:#94a3b8;line-height:1.5;max-width:320px}
-.footer-col h4{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#f8fafc;margin-bottom:12px}
-.footer-col a, .footer-col button{display:block;text-align:left;font-size:11px;color:#94a3b8;padding:4px 0;transition:.15s;text-decoration:none}
-.footer-col a:hover, .footer-col button:hover{color:#38bdf8}
-.footer-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.footer-badge{font-size:9px;padding:4px 8px;border-radius:20px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:#94a3b8}
-.footer-bottom{border-top:1px solid rgba(255,255,255,0.06);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;max-width:1400px;margin:0 auto}
-.footer-copy{font-size:10px;color:#64748b}
-.footer-links{display:flex;gap:14px;flex-wrap:wrap}
-.footer-links a{font-size:10px;color:#64748b;text-decoration:none}
-@media(max-width:900px){.footer-inner{grid-template-columns:1fr 1fr;gap:20px;padding:20px 16px}}
-@media(max-width:600px){.footer-inner{grid-template-columns:1fr;gap:18px}.footer-bottom{flex-direction:column;align-items:flex-start;padding:12px 16px}}
+
+/* WASA AD PROVIDER - fix CARGANDO AD */
+#wasaAdProvider{position:fixed;inset:0;z-index:9999;background:rgba(3,6,16,0.92);backdrop-filter:blur(12px);display:none;place-items:center;padding:20px}
+#wasaAdProvider.open{display:grid}
+.wasaAdBox{width:100%;max-width:420px;background:linear-gradient(180deg,#101a2e,#0b1329);border:1px solid rgba(251,191,36,0.3);border-radius:20px;padding:20px;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.6)}
+.wasaAdBadge{font-size:9px;letter-spacing:.08em;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-weight:900;padding:4px 10px;border-radius:9999px;display:inline-block;margin-bottom:12px}
+.wasaAdTitle{font-size:16px;font-weight:900;color:#fff;margin-bottom:6px}
+.wasaAdSub{font-size:11px;color:#94a3b8;margin-bottom:14px;line-height:1.4}
+.wasaAdFrame{width:100%;aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);display:grid;place-items:center;margin-bottom:14px;position:relative}
+.wasaAdProgress{position:absolute;bottom:0;left:0;height:3px;background:linear-gradient(90deg,#fbbf24,#f59e0b);width:0%;transition:width .1s linear}
+.wasaAdCount{font-size:36px;font-weight:900;color:#fbbf24}
+.wasaAdSkip{width:100%;height:44px;border-radius:22px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:#94a3b8;font-weight:700;cursor:pointer;margin-top:8px}
+.wasaAdSkip.ready{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none}
+
 </style>
 </head>
 <body>
 <header>
   <a href="/" class="logo" aria-label="Wasa Games"></a>
   <div class="search"><input id="q" placeholder="Search games..." oninput="filterGames()"></div>
-  <div class="pill coins" id="headerCoins" onclick="openWasaBuy()">0.06 $WASA</div>
+  <div class="pill coins" id="headerCoins" onclick="openWasaBuy()" style="background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);color:#000;font-weight:800;border:none;box-shadow:0 0 12px rgba(251,191,36,0.3);cursor:pointer;">0.06 $WASA</div>
   <div class="right">
     <button class="wallet" id="walletBtn" onclick="handleWalletBtn()">Connect Wallet</button>
     <button class="user-btn disconnected" id="userBtn" onclick="handleUserBtn()">TO</button>
@@ -252,54 +186,10 @@ footer.wasa-footer{background:rgba(5,8,20,0.85);backdrop-filter:blur(12px);borde
       </div>
       <div class="hero-dots"><div class="hero-dot active" onclick="setHero(0)"></div><div class="hero-dot" onclick="setHero(1)"></div></div>
     </div>
-
-    <div id="searchResults" style="display:none">
-      <div class="section-block">
-        <div class="section-head"><h2>🔍 RESULTADOS</h2><span class="count" id="searchCount"></span></div>
-        <div class="grid" id="searchGrid"></div>
-      </div>
-    </div>
-
-    <div id="indexContent">
-      <div id="newSection" class="section-block section-new" style="display:none">
-        <div class="section-head"><h2>🆕 NUEVOS JUEGOS</h2><span class="count">12s por juego • pausa al hover</span></div>
-        <div class="new-wrapper" id="newWrapper">
-          <div class="new-track" id="newTrack"></div>
-          <div class="new-progress"><div class="new-progress-bar"></div></div>
-        </div>
-      </div>
-
-      <div id="allSection" class="section-block">
-        <div class="section-head"><h2>🎮 TODOS LOS JUEGOS</h2><span class="count" id="count">Loading...</span></div>
-        <div class="grid" id="grid"></div>
-        <div class="view-all-wrap" id="viewAllWrap" style="display:none"><a class="view-all-link" id="viewAllLink" onclick="showAllGames()">VER TODOS LOS JUEGOS →</a></div>
-      </div>
-    </div>
+    <div class="topbar"><div class="subtitle" id="count">Loading...</div></div>
+    <div class="grid" id="grid"></div>
   </main>
 </div>
-
-<footer class="wasa-footer">
-  <div class="footer-inner">
-    <div class="footer-brand">
-      <div class="logo"></div>
-      <div class="footer-desc">Juga arcade onchain y farmeá $WASA. Juegos gratis en el navegador, sin descargas. WASA PASS X5 multiplica tus ganancias x5 para siempre. En BSC, con USDT.</div>
-      <div class="footer-badges">
-        <span class="footer-badge">⚡ BSC BEP20</span>
-        <span class="footer-badge">💰 USDT Payments</span>
-        <span class="footer-badge">🎮 No download</span>
-        <span class="footer-badge">🔗 Onchain rewards</span>
-      </div>
-    </div>
-    <div class="footer-col"><h4>Jugar</h4><a onclick="setCat('all');window.scrollTo({top:0,behavior:'smooth'})">Todos los juegos</a><a onclick="document.getElementById('newSection')?.scrollIntoView({behavior:'smooth'})">Nuevos juegos</a><a onclick="setCat('arcade')">Arcade</a><a onclick="setCat('puzzle')">Puzzle</a><a onclick="setCat('action')">Action</a></div>
-    <div class="footer-col"><h4>WASA</h4><a href="/wasa-pass.html">WASA PASS X5 - 5 USDT</a><button onclick="openWasaBuy()">Comprar $WASA</button><button onclick="openReferral()">Programa referidos 20%</button><a href="https://bscscan.com/token/0x55d398326f99059fF775485246999027B3197955" target="_blank">Contrato USDT BSC</a></div>
-    <div class="footer-col"><h4>Soporte</h4><button onclick="openAuthEmail('register')">Crear cuenta</button><button onclick="openUserProfile()">Mi perfil</button><button onclick="handleWalletBtn()">Conectar wallet</button><a href="mailto:support@wasa.chat">support@wasa.chat</a><a href="https://games.wasa.chat/" target="_blank">games.wasa.chat</a></div>
-  </div>
-  <div class="footer-bottom">
-    <div class="footer-copy">© 2026 WASA GAMES • Play Free, Farm $WASA • Built on BSC • v9.6</div>
-    <div class="footer-links"><a href="/wasa-pass.html">WASA PASS</a><a onclick="openWasaBuy()" style="cursor:pointer">Buy $WASA</a><a href="#" onclick="openReferral();return false">Referidos</a><span style="color:#475569;font-size:10px">USDT BSC • transfer() verified</span></div>
-  </div>
-</footer>
-
 <div id="modal"><div id="modalTop"><div style="display:flex;align-items:center;gap:12px"><div id="modalTitle">WASA</div><div class="pill hd" id="modalQuality">HD</div></div><div id="modalMeta"><div class="pill coins" id="modalCoins">0 $WASA</div><button id="modalClose" onclick="closeGame()">✕ Close</button></div></div><div id="modalContainer"></div></div>
 
 <div id="walletChooser" class="wasa-overlay" onclick="if(event.target===this) closeWalletChooser()">
@@ -319,22 +209,51 @@ footer.wasa-footer{background:rgba(5,8,20,0.85);backdrop-filter:blur(12px);borde
     <div class="wasa-head"><b>Comprar $WASA con USDT</b><button class="wasa-close" onclick="closeWasaBuy()">✕</button></div>
     <div style="font-size:11px;color:#94a3b8;margin-bottom:12px">Red: BSC (BEP20) • Pago con USDT</div>
     <div id="buyStatus" class="status-box"></div>
-    <div class="buy-opt" onclick="buyWasa(200)"><div style="display:flex;gap:12px;align-items:center"><img src="img/wasa-100.png" style="width:44px;height:36px;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.25))"><div><b>200 WASA</b><br><small>Pack inicial • montículo</small></div></div><div style="text-align:right"><b>2 USDT</b></div></div>
-    <div class="buy-opt" onclick="buyWasa(1000)"><div style="display:flex;gap:12px;align-items:center"><img src="img/wasa-1000.png" style="width:52px;height:42px;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.3))"><div><b>1000 WASA</b><br><small>Más popular • pila grande</small></div></div><div style="text-align:right"><b>10 USDT</b></div></div>
-    <div class="buy-opt" onclick="buyWasa(2000)"><div style="display:flex;gap:12px;align-items:center"><img src="img/wasa-2000.png" style="width:60px;height:48px;object-fit:contain;filter:drop-shadow(0 6px 12px rgba(0,0,0,0.35))"><div><b>2000 WASA</b><br><small>Pro gamer • pila gigante</small></div></div><div style="text-align:right"><b>19 USDT</b></div></div>
+    <div class="buy-opt" onclick="buyWasa(200)"><div style="display:flex;gap:10px;align-items:center"><img src="img/founderswasa.png" style="width:28px;height:28px;border-radius:50%;background:#fbbf24;padding:2px" onerror="this.style.display='none'"><div><b>200 WASA</b><br><small>Pack inicial</small></div></div><div style="text-align:right"><b>2 USDT</b></div></div>
+    <div class="buy-opt" onclick="buyWasa(1000)"><div style="display:flex;gap:10px;align-items:center"><img src="img/founderswasa.png" style="width:28px;height:28px;border-radius:50%;background:#fbbf24;padding:2px"><div><b>1000 WASA</b><br><small>Más popular</small></div></div><div style="text-align:right"><b>10 USDT</b></div></div>
+    <div class="buy-opt" onclick="buyWasa(2000)"><div style="display:flex;gap:10px;align-items:center"><img src="img/founderswasa.png" style="width:28px;height:28px;border-radius:50%;background:#fbbf24;padding:2px"><div><b>2000 WASA</b><br><small>Pro gamer</small></div></div><div style="text-align:right"><b>19 USDT</b></div></div>
     <div style="margin-top:12px"><button class="btn-wasa btn-wasa-secondary" onclick="closeWasaBuy();openWalletChooser()">🔌 Conectar otra billetera</button></div>
     <div style="font-size:10px;color:#64748b;margin-top:10px;text-align:center" id="configFooter">USDT BSC: cargando config...</div>
   </div>
 </div>
 
-<div id="authModal" class="wasa-overlay"><div class="wasa-box"><div class="wasa-head"><b>Mi Cuenta</b><button class="wasa-close" onclick="closeAuthEmail()">✕</button></div><div class="tabs"><div id="tabLogin" class="tab active" onclick="switchAuthTab('login')">Entrar</div><div id="tabRegister" class="tab" onclick="switchAuthTab('register')">Crear cuenta</div></div><div id="loginForm"><input id="authEmail" class="input-wasa" placeholder="Email"><input id="authPass" class="input-wasa" type="password" placeholder="Contraseña"><span class="forgot-link" onclick="openForgot()">¿Olvidaste tu contraseña?</span><div id="authStatus" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="doLogin()">Entrar</button><div id="forgotBox" class="forgot-box"><div id="forgotStep1"><input id="forgotEmail" class="input-wasa" placeholder="Tu email"><div id="forgotStatus" class="status-box"></div><button class="btn-wasa btn-wasa-secondary" onclick="requestPasswordReset()">Enviar código</button></div><div id="forgotStep2" style="display:none"><input id="forgotCode" class="input-wasa" placeholder="Código 6 dígitos" maxlength="6"><input id="forgotNewPass" class="input-wasa" type="password" placeholder="Nueva contraseña"><button class="btn-wasa btn-wasa-primary" onclick="verifyPasswordReset()">Cambiar contraseña</button></div></div></div><div id="registerForm" style="display:none"><input id="authEmailReg" class="input-wasa" placeholder="Email"><input id="authPassReg" class="input-wasa" type="password" placeholder="Contraseña"><input id="authNickReg" class="input-wasa" placeholder="Apodo"><div id="authStatusReg" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="doRegister()">Crear cuenta</button></div></div></div>
+<div id="authModal" class="wasa-overlay">
+  <div class="wasa-box">
+    <div class="wasa-head"><b>Mi Cuenta</b><button class="wasa-close" onclick="closeAuthEmail()">✕</button></div>
+    <div class="tabs"><div id="tabLogin" class="tab active" onclick="switchAuthTab('login')">Entrar</div><div id="tabRegister" class="tab" onclick="switchAuthTab('register')">Crear cuenta</div></div>
+    <div id="loginForm"><input id="authEmail" class="input-wasa" placeholder="Email"><input id="authPass" class="input-wasa" type="password" placeholder="Contraseña"><span class="forgot-link" onclick="openForgot()">¿Olvidaste tu contraseña?</span><div id="authStatus" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="doLogin()">Entrar</button><div id="forgotBox" class="forgot-box"><div id="forgotStep1"><input id="forgotEmail" class="input-wasa" placeholder="Tu email"><div id="forgotStatus" class="status-box"></div><button class="btn-wasa btn-wasa-secondary" onclick="requestPasswordReset()">Enviar código</button></div><div id="forgotStep2" style="display:none"><input id="forgotCode" class="input-wasa" placeholder="Código 6 dígitos" maxlength="6"><input id="forgotNewPass" class="input-wasa" type="password" placeholder="Nueva contraseña"><button class="btn-wasa btn-wasa-primary" onclick="verifyPasswordReset()">Cambiar contraseña</button></div></div></div>
+    <div id="registerForm" style="display:none"><input id="authEmailReg" class="input-wasa" placeholder="Email"><input id="authPassReg" class="input-wasa" type="password" placeholder="Contraseña"><input id="authNickReg" class="input-wasa" placeholder="Apodo"><div id="authStatusReg" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="doRegister()">Crear cuenta</button></div>
+  </div>
+</div>
 
-<div id="userProfileModal" class="wasa-overlay" onclick="if(event.target===this) closeUserProfile()"><div class="wasa-box"><div class="wasa-head"><b>👤 Mi Perfil</b><button class="wasa-close" onclick="closeUserProfile()">✕</button></div><div style="text-align:center;margin-bottom:16px"><div style="width:72px;height:72px;margin:0 auto;border-radius:50%;border:3px solid #fbbf24;background:linear-gradient(135deg,#fbbf24,#f59e0b);display:grid;place-items:center;font-size:32px">👤</div><div id="profileDisplayName" style="margin-top:8px;font-weight:700;color:#fbbf24;font-size:14px">Invitado</div></div><div class="profile-row"><b>Email</b><span id="profileEmail">No logeado</span></div><div class="profile-row"><b>Wallet</b><span id="profileWallet">No conectada</span></div><div class="profile-row"><b>$WASA</b><span id="profileCoins">0</span></div><div style="margin-top:10px"><label style="font-size:11px;color:#94a3b8">Wallets linkeadas</label><div id="profileWalletsList" style="background:rgba(0,0,0,0.2);border-radius:8px;padding:6px 10px;margin-top:4px"></div></div><div style="margin-top:16px"><label style="font-size:11px;color:#94a3b8">Apodo</label><input id="profileNickname" class="input-wasa" placeholder="Tu apodo" maxlength="20"><div id="profileStatus" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="saveProfile()">💾 Guardar apodo</button><button class="btn-wasa btn-wasa-secondary" style="margin-top:8px" onclick="logoutUser()">🚪 Cerrar Sesión</button></div></div></div>
+<div id="userProfileModal" class="wasa-overlay" onclick="if(event.target===this) closeUserProfile()">
+  <div class="wasa-box">
+    <div class="wasa-head"><b>👤 Mi Perfil</b><button class="wasa-close" onclick="closeUserProfile()">✕</button></div>
+    <div style="text-align:center;margin-bottom:16px"><div style="width:72px;height:72px;margin:0 auto;border-radius:50%;border:3px solid #fbbf24;background:linear-gradient(135deg,#fbbf24,#f59e0b);display:grid;place-items:center;font-size:32px">👤</div><div id="profileDisplayName" style="margin-top:8px;font-weight:700;color:#fbbf24;font-size:14px">Invitado</div></div>
+    <div class="profile-row"><b>Email</b><span id="profileEmail">No logeado</span></div>
+    <div class="profile-row"><b>Wallet</b><span id="profileWallet">No conectada</span></div>
+    <div class="profile-row"><b>$WASA</b><span id="profileCoins">0</span></div>
+    <div style="margin-top:10px"><label style="font-size:11px;color:#94a3b8">Wallets linkeadas</label><div id="profileWalletsList" style="background:rgba(0,0,0,0.2);border-radius:8px;padding:6px 10px;margin-top:4px"></div></div>
+    <div style="margin-top:16px"><label style="font-size:11px;color:#94a3b8">Apodo</label><input id="profileNickname" class="input-wasa" placeholder="Tu apodo" maxlength="20"><div id="profileStatus" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="saveProfile()">💾 Guardar apodo</button><button class="btn-wasa btn-wasa-secondary" style="margin-top:8px" onclick="logoutUser()">🚪 Cerrar Sesión</button></div>
+  </div>
+</div>
 
-<div id="verifyEmailModal" class="wasa-overlay"><div class="wasa-box"><div class="wasa-head"><b>✉ Verifica tu email</b><button class="wasa-close" onclick="closeVerifyModal()">✕</button></div><div style="padding:12px 0"><p style="font-size:12px;color:#cbd5e1;margin-bottom:8px">Enviamos un código de 6 dígitos a <b id="verifyEmailLabel" style="color:#fbbf24">tu email</b></p><p style="font-size:10px;color:#64748b;margin-bottom:12px">Revisá spam. Expira en 15 min.</p><input id="verifyCodeInput" class="input-wasa" placeholder="Código 6 dígitos" maxlength="6" style="letter-spacing:4px;text-align:center;font-size:18px;font-weight:800"><div id="verifyStatus" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="doVerifyEmail()">✅ Verificar y activar cuenta</button><button class="btn-wasa btn-wasa-secondary" style="margin-top:8px" onclick="resendVerifyCode()">📨 Reenviar código</button></div></div></div>
+<div id="verifyEmailModal" class="wasa-overlay">
+  <div class="wasa-box">
+    <div class="wasa-head"><b>✉ Verifica tu email</b><button class="wasa-close" onclick="closeVerifyModal()">✕</button></div>
+    <div style="padding:12px 0">
+      <p style="font-size:12px;color:#cbd5e1;margin-bottom:8px">Enviamos un código de 6 dígitos a <b id="verifyEmailLabel" style="color:#fbbf24">tu email</b></p>
+      <p style="font-size:10px;color:#64748b;margin-bottom:12px">Revisá spam. Expira en 15 min.</p>
+      <input id="verifyCodeInput" class="input-wasa" placeholder="Código 6 dígitos" maxlength="6" style="letter-spacing:4px;text-align:center;font-size:18px;font-weight:800">
+      <div id="verifyStatus" class="status-box"></div>
+      <button class="btn-wasa btn-wasa-primary" onclick="doVerifyEmail()">✅ Verificar y activar cuenta</button>
+      <button class="btn-wasa btn-wasa-secondary" style="margin-top:8px" onclick="resendVerifyCode()">📨 Reenviar código</button>
+    </div>
+  </div>
+</div>
 
 <script>
-let GAMES=[]; let currentCat='all'; let showAll=false;
+let GAMES=[]; let currentCat='all';
 let heroIdx=0;
 function setHero(i){
   heroIdx=i%2;
@@ -351,6 +270,7 @@ function openReferral(){
   const link = 'https://games.wasa.chat/?ref='+code.slice(-8);
   prompt('Tu link de referido (20% comisión):', link);
 }
+function buyWasaPass(){ window.location.href='/wasa-pass.html'; }
 function fmtWASA(n){ const v=parseFloat(n)||0; if(v===0) return '0'; if(v<0.001) return v.toFixed(6).replace(/0+$/,'').replace(/\.$/,''); if(v<1) return (Math.round(v*1000000)/1000000).toString(); return (Math.round(v*1000)/1000).toString(); }
 function getCoins(){ return window.getCoins? window.getCoins() : parseFloat(localStorage.getItem('wasa_coins')||'0'); }
 function setCoins(n){ return window.setCoins? window.setCoins(n) : localStorage.setItem('wasa_coins',n); }
@@ -358,141 +278,130 @@ function addCoins(n){ return window.addCoins? window.addCoins(n) : setCoins(getC
 function setCoinsUI(n){ return window.setCoinsUI? window.setCoinsUI(n) : null; }
 function setCat(cat){currentCat=cat;document.querySelectorAll('#catFilter button').forEach(b=>b.classList.toggle('active',b.dataset.cat===cat));renderGrid();}
 function filterGames(){renderGrid();}
-function gameCardHTML(g, isNew=false){
-  return `<div class="card ${g.live?'live':''} ${isNew?'new':''}" onclick="openGame('${g.slug}')">
-      <div class="thumb"><img src="/img/${g.slug}.png" alt="${g.title}" loading="lazy" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;z-index:1"><span class="badge ${isNew?'new':(g.live?'live':'')}">${isNew?'NUEVO':(g.live?'LIVE':'SOON')}</span></div>
-      <div class="info"><div class="title">${g.title}</div><div class="meta"><span>${(g.cat||'').split(' ')[0]}</span></div></div>
-      <div class="play"><span>Play Now</span></div>
-    </div>`;
-}
-function getDesc(g){
-  if(g.desc) return g.desc;
-  const d={
-    'ruzzle-bubble':'¡Explota burbujas con la rana más divertida! Puzzle arcade rápido donde tenés que agrupar colores y liberar power-ups. Ideal para farmear $WASA sin parar.',
-    '2048-madera':'El clásico 2048 con estilo madera premium. Deslizá fichas, combiná números y llegá a 2048. Estrategia pura, perfecto para sesiones largas y sumar $WASA.',
-    'ahorcado':'Adiviná la palabra oculta con ayuda de la IA. Guess the Word AI Expert: letras, pistas y un sapito profesor. Juego de palabras para ganar $WASA jugando.',
-    'banatron-revelation':'Esquiva, gira y sobrevive en el laberinto neón. Banatron Revelation es arcade puro con estética retro-futurista. Reflejos al límite y rewards en $WASA.',
-    'banatron':'Banatron: arcade neón de laberinto infinito. Movete rápido, no choques y batí tu record.',
-    'space-invaders':'El legendario Space Invaders, ahora onchain. Defendé la galaxia y farmeá $WASA tiro a tiro.',
-    'roadfighter':'Carreras arcade clásicas. Road Fighter a toda velocidad, esquivá autos y llegá primero para ganar.'
-  };
-  return d[g.slug] || `Juga ${g.title} gratis en tu navegador, sin descargas. Gana $WASA por cada partida y multiplica con WASA PASS X5. Arcade onchain en BSC.`;
-}
-function renderNewCarousel(){
-  const track=document.getElementById('newTrack');
-  const section=document.getElementById('newSection');
-  if(!GAMES.length){ section.style.display='none'; return; }
-  const lastThree=[...GAMES].slice(-3).reverse();
-  if(!lastThree.length){ section.style.display='none'; return; }
-  section.style.display='block';
-  track.innerHTML = lastThree.map((g)=>`
-    <div class="new-slide">
-      <div class="new-thumb"><span class="new-badge">🆕 NUEVO</span><img src="/img/${g.slug}.png" alt="${g.title} - nuevo juego WASA" loading="lazy"></div>
-      <div class="new-content">
-        <div class="new-cat">${g.cat||'puzzle'} • recién agregado</div>
-        <h3 class="new-title">${g.title}</h3>
-        <p class="new-desc">${getDesc(g)}</p>
-        <div class="new-meta"><span>🎮 ${g.cat||'arcade'}</span><span>⚡ Juega gratis</span><span>💰 Gana $WASA</span></div>
-        <button class="new-cta" onclick="openGame('${g.slug}')">▶ JUGAR AHORA</button>
-      </div>
-    </div>
-  `).join('');
-}
-async function loadGames(){
-  try{const r=await fetch('/games.json?t='+Date.now());GAMES=await r.json();}catch(e){GAMES=[{slug:'ruzzle-bubble',title:'RUZZLE BUBBLE',cat:'puzzle',live:true},{slug:'2048-madera',title:'2048 GAME',cat:'puzzle',live:true},{slug:'ahorcado',title:'AHORCADO',cat:'puzzle',live:true},{slug:'banatron-revelation',title:'BANATRON REVELATION',cat:'arcade',live:true}];}
-  renderNewCarousel();
-  renderGrid();
-}
-function showAllGames(){showAll=true; renderGrid(); document.getElementById('viewAllWrap').style.display='none';}
+async function loadGames(){ try{const r=await fetch('/games.json?t='+Date.now());GAMES=await r.json();}catch(e){GAMES=[{slug:'space-invaders',title:'SPACE INVADERS',cat:'arcade action',live:true},{slug:'banatron',title:'BANATRON REVELATION',cat:'arcade',live:true},{slug:'roadfighter',title:'ROAD FIGHTER',cat:'arcade action',live:true}];} renderGrid(); }
 function renderGrid(){
-  const q=(document.getElementById('q').value||'').toLowerCase().trim();
-  const isSearching = q!=='' || currentCat!=='all';
-  const searchResultsEl=document.getElementById('searchResults');
-  const indexContentEl=document.getElementById('indexContent');
-  const gridEl=document.getElementById('grid');
-  const searchGridEl=document.getElementById('searchGrid');
-  const countEl=document.getElementById('count');
-  const searchCountEl=document.getElementById('searchCount');
-  const viewAllWrapEl=document.getElementById('viewAllWrap');
+  const grid=document.getElementById('grid');
+  const q=(document.getElementById('q').value||'').toLowerCase();
   const filtered=GAMES.filter(g=>{
     const mq=!q||g.slug.includes(q)||g.title.toLowerCase().includes(q)||(g.cat||'').includes(q);
     const mc=currentCat==='all'||(g.cat||'').includes(currentCat);
     return mq&&mc;
   });
-  if(isSearching){
-    indexContentEl.style.display='none';
-    searchResultsEl.style.display='block';
-    searchCountEl.textContent=filtered.length+' GAMES';
-    searchGridEl.innerHTML=filtered.map(g=>gameCardHTML(g,false)).join('') || '<div style="color:#94a3b8;padding:20px">No se encontraron juegos</div>';
-    return;
-  }
-  searchResultsEl.style.display='none';
-  indexContentEl.style.display='block';
-  countEl.textContent=GAMES.length+' GAMES';
-  const toShow = showAll ? filtered : filtered.slice(0,15);
-  gridEl.innerHTML=toShow.map(g=>gameCardHTML(g,false)).join('');
-  viewAllWrapEl.style.display = (!showAll && filtered.length>15) ? 'block' : 'none';
-}
-
-// FIX ANUNCIOS: si el juego se queda en "Cargando anuncio..." lo destrabamos automaticamente
-function fixAdOverlay(){
-  let attempts=0;
-  const iv=setInterval(()=>{
-    attempts++;
-    // buscar overlay con texto Cargando anuncio
-    const nodes=[...document.querySelectorAll('#modalContainer div, #modalContainer span, #modalContainer p')];
-    for(const n of nodes){
-      if(n.textContent && n.textContent.trim().toLowerCase().includes('cargando anuncio')){
-        console.log('[WASA] Ad stuck detectado, forzando cierre overlay');
-        // intentar ocultar solo el overlay de anuncio, no todo el juego
-        const overlay = n.closest('div');
-        if(overlay){
-          // si el overlay es el que tapa todo, lo ocultamos
-          overlay.style.display='none';
-          // disparar evento para que el juego continue
-          window.dispatchEvent(new Event('adClosed'));
-          window.vrAd=1;
-        }
-        clearInterval(iv);
-        return;
-      }
-    }
-    if(attempts>15) clearInterval(iv);
-  }, 400);
-  setTimeout(()=>clearInterval(iv), 7000);
-}
-
-async function openGame(slug){
-  const modal=document.getElementById('modal');
-  const container=document.getElementById('modalContainer');
-  const titleEl=document.getElementById('modalTitle');
-  const qualityEl=document.getElementById('modalQuality');
-  const isLow=(navigator.deviceMemory||4)<=2;
-  const isMob=innerWidth<900;
-  const quality=isLow||isMob?'lite':'hd';
-  const game=GAMES.find(g=>g.slug===slug);
-  titleEl.textContent=(game?.title||slug).toUpperCase();
-  qualityEl.textContent=quality.toUpperCase();
-  setCoins(getCoins());
-  modal.classList.add('open');
-  document.body.style.overflow='hidden';
-  history.pushState({},'',`/play?game=${slug}`);
-  container.innerHTML=`Loading ${slug}...`;
-  window.vrAd=0;
-  try{
-    const mod=await import(`/games/${slug}/game.js?v=6&t=${Date.now()}`, { cache: 'no-store' });
-    container.innerHTML='';
-    if(mod.init){ 
-      mod.init(container,{quality,getCoins,addCoins,setCoins,slug});
-      // lanzar fix de anuncios 1s despues de iniciar
-      setTimeout(fixAdOverlay, 800);
-    }
-  }catch(e){container.innerHTML=`No encontrado /games/${slug}/game.js - ${e.message}`;}
-}
+  document.getElementById('count').textContent=filtered.length+' GAMES';
+  grid.innerHTML=filtered.map(g=>`
+    <div class="card ${g.live?'live':''}" onclick="openGame('${g.slug}')">
+      <div class="thumb" id="thumb-${g.slug}">
+        <img src="/img/${g.slug}.png" alt="${g.title}" loading="lazy" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;z-index:1">
+        <span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span>
+      </div>
+      <div class="info"><div class="title">${g.title}</div><div class="meta"><span>${(g.cat||'').split(' ')[0]}</span></div></div>
+      <div class="play"><span>Play Now</span></div>
+    </div>
+  `).join('');
+}async function openGame(slug){ const modal=document.getElementById('modal'); const container=document.getElementById('modalContainer'); const titleEl=document.getElementById('modalTitle'); const qualityEl=document.getElementById('modalQuality'); const isLow=(navigator.deviceMemory||4)<=2; const isMob=innerWidth<900; const quality=isLow||isMob?'lite':'hd'; const game=GAMES.find(g=>g.slug===slug); titleEl.textContent=(game?.title||slug).toUpperCase(); qualityEl.textContent=quality.toUpperCase(); setCoins(getCoins()); modal.classList.add('open'); document.body.style.overflow='hidden'; history.pushState({},'',`/play?game=${slug}`); container.innerHTML=`Loading ${slug}...`; window.vrAd=0; try{ const mod=await import(`/games/${slug}/game.js?v=6&t=${Date.now()}`, { cache: 'no-store' }); container.innerHTML=''; if(mod.init){ mod.init(container,{quality,getCoins,addCoins,setCoins,slug}); } }catch(e){container.innerHTML=`No encontrado /games/${slug}/game.js`;} }
 function closeGame(){ document.getElementById('modal').classList.remove('open'); document.getElementById('modalContainer').innerHTML=''; document.body.style.overflow=''; history.pushState({},'',`/`); }
 addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeGame(); closeWalletChooser(); closeWasaBuy(); closeAuthEmail(); closeUserProfile(); const m=document.getElementById('userDropdown'); if(m) m.classList.remove('open'); }});
 addEventListener('DOMContentLoaded',()=>{ if(!localStorage.getItem('wasa_device_id')) localStorage.setItem('wasa_device_id','dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36)); setCoins(getCoins()); loadGames(); });
 </script>
+
+<script>
+// WASA AD PROVIDER UNIVERSAL - arregla CARGANDO AD en todos los juegos
+(function(){
+  let adTimer=null;
+  let countdown=null;
+  let isShowing=false;
+  
+  function showWasaAd(){
+    if(isShowing) return;
+    isShowing=true;
+    const provider=document.getElementById('wasaAdProvider');
+    const countEl=document.getElementById('wasaAdCount');
+    const progressEl=document.getElementById('wasaAdProgress');
+    const skipBtn=document.getElementById('wasaAdSkipBtn');
+    if(!provider) return;
+    
+    let secs=3;
+    provider.classList.add('open');
+    if(countEl) countEl.textContent=secs;
+    if(skipBtn){ skipBtn.disabled=true; skipBtn.textContent='Espera '+secs+'s...'; skipBtn.classList.remove('ready'); }
+    if(progressEl){ progressEl.style.transition='none'; progressEl.style.width='0%'; }
+    
+    setTimeout(()=>{ if(progressEl){ progressEl.style.transition='width 3s linear'; progressEl.style.width='100%'; } },50);
+    
+    countdown=setInterval(()=>{
+      secs--;
+      if(countEl) countEl.textContent=secs>0?secs:'✓';
+      if(skipBtn && secs>0){ skipBtn.textContent='Espera '+secs+'s...'; }
+      if(secs<=0){
+        clearInterval(countdown);
+        if(skipBtn){ skipBtn.disabled=false; skipBtn.textContent='✓ RECLAMAR X2 WASA'; skipBtn.classList.add('ready'); }
+        if(countEl) countEl.textContent='✓';
+        // auto cerrar a los 3.5s
+        setTimeout(()=>{ skipWasaAd(); }, 500);
+      }
+    },1000);
+  }
+  
+  window.skipWasaAd=function(){
+    const provider=document.getElementById('wasaAdProvider');
+    if(provider) provider.classList.remove('open');
+    if(countdown) clearInterval(countdown);
+    if(adTimer) clearTimeout(adTimer);
+    isShowing=false;
+    // ESTO es lo que los juegos esperan para dar el X2
+    window.vrAd=4;
+    console.log('[WASA AD] vrAd=4 enviado - X2 acreditado');
+    // fallback: tambien disparar evento
+    window.dispatchEvent(new Event('wasaAdComplete'));
+  }
+  
+  // WATCHER: cuando cualquier juego pone vrAd=1, mostramos nuestro ad
+  let lastVrAd=0;
+  setInterval(()=>{
+    if(window.vrAd===1 && lastVrAd!==1){
+      console.log('[WASA AD] Detectado vrAd=1 - mostrando ad');
+      showWasaAd();
+    }
+    if(window.vrAd===4 && lastVrAd!==4){
+      // ad completado, cerrar provider por si quedó abierto
+      const provider=document.getElementById('wasaAdProvider');
+      if(provider) provider.classList.remove('open');
+      isShowing=false;
+    }
+    lastVrAd=window.vrAd;
+  },200);
+  
+  // Fix adicional: si un juego se queda en CARGANDO AD... mas de 2s, forzar ad
+  setInterval(()=>{
+    const container=document.getElementById('modalContainer');
+    if(!container) return;
+    if(container.textContent && container.textContent.includes('CARGANDO AD')){
+      // ya tiene nuestro provider? si no, mostrar
+      if(window.vrAd===0){
+        window.vrAd=1; // forzar
+      }
+    }
+  },800);
+  
+  window.WASA_AD_PROVIDER_READY=true;
+})();
+</script>
+
 <script src="./wasa-conection.js?v=9.6"></script>
+
+<div id="wasaAdProvider" onclick="if(event.target===this) skipWasaAd()">
+  <div class="wasaAdBox">
+    <div class="wasaAdBadge">📢 PUBLICIDAD WASA • X2 REWARD</div>
+    <div class="wasaAdTitle">¡Duplicá tu recompensa!</div>
+    <div class="wasaAdSub">Mirando este anuncio apoyás a WASA Games y te llevás X2 $WASA<br><span style="font-size:10px;color:#64748b">Si tenés adblock, igual te lo acreditamos</span></div>
+    <div class="wasaAdFrame">
+      <div id="wasaAdCount" class="wasaAdCount">3</div>
+      <div style="position:absolute;inset:0;display:grid;place-items:center;opacity:0.15"><div style="font-size:12px;color:#fff">WASA GAMES • $WASA</div></div>
+      <div id="wasaAdProgress" class="wasaAdProgress"></div>
+    </div>
+    <button id="wasaAdSkipBtn" class="wasaAdSkip" onclick="skipWasaAd()" disabled>Espera 3s...</button>
+  </div>
+</div>
+
 </body>
 </html>
