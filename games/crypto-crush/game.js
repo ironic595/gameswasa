@@ -1,101 +1,266 @@
-// games/crypto-crush/game.js - v2 JUICY MOBILE OPTIMIZED
+// games/crypto-crush/game.js - v2 CANDY CRUSH EDITION - MOBILE FIRST - ECONOMIA REAL
 export function init(container, args){
-  const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javimsites.workers.dev/';
-  function getDeviceId(){ if(window.getDeviceId) return window.getDeviceId(); let id=localStorage.getItem('wasa_device_id'); if(!id){ id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id; }
+  const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javisimes.workers.dev/';
+  function getDeviceId(){ let id=localStorage.getItem('wasa_device_id'); if(!id){ id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id; }
   function fmt(n){ const v=parseFloat(n)||0; if(v===0) return '0'; return (Math.round(v*1e7)/1e7).toFixed(7).replace(/0+$/,'').replace(/\.$/,''); }
 
-  const ICONS = ['₿','Ξ','$','🐶','◎','Ł','◈','Ð'];
-  const COLORS = ['#f7931a','#627eea','#26a17b','#c2a633','#9945ff','#345d9d','#00d1ff','#ff6b35'];
-  const SZ = 7;
-  const MERGES_FOR_REWARD = 20;
-  const MERGES_FOR_FORCED = 30;
+  const ICONS = ['₿','Ξ','₮','🐶','◎','Ł'];
+  const COLORS = ['#f7931a','#627eea','#26a17b','#c2a633','#9945ff','#345d9d'];
+  const NAMES = ['BTC','ETH','USDT','DOGE','SOL','LTC'];
+  const SZ = 8;
   const BASE_REWARD = 0.0001;
+  const MERGES_FOR_REWARD = 25;
 
   container.innerHTML=`<style>
-.wcrush{width:100%;height:100%;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;font-family:Inter,system-ui;background:radial-gradient(ellipse at 20% 10%,rgba(139,90,255,.22),transparent 60%),linear-gradient(180deg,#1e1b4b 0%,#312e81 35%,#020617 100%);color:#fff;overflow:hidden;position:relative;padding:10px;box-sizing:border-box;touch-action:manipulation}
-.w-header{width:100%;max-width:520px;display:flex;flex-direction:column;gap:8px}
-.w-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.w-stat{background:linear-gradient(180deg,#1e293b,#0f172a);border:1px solid #334155;border-radius:12px;padding:7px 8px}
-.w-stat b{font-size:13px;color:#fff;font-weight:900;display:block}
-.w-stat span{font-size:7px;opacity:.7;text-transform:uppercase;color:#94a3b8;font-weight:800;display:block}
-.w-stat.highlight{background:linear-gradient(180deg,#d1fae5,#a7f3d0);border-color:#065f46}
-.w-stat.highlight b{color:#065f46}
-.w-layout{flex:1;width:100%;max-width:520px;display:flex;flex-direction:column;gap:10px;margin-top:10px}
-.w-board-wrap{width:100%;background:linear-gradient(180deg,#1e293b 0%,#0f172a 100%);padding:8px;border-radius:18px;box-shadow:0 10px 28px rgba(0,0,0,.55);border:1.5px solid #334155;aspect-ratio:1;position:relative;touch-action:none;will-change:transform}
-.w-grid{display:grid;grid-template-columns:repeat(${SZ},1fr);gap:5px;width:100%;height:100%}
-.w-cell{width:100%;aspect-ratio:1;background:radial-gradient(ellipse at 30% 20%,rgba(255,255,255,.18),transparent 50%),rgba(255,255,255,.07);border-radius:14px;display:grid;place-items:center;font-weight:900;font-size:20px;cursor:pointer;user-select:none;will-change:transform,opacity;border:1.5px solid transparent;transition:transform.18s cubic-bezier(.34,1.56,.64,1), filter.18s}
-.w-cell.sel{transform:scale(1.18) translateZ(0);z-index:3;filter:brightness(1.3);border-color:#facc15;box-shadow:0 0 0 2px #facc15,0 8px 18px rgba(250,204,21,.4)}
-.w-cell.hint{animation:hintPulse 1s ease-in-out infinite}
-@keyframes hintPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
-.w-cell.matched{animation:crushPop.38s cubic-bezier(.34,1.56,.64,1) forwards}
-@keyframes crushPop{0%{transform:scale(1)}30%{transform:scale(1.35)}60%{transform:scale(.9)}100%{transform:scale(0);opacity:0}}
-.w-cell.fall{animation:fallIn.3s cubic-bezier(.22,1,.36,1)}
-@keyframes fallIn{0%{transform:translateY(-60%) scale(.8);opacity:0}100%{transform:translateY(0) scale(1);opacity:1}}
-.w-float{position:absolute;pointer-events:none;font-weight:900;font-size:12px;color:#facc15;animation:floatUp.8s ease-out forwards;z-index:10;will-change:transform,opacity}
-@keyframes floatUp{0%{transform:translate(-50%,0) scale(.8);opacity:0}20%{opacity:1}100%{transform:translate(-50%,-52px) scale(1.2);opacity:0}}
-.w-part{position:absolute;width:6px;height:6px;border-radius:50%;pointer-events:none;will-change:transform,opacity}
-.w-progress-wrap{width:100%;background:rgba(15,23,42,.88);border:1px solid #334155;border-radius:12px;padding:8px 10px}
-.w-progress{height:8px;background:rgba(255,255,255,.12);border-radius:5px;overflow:hidden;margin-top:6px}.w-progress-bar{height:100%;background:linear-gradient(90deg,#22c55e,#16a34a);transition:width.4s ease;width:0%}
-.w-levels{display:flex;gap:6px}
-.w-lv{flex:1;padding:8px 6px;border-radius:10px;border:1.5px solid #334155;font-weight:900;font-size:10px;text-align:center;cursor:pointer;background:rgba(255,255,255,.04);color:#cbd5e1}
-.w-lv.active{transform:scale(1.05);color:#000;border-color:transparent}
-.w-lv[data-lv="1"].active{background:#22c55e}.w-lv[data-lv="2"].active{background:#f97316}.w-lv[data-lv="3"].active{background:#ef4444;color:#fff}
+*{box-sizing:border-box}
+.cc{width:100%;height:100%;min-height:100vh;display:flex;flex-direction:column;align-items:center;background:radial-gradient(ellipse at 50% 0%, #3b2a8a 0%, transparent 55%), linear-gradient(180deg,#1a1033 0%,#0f0a1e 100%);color:#fff;font-family:Inter,system-ui;overflow:auto;overflow-x:hidden;position:relative;padding:0 0 20px}
+.cc-board-area{width:100%;max-width:480px;display:flex;flex-direction:column;align-items:center;padding:12px;gap:10px}
+.cc-top-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;width:100%}
+.cc-stat{background:linear-gradient(180deg,#2a2252,#1d1840);border:1.5px solid #3d3370;border-radius:14px;padding:8px 12px;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.cc-stat b{font-size:15px;font-weight:900;display:block;line-height:1}
+.cc-stat span{font-size:8px;letter-spacing:.08em;opacity:.6;text-transform:uppercase;font-weight:700}
+.cc-stat.gold{background:linear-gradient(180deg,#fde68a,#fbbf24);border-color:#f59e0b;color:#000}.cc-stat.gold span{color:rgba(0,0,0,.6)}
+.cc-progress{width:100%;background:rgba(0,0,0,.35);border:1px solid #3d3370;border-radius:12px;padding:8px 10px}
+.cc-progress-bar{height:10px;background:#1a1635;border-radius:999px;overflow:hidden;margin-top:6px;border:1px solid #2a2252}
+.cc-progress-fill{height:100%;background:linear-gradient(90deg,#22c55e,#4ade80);width:0%;transition:width .4s ease;box-shadow:0 0 10px rgba(34,197,94,.5)}
+
+.cc-board{width:100%;aspect-ratio:1;background:linear-gradient(180deg,#1c1740,#12102a);border-radius:22px;padding:8px;box-shadow:0 20px 50px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.08);border:2px solid #2f285e;position:relative;touch-action:none;user-select:none}
+.cc-grid{display:grid;grid-template-columns:repeat(${SZ},1fr);grid-template-rows:repeat(${SZ},1fr);gap:5px;width:100%;height:100%}
+.cc-cell{position:relative;border-radius:12px;display:grid;place-items:center;cursor:pointer;transition:transform .15s cubic-bezier(.34,1.56,.64,1), filter .15s;will-change:transform;user-select:none;-webkit-tap-highlight-color:transparent}
+.cc-cell:active{transform:scale(.92)}
+.cc-cell.sel{transform:scale(1.12);z-index:5;filter:brightness(1.25)}
+.cc-cell.sel::after{content:'';position:absolute;inset:-3px;border:3px solid #facc15;border-radius:14px;box-shadow:0 0 18px #facc15, inset 0 0 10px rgba(250,204,21,.3);pointer-events:none}
+.cc-candy{width:86%;height:86%;border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;display:grid;place-items:center;font-weight:900;font-size:22px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.25), inset 0 2px 0 rgba(255,255,255,.35), 0 3px 8px rgba(0,0,0,.35);position:relative;overflow:hidden}
+.cc-candy::before{content:'';position:absolute;top:6%;left:18%;width:34%;height:28%;background:rgba(255,255,255,.45);border-radius:50%;filter:blur(.5px)}
+.cc-cell.matched{animation:pop .45s cubic-bezier(.34,1.56,.64,1) forwards}
+@keyframes pop{0%{transform:scale(1)}30%{transform:scale(1.35)}100%{transform:scale(0);opacity:0}}
+.cc-cell.fall{animation:fall .32s cubic-bezier(.25,.46,.45,.94)}
+@keyframes fall{0%{transform:translateY(-120%)}100%{transform:translateY(0)}}
+.cc-cell.hint{animation:hint 1s ease-in-out infinite}
+@keyframes hint{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.cc-combo{position:absolute;left:50%;top:30%;transform:translateX(-50%);font-weight:900;font-size:18px;color:#fff;text-shadow:0 2px 0 #000, 0 0 12px #facc15;pointer-events:none;animation:combo .8s ease forwards;z-index:10}
+@keyframes combo{0%{opacity:0;transform:translateX(-50%) translateY(10px) scale(.8)}20%{opacity:1;transform:translateX(-50%) translateY(0) scale(1.15)}100%{opacity:0;transform:translateX(-50%) translateY(-30px) scale(1)}}
+.cc-diffs{display:flex;gap:6px;width:100%}
+.cc-diff{flex:1;height:38px;border-radius:12px;border:2px solid #3d3370;background:#1d1840;color:#fff;font-weight:900;font-size:11px;cursor:pointer;display:grid;place-items:center;letter-spacing:.05em}
+.cc-diff.active{background:linear-gradient(135deg,#a78bfa,#7c3aed);border-color:#a78bfa;box-shadow:0 0 16px rgba(124,58,237,.5)}
+@media(max-width:480px){.cc-candy{font-size:18px}.cc-board{border-radius:18px;padding:6px}.cc-grid{gap:4px}.cc-cell{border-radius:10px}}
 </style>
-<div class="wcrush" id="wRoot">
-  <div class="w-header">
-    <div style="font-weight:900;text-align:center;font-size:13px">CRYPTO CRUSH ₿ JUICY</div>
-    <div class="w-stats"><div class="w-stat"><b id="wScore">0</b><span>SCORE</span></div><div class="w-stat"><b id="wBest">0</b><span>BEST</span></div><div class="w-stat highlight"><b id="wReward">+0.0000000</b><span>WASA</span></div><div class="w-stat"><b id="wCount">0</b><span>CRUSH</span></div></div>
-    <div class="w-levels"><div class="w-lv active" data-lv="1" id="lvEasy">EASY</div><div class="w-lv" data-lv="2" id="lvMed">MED</div><div class="w-lv" data-lv="3" id="lvHard">HARD x2</div></div>
+<div class="cc" id="root">
+  <div class="cc-board-area">
+    <div class="cc-top-stats">
+      <div class="cc-stat"><b id="cScore">0</b><span>Score</span></div>
+      <div class="cc-stat"><b id="cBest">0</b><span>Best</span></div>
+      <div class="cc-stat gold"><b id="cReward">+0.0000000</b><span id="cRewardLabel">WASA TOTAL</span></div>
+    </div>
+    <div class="cc-progress">
+      <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:800"><span>PROGRESO PREMIO</span><span id="cProg">0/${MERGES_FOR_REWARD}</span></div>
+      <div class="cc-progress-bar"><div class="cc-progress-fill" id="cBar"></div></div>
+      <div style="font-size:9px;opacity:.6;margin-top:4px">${MERGES_FOR_REWARD} crush = ${BASE_REWARD} WASA • Arrastrá para intercambiar</div>
+    </div>
+    <div class="cc-board" id="board"><div class="cc-grid" id="grid"></div></div>
+    <div class="cc-diffs">
+      <div class="cc-diff" id="d1">EASY</div><div class="cc-diff active" id="d2">MEDIUM</div><div class="cc-diff" id="d3">HARD X2</div>
+    </div>
+    <div style="font-size:10px;opacity:.5;text-align:center;line-height:1.4">💡 Arrastrá o tocá 2 criptos vecinas • 3+ iguales explotan • Combos dan más puntos</div>
   </div>
-  <div class="w-layout"><div class="w-board-wrap" id="wWrap"><div class="w-grid" id="wGrid"></div></div><div class="w-progress-wrap"><div style="display:flex;justify-content:space-between;font-size:10px;font-weight:900"><span>PROGRESO</span><span id="wProgText">0/${MERGES_FOR_REWARD}</span></div><div class="w-progress"><div class="w-progress-bar" id="wProgBar"></div></div></div><div style="font-size:10px;opacity:.8;text-align:center">👆 Deslizá para swapear • <span id="wCombo" style="font-weight:900;color:#facc15"></span></div></div><div id="wUI" style="position:absolute;inset:0;pointer-events:none;z-index:20"></div></div>`;
+  <div id="ui"></div>
+</div>`;
 
-  const root=container.querySelector('#wRoot'); const gridEl=root.querySelector('#wGrid'); const wrapEl=root.querySelector('#wWrap'); const ui=root.querySelector('#wUI');
+  const root=container.querySelector('#root'); const ui=root.querySelector('#ui');
+  const gridEl=root.querySelector('#grid');
   let best=parseInt(localStorage.getItem('wcrush_best')||'0');
-  let score=0, board=[], totalReward=0, mergeCount=0, currentSessionId=null, isClaiming=false, _rewardPending=null;
-  let mergesSinceForced=0, lastWasDouble=true, gameStartTime=Date.now(), sel=null, mult=1, types=4, combo=0, isAnimating=false, cells=[], hintTimer=null, lastMoveTime=Date.now();
+  let score=0, board=[], totalReward=0, crushes=0, mult=2, busy=false, sel=null;
+  let session=null, claiming=false, pendingAd=null, startTime=Date.now();
 
-  function createCells(){ cells=[]; gridEl.innerHTML=''; for(let i=0;i<SZ*SZ;i++){ const d=document.createElement('div'); d.className='w-cell'; gridEl.appendChild(d); cells.push(d); } } createCells();
-  async function startSession(){ try{ const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'start_game_session', email:localStorage.getItem('wasa_email'), wallet:localStorage.getItem('wasa_wallet'), device_id:getDeviceId(), game_slug:'crypto-crush', level:MERGES_FOR_REWARD})}); const j=await r.json(); if(j.ok) currentSessionId=j.session_id; }catch(e){} }
-  async function claimSession(isDouble,adWatched){ if(isClaiming) return {ok:false}; if(!currentSessionId) await startSession(); if(!currentSessionId) return {ok:false}; isClaiming=true; try{ const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward', session_id:currentSessionId, email:localStorage.getItem('wasa_email'), wallet:localStorage.getItem('wasa_wallet'), device_id:getDeviceId(), game_slug:'crypto-crush', level:MERGES_FOR_REWARD, ad_watched:adWatched, double_reward:isDouble, time_taken:(Date.now()-gameStartTime)/1000})}); const j=await r.json(); if(j.ok){ const bal=j.wasa_balance??j.guest_balance??0; if(j.is_guest){ localStorage.setItem('wasa_coins_guest',bal); localStorage.setItem('wasa_coins','0'); }else localStorage.setItem('wasa_coins',bal); if(window.setCoinsUI) window.setCoinsUI(bal); currentSessionId=null; isClaiming=false; return j; } else{ isClaiming=false; return {ok:false, error:j.error}; } }catch(e){ isClaiming=false; return {ok:false}; } }
-  function openAd(type){ if(window.vrAd!==0 && window.vrAd!==undefined) return; _rewardPending=type; window.vrAdType=type; window.vrAd=1; ui.style.pointerEvents='auto'; ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.7);display:grid;place-items:center;color:white;font-weight:800">Cargando anuncio...</div>`; }
-  function randomType(){ return Math.floor(Math.random()*types); }
-  function initBoard(diff=1){
-    mult=diff; types = diff===1?4: diff===2?5:6; board=Array(SZ).fill(0).map(()=>Array(SZ).fill(0).map(()=>randomType()));
-    for(let r=0;r<SZ;r++) for(let c=0;c<SZ;c++){ let tries=0; while(tries<20 && createsMatch(r,c)){ board[r][c]=randomType(); tries++; } }
-    score=0; mergeCount=0; mergesSinceForced=0; lastWasDouble=true; sel=null; combo=0; gameStartTime=Date.now(); lastMoveTime=Date.now(); startSession(); render(false); ui.innerHTML=''; ui.style.pointerEvents='none'; setActiveLv(diff); resetHint();
+  async function startSession(){ try{ const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'start_game_session', email:localStorage.getItem('wasa_email'), wallet:localStorage.getItem('wasa_wallet'), device_id:getDeviceId(), game_slug:'crypto-crush', level:MERGES_FOR_REWARD})}); const j=await r.json(); if(j.ok) session=j.session_id; }catch{} }
+  async function claim(isDouble, ad){ if(claiming) return {ok:false}; if(!session) await startSession(); if(!session) return {ok:false}; claiming=true; try{ const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward', session_id:session, email:localStorage.getItem('wasa_email'), wallet:localStorage.getItem('wasa_wallet'), device_id:getDeviceId(), game_slug:'crypto-crush', level:MERGES_FOR_REWARD, ad_watched:ad, double_reward:isDouble, time_taken:(Date.now()-startTime)/1000})}); const j=await r.json(); if(j.ok){ const b=j.wasa_balance??j.guest_balance??0; localStorage.setItem(j.is_guest?'wasa_coins_guest':'wasa_coins',b); if(window.setCoinsUI) window.setCoinsUI(b); session=null; claiming=false; return j; } claiming=false; return {ok:false, error:j.error}; }catch{ claiming=false; return {ok:false}; } }
+
+  function openAd(t){ if(window.vrAd!==0 && window.vrAd!==undefined) return; pendingAd=t; window.vrAdType=t; window.vrAd=1; ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(0,0,0,.7);display:grid;place-items:center;z-index:50;color:white;font-weight:800">Cargando anuncio...</div>`; }
+
+  function randIcon(){ return Math.floor(Math.random()*(mult===1?4:mult===2?5:6)); }
+
+  function createBoard(){
+    // evita matches iniciales
+    do{
+      board=Array(SZ).fill(0).map(()=>Array(SZ).fill(0).map(()=>randIcon()));
+    }while(findAllMatches().length>0);
+    score=0; crushes=0; sel=null; busy=false; startTime=Date.now(); startSession(); draw();
   }
-  function createsMatch(r,c){ const v=board[r][c]; if(c>=2 && board[r][c-1]==v && board[r][c-2]==v) return true; if(r>=2 && board[r-1][c]==v && board[r-2][c]==v) return true; return false; }
-  function setActiveLv(d){ root.querySelectorAll('.w-lv').forEach(el=>{ el.classList.toggle('active', parseInt(el.dataset.lv)===d); }); }
-  function render(animateFall=false){
+
+  function draw(){
+    gridEl.innerHTML='';
     for(let r=0;r<SZ;r++) for(let c=0;c<SZ;c++){
-      const idx=r*SZ+c; const el=cells[idx]; const v=board[r][c];
-      if(v===-1){ el.style.visibility='hidden'; continue; } el.style.visibility='visible'; el.textContent=ICONS[v]; el.style.background=`radial-gradient(ellipse at 30% 20%,rgba(255,255,255,.25),transparent 50%),${COLORS[v]}22`; el.style.borderColor=COLORS[v]+'55'; el.style.color=COLORS[v]; el.classList.toggle('sel', sel && sel.r===r && sel.c===c); el.classList.remove('hint'); if(animateFall){ el.classList.remove('fall'); void el.offsetWidth; el.classList.add('fall'); } el.dataset.r=r; el.dataset.c=c;
+      const cell=document.createElement('div'); cell.className='cc-cell'; cell.dataset.r=r; cell.dataset.c=c;
+      const v=board[r][c];
+      const candy=document.createElement('div'); candy.className='cc-candy';
+      candy.style.background=`radial-gradient(ellipse at 30% 20%, ${COLORS[v]}ff, ${COLORS[v]}cc)`;
+      candy.style.border=`2px solid ${COLORS[v]}`;
+      candy.textContent=ICONS[v];
+      candy.style.color='#fff'; candy.style.textShadow='0 1px 0 rgba(0,0,0,.8)';
+      if(sel && sel.r==r && sel.c==c) cell.classList.add('sel');
+      cell.appendChild(candy);
+      gridEl.appendChild(cell);
     }
-    const set=(id,val)=>{ const e=root.querySelector('#'+id); if(e) e.textContent=val; };
-    set('wScore',score); set('wBest',Math.max(best,score)); set('wReward','+'+fmt(totalReward)); set('wCount',mergeCount); set('wProgText',mergeCount+'/'+MERGES_FOR_REWARD); const bar=root.querySelector('#wProgBar'); if(bar) bar.style.width=(mergeCount/MERGES_FOR_REWARD*100)+'%'; set('wCombo', combo>1? `COMBO x${combo}!` : ''); if(score>best){ best=score; localStorage.setItem('wcrush_best',best); }
+    root.querySelector('#cScore').textContent=score;
+    root.querySelector('#cBest').textContent=Math.max(best,score);
+    root.querySelector('#cReward').textContent='+'+fmt(totalReward);
+    root.querySelector('#cProg').textContent=crushes+'/'+MERGES_FOR_REWARD;
+    root.querySelector('#cBar').style.width=(crushes/MERGES_FOR_REWARD*100)+'%';
+    if(score>best){ best=score; localStorage.setItem('wcrush_best',best); }
   }
+
+  function isAdj(r1,c1,r2,c2){ return Math.abs(r1-r2)+Math.abs(c1-c2)===1; }
+
+  function handleSelect(r,c){
+    if(busy) return;
+    if(!sel){ sel={r,c}; draw(); return; }
+    if(sel.r===r && sel.c===c){ sel=null; draw(); return; }
+    if(!isAdj(sel.r,sel.c,r,c)){ sel={r,c}; draw(); return; }
+    trySwap(sel.r,sel.c,r,c);
+  }
+
+  async function trySwap(r1,c1,r2,c2){
+    if(busy) return; busy=true;
+    swap(r1,c1,r2,c2); draw();
+    await new Promise(res=>setTimeout(res,120));
+    let matches=findAllMatches();
+    if(matches.length===0){
+      swap(r1,c1,r2,c2); draw(); busy=false; sel=null; return;
+    }
+    sel=null;
+    await processCascade(matches);
+    busy=false;
+  }
+
+  function swap(r1,c1,r2,c2){ const t=board[r1][c1]; board[r1][c1]=board[r2][c2]; board[r2][c2]=t; }
+
+  function findAllMatches(){
+    const matched=new Set();
+    // horizontal
+    for(let r=0;r<SZ;r++){
+      let count=1;
+      for(let c=1;c<SZ;c++){
+        if(board[r][c]===board[r][c-1] && board[r][c]!==-1) count++;
+        else{
+          if(count>=3){ for(let k=0;k<count;k++) matched.add(r+','+(c-1-k)); }
+          count=1;
+        }
+      }
+      if(count>=3){ for(let k=0;k<count;k++) matched.add(r+','+(SZ-1-k)); }
+    }
+    // vertical
+    for(let c=0;c<SZ;c++){
+      let count=1;
+      for(let r=1;r<SZ;r++){
+        if(board[r][c]===board[r-1][c] && board[r][c]!==-1) count++;
+        else{
+          if(count>=3){ for(let k=0;k<count;k++) matched.add((r-1-k)+','+c); }
+          count=1;
+        }
+      }
+      if(count>=3){ for(let k=0;k<count;k++) matched.add((SZ-1-k)+','+c); }
+    }
+    return Array.from(matched);
+  }
+
+  async function processCascade(initialMatches){
+    let totalMatched=0; let combo=0; let matches=initialMatches;
+    while(matches.length>0){
+      combo++;
+      totalMatched+=matches.length;
+      // animar pop
+      matches.forEach(key=>{
+        const [r,c]=key.split(',').map(Number);
+        const el=gridEl.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+        if(el) el.classList.add('matched');
+        board[r][c]=-1;
+      });
+      if(combo>1){
+        const comboEl=document.createElement('div'); comboEl.className='cc-combo'; comboEl.textContent=`COMBO x${combo}! +${matches.length*10*combo*mult}`;
+        root.querySelector('#board').appendChild(comboEl);
+        setTimeout(()=>comboEl.remove(),800);
+      }
+      score+=matches.length*10*combo*mult;
+      crushes+=1;
+      draw();
+      await new Promise(r=>setTimeout(r,350));
+      // gravedad + rellenar
+      for(let c=0;c<SZ;c++){
+        let write=SZ-1;
+        for(let r=SZ-1;r>=0;r--){
+          if(board[r][c]!==-1){
+            board[write][c]=board[r][c];
+            if(write!==r) board[r][c]=-1;
+            write--;
+          }
+        }
+        for(let r=write;r>=0;r--) board[r][c]=randIcon();
+      }
+      draw();
+      await new Promise(r=>setTimeout(r,180));
+      // marcar caida
+      gridEl.querySelectorAll('.cc-cell').forEach(el=>{ el.classList.add('fall'); setTimeout(()=>el.classList.remove('fall'),320); });
+      await new Promise(r=>setTimeout(r,150));
+      matches=findAllMatches();
+    }
+    if(crushes>=MERGES_FOR_REWARD) showReward();
+  }
+
+  function showReward(){
+    ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(8,6,20,.88);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:30;padding:16px"><div style="background:linear-gradient(180deg,#1e1b3a,#12102a);border:2px solid #3d3370;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:white;box-shadow:0 20px 60px rgba(0,0,0,.6)"><div style="font-size:36px">₿✨</div><div style="font-weight:900;margin:8px 0;font-size:18px">¡${MERGES_FOR_REWARD} CRUSHES!</div><div style="background:rgba(34,197,94,.15);border:1px solid #22c55e;border-radius:12px;padding:10px;margin:12px 0;font-weight:800;color:#86efac">💰 +${fmt(BASE_REWARD*mult)} WASA</div><button id="btnDouble" style="width:100%;height:44px;border-radius:12px;font-weight:900;border:0;background:linear-gradient(135deg,#facc15,#f59e0b);color:#000;cursor:pointer">📺 X2 VER ANUNCIO = ${fmt(BASE_REWARD*mult*2)}</button><button id="btnClaim" style="width:100%;height:44px;border-radius:12px;font-weight:900;border:2px solid #3d3370;background:#0f0a1e;color:#fff;margin-top:8px;cursor:pointer">COBRAR ${fmt(BASE_REWARD*mult)} WASA</button></div></div>`;
+    ui.querySelector('#btnDouble').onclick=()=>openAd('double');
+    ui.querySelector('#btnClaim').onclick=async()=>{
+      const btn=ui.querySelector('#btnClaim'); btn.textContent='⏳ VALIDANDO...'; btn.disabled=true;
+      const res=await claim(false,false);
+      if(res.ok){ totalReward+=BASE_REWARD*mult; crushes=0; startTime=Date.now(); startSession(); draw(); ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(0,0,0,.75);display:grid;place-items:center;z-index:40"><div style="background:#12102a;border:2px solid #22c55e;border-radius:14px;padding:16px;text-align:center;color:white;width:min(300px,90vw)"><div style="color:#22c55e;font-weight:900">¡+${fmt(BASE_REWARD*mult)} WASA ACREDITADO!</div><button id="ok" style="margin-top:10px;width:100%;height:40px;border-radius:999px;background:#22c55e;color:#000;font-weight:900;border:0;cursor:pointer">SEGUIR JUGANDO</button></div></div>`; ui.querySelector('#ok').onclick=()=>{ ui.innerHTML=''; draw(); }; } else { btn.textContent=res.error||'REINTENTAR'; btn.disabled=false; }
+    };
+  }
+
+  // INPUT: click + drag mobile
   let dragStart=null;
-  gridEl.addEventListener('pointerdown', e=>{ const t=e.target.closest('.w-cell'); if(!t) return; dragStart={r:parseInt(t.dataset.r), c:parseInt(t.dataset.c), x:e.clientX, y:e.clientY}; t.setPointerCapture(e.pointerId); });
-  gridEl.addEventListener('pointerup', e=>{ if(!dragStart) return; const t=document.elementFromPoint(e.clientX,e.clientY)?.closest('.w-cell'); if(t){ const r=parseInt(t.dataset.r), c=parseInt(t.dataset.c); if(Math.abs(r-dragStart.r)+Math.abs(c-dragStart.c)===1) trySwap(dragStart.r,dragStart.c,r,c); else if(r===dragStart.r && c===dragStart.c) clickCell(r,c); } dragStart=null; });
-  function clickCell(r,c){ if(isAnimating) return; if(!sel){ sel={r,c}; render(); lastMoveTime=Date.now(); return; } if(sel.r===r && sel.c===c){ sel=null; render(); return; } if(Math.abs(sel.r-r)+Math.abs(sel.c-c)===1) trySwap(sel.r,sel.c,r,c); else { sel={r,c}; render(); } lastMoveTime=Date.now(); }
-  function trySwap(r1,c1,r2,c2){
-    if(isAnimating) return; sel=null; const el1=cells[r1*SZ+c1], el2=cells[r2*SZ+c2]; const rect1=el1.getBoundingClientRect(), rect2=el2.getBoundingClientRect(); const dx=rect2.left-rect1.left, dy=rect2.top-rect1.top; el1.style.setProperty('--dx', dx+'px'); el1.style.setProperty('--dy', dy+'px'); el2.style.setProperty('--dx', dx+'px'); el2.style.setProperty('--dy', dy+'px'); el1.classList.add('swap1'); el2.classList.add('swap2'); isAnimating=true;
-    setTimeout(()=>{ el1.classList.remove('swap1'); el2.classList.remove('swap2'); swapBoard(r1,c1,r2,c2); const matches=findMatches(); if(matches.length>0) processMatches(matches); else { swapBoard(r1,c1,r2,c2); isAnimating=false; render(); } },190);
-  }
-  function swapBoard(r1,c1,r2,c2){ let t=board; board=board; board=t; }
-  function findMatches(){ const m=new Set(); for(let r=0;r<SZ;r++) for(let c=0;c<SZ-2;c++){ const v=board[r][c]; if(v===-1) continue; if(v===board[r][c+1] && v===board[r][c+2]){ m.add(r+','+c); m.add(r+','+(c+1)); m.add(r+','+(c+2)); let k=c+3; while(k<SZ && board[r][k]===v){ m.add(r+','+k); k++; } } } for(let c=0;c<SZ;c++) for(let r=0;r<SZ-2;r++){ const v=board[r][c]; if(v===-1) continue; if(v===board[r+1][c] && v===board[r+2][c]){ m.add(r+','+c); m.add((r+1)+','+c); m.add((r+2)+','+c); let k=r+3; while(k<SZ && board[k][c]===v){ m.add(k+','+c); k++; } } } return Array.from(m); }
-  function hasMoves(){ for(let r=0;r<SZ;r++) for(let c=0;c<SZ;c++) for(const [dr,dc] of [[1,0],[0,1]]){ const nr=r+dr, nc=c+dc; if(nr>=SZ||nc>=SZ) continue; swapBoard(r,c,nr,nc); const has=findMatches().length>0; swapBoard(r,c,nr,nc); if(has) return true; } return false; }
-  function spawnFloat(x,y,text){ const f=document.createElement('div'); f.className='w-float'; f.textContent=text; f.style.left=x+'px'; f.style.top=y+'px'; wrapEl.appendChild(f); setTimeout(()=>f.remove(),800); }
-  function spawnParticles(r,c,color){ const idx=r*SZ+c; const el=cells[idx]; const rect=el.getBoundingClientRect(); const wrapRect=wrapEl.getBoundingClientRect(); const cx=rect.left-wrapRect.left+rect.width/2, cy=rect.top-wrapRect.top+rect.height/2; for(let i=0;i<6;i++){ const p=document.createElement('div'); p.className='w-part'; p.style.background=color; p.style.left=cx+'px'; p.style.top=cy+'px'; const ang=Math.random()*Math.PI*2, dist=20+Math.random()*38; const tx=Math.cos(ang)*dist, ty=Math.sin(ang)*dist; p.animate([{transform:`translate(0,0) scale(1)`,opacity:1},{transform:`translate(${tx}px,${ty}px) scale(0)`,opacity:0}],{duration:400+Math.random()*200,easing:'cubic-bezier(.22,1,.36,1)'}).onfinish=()=>p.remove(); wrapEl.appendChild(p); } }
-  function processMatches(matches){
-    if(matches.length===0){ isAnimating=false; return; } isAnimating=true; mergeCount+=1; mergesSinceForced+=1; combo+=1; const pts=matches.length*10*mult*combo; score+=pts;
-    matches.forEach(k=>{ const [r,c]=k.split(',').map(Number); const idx=r*SZ+c; const el=cells[idx]; const v=board[r][c]; if(v!==-1) spawnParticles(r,c,COLORS[v]); el.classList.add('matched'); });
-    const first=matches[0].split(',').map(Number); const firstEl=cells[first[0]*SZ+first[1]]; const fr=firstEl.getBoundingClientRect(); const wr=wrapEl.getBoundingClientRect(); spawnFloat(fr.left-wr.left+fr.width/2, fr.top-wr.top, `+${pts}${combo>1?` x${combo}`:''}`);
-    setTimeout(()=>{ matches.forEach(k=>{ const [r,c]=k.split(',').map(Number); board[r][c]=-1; }); render(); setTimeout(()=>{ for(let c=0;c<SZ;c++){ let col=[]; for(let r=SZ-1;r>=0;r--) if(board[r][c]!==-1) col.push(board[r][c]); for(let r=SZ-1;r>=0;r--){ if(col.length) board[r][c]=col.shift(); else board[r][c]=randomType(); } } render(true); setTimeout(()=>{ cells.forEach(el=>el.classList.remove('matched')); const next=findMatches(); if(next.length>0) setTimeout(()=>processMatches(next),160); else { isAnimating=false; combo=0; render(); if(mergeCount>=MERGES_FOR_REWARD) showRewardModal(); else if(mergesSinceForced>=MERGES_FOR_FORCED &&!lastWasDouble) openAd('forced'); else if(!hasMoves()){ ui.style.pointerEvents='auto'; ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(2,6,23,.78);display:grid;place-items:center;color:white;font-weight:800">Sin movimientos • mezclando...</div>`; setTimeout(()=>{ for(let i=0;i<SZ*SZ;i++){ const r=Math.floor(Math.random()*SZ), c=Math.floor(Math.random()*SZ), r2=Math.floor(Math.random()*SZ), c2=Math.floor(Math.random()*SZ); swapBoard(r,c,r2,c2);} render(true); ui.innerHTML=''; ui.style.pointerEvents='none'; resetHint(); },700); } } },120); },120); },380);
-  }
-  function resetHint(){ clearInterval(hintTimer); hintTimer=setInterval(()=>{ if(isAnimating) return; if(Date.now()-lastMoveTime<5000) return; for(let r=0;r<SZ;r++) for(let c=0;c<SZ;c++) for(const [dr,dc] of [[1,0],[0,1]]){ const nr=r+dr, nc=c+dc; if(nr>=SZ||nc>=SZ) continue; swapBoard(r,c,nr,nc); const m=findMatches(); swapBoard(r,c,nr,nc); if(m.length>0){ const el=cells[r*SZ+c]; el.classList.add('hint'); setTimeout(()=>el.classList.remove('hint'),900); return; } } },1000); }
-  function showRewardModal(){ combo=0; ui.style.pointerEvents='auto'; ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(2,6,23,.88);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:20"><div style="background:linear-gradient(180deg,#0f172a,#1e293b);border:2px solid #334155;border-radius:20px;padding:20px;text-align:center;width:min(340px,90vw);color:white"><div style="font-size:34px">₿🎉</div><div style="font-weight:900;margin:6px 0">¡${MERGES_FOR_REWARD} CRUSHES!</div><div style="background:rgba(34,197,94,.14);border:1px solid rgba(34,197,94,.35);border-radius:12px;padding:10px;margin:10px 0;font-weight:800;color:#86efac">💰 +${fmt(BASE_REWARD*mult)} WASA</div><button id="btnDouble" style="width:100%;padding:12px;border-radius:12px;font-weight:900;border:2px solid #fbbf24;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000">📺 X2 = ${fmt(BASE_REWARD*mult*2)} WASA</button><button id="btnClaim" style="width:100%;padding:12px;border-radius:12px;font-weight:800;border:2px solid #334155;background:#020617;color:#fff;margin-top:8px">COBRAR ${fmt(BASE_REWARD*mult)} WASA</button></div></div>`; ui.querySelector('#btnDouble').onclick=()=> openAd('double'); ui.querySelector('#btnClaim').onclick=async()=>{ const btn=ui.querySelector('#btnClaim'); if(btn){ btn.textContent='⏳ VALIDANDO...'; btn.disabled=true; } const res=await claimSession(false,false); if(res.ok){ totalReward+=BASE_REWARD*mult; mergeCount=0; lastWasDouble=false; gameStartTime=Date.now(); startSession(); render(); ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.7);display:grid;place-items:center;z-index:20"><div style="background:#0f172a;border:2px solid #22c55e;border-radius:14px;padding:14px;text-align:center;width:min(300px,88vw);color:white"><div style="color:#22c55e;font-weight:900">¡+${fmt(BASE_REWARD*mult)} WASA!</div><button id="ok" style="margin-top:10px;width:100%;background:#22c55e;color:#000;font-weight:900;padding:10px;border-radius:999px;border:0">SEGUIR</button></div></div>`; ui.querySelector('#ok').onclick=()=>{ ui.innerHTML=''; ui.style.pointerEvents='none'; render(); resetHint(); }; } else { if(btn){ btn.textContent=res.error||'REINTENTAR'; btn.disabled=false; } } }; }
-  const watcher=setInterval(()=>{ if(window.vrAd===4 && _rewardPending){ const type=_rewardPending; _rewardPending=null; window.vrAd=0; window.vrAdType=null; window._gm_shown=false; (async()=>{ if(type==='double'){ ui.style.pointerEvents='auto'; ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.7);display:grid;place-items:center;z-index:20"><div style="background:#0f172a;border:1px solid #334155;border-radius:12px;padding:12px;text-align:center;color:white">Validando X2...</div></div>`; const res=await claimSession(true,true); if(res.ok){ totalReward+=BASE_REWARD*mult*2; mergeCount=0; mergesSinceForced=0; lastWasDouble=true; gameStartTime=Date.now(); startSession(); render(); ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.7);display:grid;place-items:center;z-index:20"><div style="background:#0f172a;border:2px solid #22c55e;border-radius:12px;padding:14px;text-align:center;width:min(300px,88vw);color:white"><div style="color:#22c55e;font-weight:900">¡X2 +${fmt(BASE_REWARD*mult*2)} WASA!</div><button id="ok2" style="margin-top:10px;width:100%;background:#22c55e;color:#000;font-weight:900;padding:10px;border-radius:999px;border:0">SEGUIR</button></div></div>`; ui.querySelector('#ok2').onclick=()=>{ ui.innerHTML=''; ui.style.pointerEvents='none'; render(); resetHint(); }; } else{ ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.7);display:grid;place-items:center;z-index:20"><div style="background:#0f172a;border:2px solid #ef4444;border-radius:12px;padding:12px;text-align:center;color:white"><div style="color:#ef4444">Error X2: ${res.error||'server'}</div><button id="retry" style="margin-top:8px;width:100%;background:white;color:#000;padding:8px;border-radius:999px;border:0">Reintentar</button></div></div>`; ui.querySelector('#retry').onclick=()=>{ ui.innerHTML=''; ui.style.pointerEvents='none'; showRewardModal(); }; } } if(type==='forced'){ mergesSinceForced=0; ui.innerHTML=''; ui.style.pointerEvents='none'; render(); resetHint(); } })(); } },150);
-  root.querySelector('#lvEasy').onclick=()=>initBoard(1); root.querySelector('#lvMed').onclick=()=>initBoard(2); root.querySelector('#lvHard').onclick=()=>initBoard(3);
-  initBoard(2); container._cleanup=()=>{ clearInterval(watcher); clearInterval(hintTimer); window.vrAd=0; };
+  gridEl.addEventListener('pointerdown', e=>{
+    const cell=e.target.closest('.cc-cell'); if(!cell) return;
+    dragStart={r:+cell.dataset.r, c:+cell.dataset.c, x:e.clientX, y:e.clientY};
+    e.preventDefault();
+  });
+  gridEl.addEventListener('pointerup', e=>{
+    if(!dragStart) return;
+    const cell=e.target.closest('.cc-cell');
+    const dx=e.clientX-dragStart.x, dy=e.clientY-dragStart.y;
+    if(cell && isAdj(dragStart.r,dragStart.c,+cell.dataset.r,+cell.dataset.c)){
+      trySwap(dragStart.r,dragStart.c,+cell.dataset.r,+cell.dataset.c);
+    } else if(Math.abs(dx)>24 || Math.abs(dy)>24){
+      // swipe direction
+      let nr=dragStart.r, nc=dragStart.c;
+      if(Math.abs(dx)>Math.abs(dy)){ nc+= dx>0?1:-1; } else { nr+= dy>0?1:-1; }
+      if(nr>=0&&nr<SZ&&nc>=0&&nc<SZ) trySwap(dragStart.r,dragStart.c,nr,nc);
+      else handleSelect(dragStart.r,dragStart.c);
+    } else {
+      handleSelect(dragStart.r,dragStart.c);
+    }
+    dragStart=null;
+  });
+  // fallback click
+  gridEl.addEventListener('click', e=>{
+    const cell=e.target.closest('.cc-cell'); if(!cell) return;
+    // evita doble trigger con pointer
+    if(dragStart) return;
+    handleSelect(+cell.dataset.r,+cell.dataset.c);
+  });
+
+  const watcher=setInterval(()=>{ if(window.vrAd===4 && pendingAd){ const t=pendingAd; pendingAd=null; window.vrAd=0; window.vrAdType=null; (async()=>{
+    if(t==='double'){
+      ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(0,0,0,.7);display:grid;place-items:center;z-index:40;color:white">Validando X2...</div>`;
+      const res=await claim(true,true);
+      if(res.ok){ totalReward+=BASE_REWARD*mult*2; crushes=0; startTime=Date.now(); startSession(); draw(); ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(0,0,0,.75);display:grid;place-items:center;z-index:40"><div style="background:#12102a;border:2px solid #22c55e;border-radius:14px;padding:16px;text-align:center;color:white;width:min(300px,90vw)"><div style="color:#22c55e;font-weight:900">¡X2 +${fmt(BASE_REWARD*mult*2)} WASA!</div><button id="ok2" style="margin-top:10px;width:100%;height:40px;border-radius:999px;background:#22c55e;color:#000;font-weight:900;border:0">OK</button></div></div>`; ui.querySelector('#ok2').onclick=()=>{ ui.innerHTML=''; draw(); }; }
+      else { ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(0,0,0,.75);display:grid;place-items:center;z-index:40"><div style="background:#12102a;border:2px solid #ef4444;border-radius:12px;padding:12px;text-align:center;color:white"><div style="color:#ef4444">Error: ${res.error||'server'}</div><button id="retry">Reintentar</button></div></div>`; ui.querySelector('#retry').onclick=()=>{ ui.innerHTML=''; showReward(); }; }
+    }
+  })(); } },150);
+
+  root.querySelector('#d1').onclick=()=>{ mult=1; root.querySelectorAll('.cc-diff').forEach(el=>el.classList.remove('active')); root.querySelector('#d1').classList.add('active'); createBoard(); };
+  root.querySelector('#d2').onclick=()=>{ mult=2; root.querySelectorAll('.cc-diff').forEach(el=>el.classList.remove('active')); root.querySelector('#d2').classList.add('active'); createBoard(); };
+  root.querySelector('#d3').onclick=()=>{ mult=3; root.querySelectorAll('.cc-diff').forEach(el=>el.classList.remove('active')); root.querySelector('#d3').classList.add('active'); createBoard(); };
+
+  createBoard();
+  container._cleanup=()=>{ clearInterval(watcher); window.vrAd=0; };
 }
