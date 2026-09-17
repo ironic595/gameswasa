@@ -1,42 +1,32 @@
-// games/crypto-crush/game.js - v4.7 FIX IMAGENES NO SE VEN - auto-detecta ruta assets/
+// games/crypto-crush/game.js - v4.9 WASA AZUL CLARO + VIOLETA ROSADO
 export function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javisimes.workers.dev/';
   function getDeviceId(){ let id=localStorage.getItem('wasa_device_id'); if(!id){ id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id; }
   function fmt(n){ const v=parseFloat(n)||0; if(v===0) return '0'; return (Math.round(v*1e7)/1e7).toFixed(7).replace(/0+$/,'').replace(/\.$/,''); }
 
-  // AUTO-DETECTA DONDE ESTAN LAS IMAGENES - prueba 5 rutas posibles
   function getAssetBases(){
     const bases=[];
-    // intenta sacar la ruta del script game.js
     try{
       const scripts=document.querySelectorAll('script[src*="crypto-crush"]');
       scripts.forEach(s=>{
         const url=new URL(s.src, window.location.origin);
         const dir=url.pathname.substring(0, url.pathname.lastIndexOf('/')+1);
-        bases.push(dir+'assets/');
-        bases.push(dir);
+        bases.push(dir+'assets/'); bases.push(dir);
       });
     }catch{}
-    // rutas comunes
-    bases.push('/games/crypto-crush/assets/');
-    bases.push('games/crypto-crush/assets/');
-    bases.push('./games/crypto-crush/assets/');
-    bases.push('./assets/');
-    bases.push('assets/');
-    bases.push('/assets/');
-    bases.push('./');
-    bases.push('/');
-    return [...new Set(bases)]; // sin duplicados
+    bases.push('/games/crypto-crush/assets/','games/crypto-crush/assets/','./games/crypto-crush/assets/','./assets/','assets/','/assets/','./','/');
+    return [...new Set(bases)];
   }
   const ASSET_BASES=getAssetBases();
-  console.log('[CRYPTO-CRUSH] Probando bases:', ASSET_BASES);
 
+  // WASA AHORA AZUL CLARO + VIOLETA ROSADO
   const ALL_TOKENS = [
     {icon:'₿', name:'BTC',  bg:'#FFB347', bd:'#FF8C00', light:'#FFD699', img:'btc.png'},
     {icon:'Ξ', name:'ETH',  bg:'#7DD3FC', bd:'#0EA5E9', light:'#BAE6FD', img:'eth.png'},
     {icon:'Đ', name:'DASH', bg:'#60A5FA', bd:'#2563EB', light:'#93C5FD', img:'dash.png'},
     {icon:'Ł', name:'LTC',  bg:'#D1D5DB', bd:'#9CA3AF', light:'#F3F4F6', img:'ltc.png'},
-    {icon:'W', name:'WASA', bg:'#FDE047', bd:'#EAB308', light:'#FEF08A', img:'wasa.png'},
+    // WASA - AZUL CLARO + VIOLETA ROSADO (tu moneda destacada)
+    {icon:'W', name:'WASA', bg:'#C084FC', bd:'#8B5CF6', light:'#BAE6FD', img:'wasa.png'},
     {icon:'B', name:'BNB',  bg:'#FBBF24', bd:'#D97706', light:'#FDE68A', img:'bnb.png'},
     {icon:'₮', name:'USDT', bg:'#6EE7B7', bd:'#10B981', light:'#A7F3D0', img:'usdt.png'},
     {icon:'🐶', name:'DOGE',  bg:'#FDE68A', bd:'#EAB308', light:'#FEF9C3', img:'doge.png'},
@@ -89,10 +79,7 @@ export function init(container, args){
     return lvl;
   }
 
-  container.style.height='100%';
-  container.style.overflow='hidden';
-  container.style.display='flex';
-  container.style.flexDirection='column';
+  container.style.height='100%'; container.style.overflow='hidden'; container.style.display='flex'; container.style.flexDirection='column';
 
   container.innerHTML=`<style>
 *{box-sizing:border-box}
@@ -107,6 +94,8 @@ html,body{overscroll-behavior:none}
 .cc-token-chip{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-weight:900;font-size:12px;border:1.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.15);flex-shrink:0;transition:all .2s;overflow:hidden;background:#fff}
 .cc-token-chip img{width:82%;height:82%;object-fit:contain;display:block}
 .cc-token-chip.needed{transform:scale(1.25);box-shadow:0 0 0 2.5px #22C55E, 0 0 12px #22C55E;z-index:2;border-color:#22C55E}
+.cc-token-chip.wasa{box-shadow:0 0 0 2px #fff, 0 0 10px #C084FC; border-color:#C084FC}
+.cc-token-chip.wasa.needed{box-shadow:0 0 0 2.5px #22C55E, 0 0 14px #C084FC}
 .cc-header-center{flex:1;min-width:0;display:flex;gap:6px;align-items:center;overflow:hidden}
 .cc-obj-mini{flex:1;min-width:70px;background:#F5F3FF;border:1.5px solid #DDD6FE;border-radius:10px;padding:4px 7px;display:flex;align-items:center;gap:5px}
 .cc-obj-mini.done{background:#DCFCE7;border-color:#22C55E}
@@ -128,6 +117,8 @@ html,body{overscroll-behavior:none}
 .cc-cell.sel{transform:scale(1.1);z-index:5}.cc-cell.sel::after{content:'';position:absolute;inset:-2px;border:3px solid #FACC15;border-radius:12px;box-shadow:0 0 14px #FACC15;pointer-events:none}
 .cc-candy{width:86%;height:86%;border-radius:12px;display:grid;place-items:center;font-weight:900;font-size:15px;position:relative;box-shadow:0 3px 0 rgba(0,0,0,.12), inset 0 1.5px 0 rgba(255,255,255,.9);border:1.5px solid rgba(0,0,0,.06);overflow:hidden;background:#fff}
 .cc-candy img{width:74%;height:74%;object-fit:contain;display:block;pointer-events:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.18))}
+.cc-candy.wasa-candy{background:linear-gradient(180deg, #BAE6FD 0%, #93C5FD 20%, #C084FC 75%, #A78BFA 100%) !important; border-color:#8B5CF6 !important; box-shadow:0 3px 0 rgba(124,58,237,.25), inset 0 2px 0 rgba(255,255,255,.95), 0 0 12px rgba(192,132,252,.45) !important}
+.cc-candy.wasa-candy img{filter:drop-shadow(0 1.5px 3px rgba(0,0,0,.25)) brightness(1.05)}
 .cc-candy::before{content:'';position:absolute;top:8%;left:14%;width:34%;height:26%;background:rgba(255,255,255,.85);border-radius:50%;pointer-events:none;z-index:1}
 .cc-candy.bomb{box-shadow:0 0 0 2px #fff, 0 3px 0 rgba(0,0,0,.15), 0 0 14px currentColor}
 .cc-candy.striped-h::after{content:'';position:absolute;left:-4px;right:-4px;top:50%;height:5px;background:repeating-linear-gradient(90deg, #fff 0 5px, transparent 5px 10px);transform:translateY(-50%);border-radius:999px;z-index:2}
@@ -179,7 +170,7 @@ html,body{overscroll-behavior:none}
     </div>
   </div>
   <div class="cc-main" id="mainArea"><div class="cc-board" id="board"><div class="cc-grid" id="grid"></div></div></div>
-  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">🔍 Buscando imágenes...</div></div>
+  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">WASA azul claro + violeta rosado ✨</div></div>
   <div id="ui"></div>
 </div>`;
 
@@ -188,7 +179,7 @@ html,body{overscroll-behavior:none}
   let currentLevelNum=parseInt(localStorage.getItem('wcrush_level')||'1');
   let level=null; let board=[], score=0, totalReward=parseFloat(localStorage.getItem('wcrush_wasa')||'0'), moves=0, timeLeft=0, timerInt=null, busy=false, sel=null, lastSwap=null;
   let session=null, claiming=false, pendingAd=null, startTime=Date.now();
-  let workingBase=null; // base que funcionó
+  let workingBase=null;
 
   async function startSession(){ try{ const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'start_game_session', email:localStorage.getItem('wasa_email'), wallet:localStorage.getItem('wasa_wallet'), device_id:getDeviceId(), game_slug:'crypto-crush', level:currentLevelNum})}); const j=await r.json(); if(j.ok) session=j.session_id; }catch{} }
   async function claim(isDouble, ad){ if(claiming) return {ok:false}; if(!session) await startSession(); if(!session) return {ok:false}; claiming=true; try{ const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward', session_id:session, email:localStorage.getItem('wasa_email'), wallet:localStorage.getItem('wasa_wallet'), device_id:getDeviceId(), game_slug:'crypto-crush', level:currentLevelNum, ad_watched:ad, double_reward:isDouble, time_taken:(Date.now()-startTime)/1000})}); const j=await r.json(); if(j.ok){ const b=j.wasa_balance??j.guest_balance??0; localStorage.setItem(j.is_guest?'wasa_coins_guest':'wasa_coins',b); if(window.setCoinsUI) window.setCoinsUI(b); session=null; claiming=false; return j; } claiming=false; return {ok:false, error:j.error}; }catch{ claiming=false; return {ok:false}; } }
@@ -196,60 +187,23 @@ html,body{overscroll-behavior:none}
   function randColorFromActive(active){ const tok=active[Math.floor(Math.random()*active.length)]; return ALL_TOKENS.indexOf(tok); }
   function makeCell(color, special=null){ return {c:color, s:special}; }
 
-  // Intenta cargar una imagen probando todas las bases hasta que una funciona
   function createTokenImg(token, fallbackText){
     const wrapper=document.createElement('div');
     wrapper.style.width='100%'; wrapper.style.height='100%'; wrapper.style.display='grid'; wrapper.style.placeItems='center';
-
     const img=document.createElement('img');
-    img.alt=token.name;
-    img.loading='lazy';
-    img.style.width='74%'; img.style.height='74%'; img.style.objectFit='contain';
-
+    img.alt=token.name; img.loading='lazy'; img.style.width='74%'; img.style.height='74%'; img.style.objectFit='contain';
     let baseIndex=0;
     function tryNextBase(){
       if(baseIndex>=ASSET_BASES.length){
-        // todas fallaron, fallback a letra
-        console.warn('[CRYPTO-CRUSH] No se encontró imagen para', token.name, token.img, 'probadas:', ASSET_BASES);
-        debugInfo.textContent='⚠️ No se encontraron imágenes. Verificá que estén en /games/crypto-crush/assets/ con nombres: '+ALL_TOKENS.map(t=>t.img).join(', ');
-        const span=document.createElement('span');
-        span.textContent=fallbackText || token.icon;
-        span.style.fontWeight='900'; span.style.fontSize='13px';
-        wrapper.innerHTML=''; wrapper.appendChild(span);
-        return;
+        const span=document.createElement('span'); span.textContent=fallbackText||token.icon; span.style.fontWeight='900'; span.style.fontSize='13px'; wrapper.innerHTML=''; wrapper.appendChild(span); return;
       }
       const base=ASSET_BASES[baseIndex];
-      // si ya encontramos una base que funciona, usa esa primero
       const urlToTry = workingBase ? workingBase + token.img : base + token.img;
-      if(baseIndex===0 && !workingBase) debugInfo.textContent='🔍 Probando: '+urlToTry;
       img.src=urlToTry;
     }
-
-    img.onload=()=>{
-      if(!workingBase){
-        // guarda la base que funcionó
-        workingBase=ASSET_BASES[baseIndex];
-        if(!workingBase.endsWith('/')) workingBase+='/';
-        // si la que funcionó no es la que probamos (porque usamos workingBase), deduce base de src
-        const src=img.src;
-        workingBase=src.substring(0, src.lastIndexOf('/')+1);
-        console.log('[CRYPTO-CRUSH] Base que funciona:', workingBase);
-        debugInfo.textContent='✅ Imágenes cargadas desde: '+workingBase;
-      }
-    };
-
-    img.onerror=()=>{
-      baseIndex++;
-      if(workingBase){
-        // si ya teníamos base y falló para este token, prueba otras bases para este token
-        workingBase=null;
-      }
-      tryNextBase();
-    };
-
-    tryNextBase();
-    wrapper.appendChild(img);
-    return wrapper;
+    img.onload=()=>{ if(!workingBase){ workingBase=ASSET_BASES[baseIndex]; if(!workingBase.endsWith('/')) workingBase+='/'; const src=img.src; workingBase=src.substring(0, src.lastIndexOf('/')+1); debugInfo.textContent='WASA azul claro + violeta rosado ✨ | imgs: '+workingBase; } };
+    img.onerror=()=>{ baseIndex++; if(workingBase) workingBase=null; tryNextBase(); };
+    tryNextBase(); wrapper.appendChild(img); return wrapper;
   }
 
   function loadLevel(n){
@@ -265,7 +219,8 @@ html,body{overscroll-behavior:none}
     const neededNames=new Set(level.objectives.filter(o=>o.type==='collect_color').map(o=>o.name));
     activeTokens.forEach(tok=>{
       const chip=document.createElement('div');
-      chip.className='cc-token-chip'+(neededNames.has(tok.name)?' needed':'');
+      const isWasa=tok.name==='WASA';
+      chip.className='cc-token-chip'+(neededNames.has(tok.name)?' needed':'')+(isWasa?' wasa':'');
       chip.style.background=`linear-gradient(180deg, ${tok.light}, ${tok.bg})`;
       chip.style.borderColor=tok.bd;
       chip.title=tok.name + (neededNames.has(tok.name)?' - OBJETIVO':'');
@@ -307,16 +262,17 @@ html,body{overscroll-behavior:none}
       const obj=board[r][c]; if(!obj){ cellEl.innerHTML=''; continue; }
       let candy=cellEl.querySelector('.cc-candy');
       if(!candy){ candy=document.createElement('div'); cellEl.appendChild(candy); }
-      let cls='cc-candy'; if(obj.s==='bomb') cls+=' bomb'; else if(obj.s==='h') cls+=' striped-h'; else if(obj.s==='v') cls+=' striped-v'; else if(obj.s==='color') cls+=' color-bomb';
+      let cls='cc-candy'; if(ALL_TOKENS[obj.c]?.name==='WASA') cls+=' wasa-candy'; if(obj.s==='bomb') cls+=' bomb'; else if(obj.s==='h') cls+=' striped-h'; else if(obj.s==='v') cls+=' striped-v'; else if(obj.s==='color') cls+=' color-bomb';
       candy.className=cls;
-      if(obj.s==='color'){
-        candy.innerHTML='🌈';
-      } else {
+      if(obj.s==='color'){ candy.innerHTML='🌈'; }
+      else {
         const tok=ALL_TOKENS[obj.c];
         candy.innerHTML='';
         candy.appendChild(createTokenImg(tok, tok.icon));
-        candy.style.background=`linear-gradient(180deg, ${tok.light}, ${tok.bg})`;
-        candy.style.borderColor=tok.bd;
+        if(tok.name!=='WASA'){
+          candy.style.background=`linear-gradient(180deg, ${tok.light}, ${tok.bg})`;
+          candy.style.borderColor=tok.bd;
+        }
       }
       cellEl.classList.remove('sel','matched','new'); if(sel && sel.r==r && sel.c==c) cellEl.classList.add('sel');
     }
