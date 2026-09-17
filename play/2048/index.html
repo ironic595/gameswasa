@@ -1,30 +1,17 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2048 GAME - WASA GAMES</title>
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://games.wasa.chat/play/2048/">
-<meta property="og:title" content="2048 GAME - Jugar Gratis">
-<meta property="og:description" content="Juga 2048 GAME gratis y farmea $WASA">
 <meta property="og:image" content="https://games.wasa.chat/img/2048.png">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://games.wasa.chat/img/2048.png">
+<meta property="og:title" content="2048 GAME - PLAY NOW">
 </head>
-<body style="background:#0f172a;color:#fff;display:grid;place-items:center;height:100vh;font-family:sans-serif">
+<body>
 <script>
-// Variable con nombre del juego - lo unico que cambia
 const GAME_NAME = "2048";
-const GAME_TITLE = "2048 GAME";
-
-// Redirige al index raiz con ?game=
-if(GAME_NAME && GAME_NAME !== "x" && GAME_NAME !== ""){
-    location.replace("https://games.wasa.chat/play?game=" + GAME_NAME);
+if(GAME_NAME && GAME_NAME !== "" && GAME_NAME !== "x"){
+  location.replace("https://games.wasa.chat/play?game=" + GAME_NAME);
 } else {
-    location.replace("https://games.wasa.chat/");
+  location.replace("https://games.wasa.chat/");
 }
 </script>
-<p>Abriendo 2048 GAME...</p>
 </body>
 </html>
