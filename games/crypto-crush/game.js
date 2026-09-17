@@ -449,4 +449,3 @@ html,body{overscroll-behavior:none}
   })(); } },150);
   loadLevel(currentLevelNum);
   container._cleanup=()=>{ clearInterval(watcher); if(timerInt) clearInterval(timerInt); document.removeEventListener('touchmove', preventScroll); window.vrAd=0; };
-}
