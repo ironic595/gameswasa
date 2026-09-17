@@ -1,4 +1,4 @@
-// games/crypto-crush/game.js - v7.4 SOUND + PASS + MODAL FIX integrado + MENU + BOMBA 💣 + RAYO ⚡
+// games/crypto-crush/game.js - v7.5 SOUND + PASS + ARROWS RESTORED integrado + MENU + BOMBA 💣 + RAYO ⚡
 export function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javisimes.workers.dev/';
   function getDeviceId(){ let id=localStorage.getItem('wasa_device_id'); if(!id){ id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id; }
@@ -275,8 +275,12 @@ export function init(container, args){
 .cc-candy.dash-candy{background:linear-gradient(180deg, #42A5F5 0%, #1E88E5 100%) !important; border-color:#1565C0 !important; box-shadow:0 4px 0 rgba(21,101,192,.3), inset 0 2px 0 rgba(255,255,255,.9), 0 0 10px rgba(30,136,229,.4) !important}
 .cc-candy.bomb{box-shadow:0 0 0 2.5px #000, 0 4px 0 rgba(0,0,0,.35), 0 0 16px #EF4444 !important; border-color:#000 !important}
 .cc-candy.bomb .bomb-wrap{position:absolute;inset:-2px;border:2.5px dashed #000;border-radius:13px;pointer-events:none;z-index:3}
-.cc-candy.striped-h{box-shadow:0 0 0 2px #fff, 0 4px 0 rgba(0,0,0,.2), 0 0 14px #38BDF8 !important}
-.cc-candy.striped-v{box-shadow:0 0 0 2px #fff, 0 4px 0 rgba(0,0,0,.2), 0 0 14px #A855F7 !important}
+.cc-candy.striped-h{box-shadow:0 0 0 2px #fff, 0 4px 0 rgba(0,0,0,.2), 0 0 16px #38BDF8, inset 0 0 12px rgba(56,189,248,.4) !important; border-color:#0EA5E9 !important}
+.cc-candy.striped-h .stripe-line{position:absolute;left:-3px;right:-3px;top:50%;height:7px;background:repeating-linear-gradient(90deg, #fff 0 6px, #38BDF8 6px 12px);transform:translateY(-50%);border-radius:999px;z-index:3;box-shadow:0 0 6px #fff, 0 0 10px #38BDF8;pointer-events:none}
+.cc-candy.striped-h .arrow-badge{position:absolute;top:1px;right:1px;width:18px;height:18px;background:#fff;border:1.5px solid #0EA5E9;border-radius:6px;display:grid;place-items:center;font-size:11px;z-index:6;box-shadow:0 2px 4px rgba(0,0,0,.2);pointer-events:none}
+.cc-candy.striped-v{box-shadow:0 0 0 2px #fff, 0 4px 0 rgba(0,0,0,.2), 0 0 16px #A855F7, inset 0 0 12px rgba(168,85,247,.4) !important; border-color:#7E22CE !important}
+.cc-candy.striped-v .stripe-line{position:absolute;top:-3px;bottom:-3px;left:50%;width:7px;background:repeating-linear-gradient(180deg, #fff 0 6px, #A855F7 6px 12px);transform:translateX(-50%);border-radius:999px;z-index:3;box-shadow:0 0 6px #fff, 0 0 10px #A855F7;pointer-events:none}
+.cc-candy.striped-v .arrow-badge{position:absolute;top:1px;right:1px;width:18px;height:18px;background:#fff;border:1.5px solid #7E22CE;border-radius:6px;display:grid;place-items:center;font-size:11px;z-index:6;box-shadow:0 2px 4px rgba(0,0,0,.2);pointer-events:none}
 .cc-candy.color-bomb{background:radial-gradient(circle at 30% 30%, #FEF08A, #FACC15 25%, #EAB308 55%, #854D0E 100%) !important;border:2.5px solid #fff !important;box-shadow:0 0 28px #FACC15, 0 0 16px #fff, inset 0 0 14px rgba(255,255,255,.9) !important;animation:thunderPulse 0.8s ease-in-out infinite}
 .cc-candy.color-bomb::before{content:'⚡';position:absolute;font-size:26px;z-index:3;filter:drop-shadow(0 0 6px #fff) drop-shadow(0 0 10px #FACC15);animation:thunderFlash .2s ease-in-out infinite alternate}
 .cc-candy.color-bomb img{display:none}
@@ -341,7 +345,7 @@ export function init(container, args){
     </div>
   </div>
   <div class="cc-main" id="mainArea"><div class="cc-board" id="board"><div class="cc-grid" id="grid"></div><div class="cc-thunder-fx" id="thunderFx"></div></div></div>
-  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">v7.4 SOUND + PASS + MODAL FIX ${hasPass?'✅ ACTIVO':'⏳ verificando...'}</div></div>
+  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">v7.5 SOUND + PASS + ARROWS RESTORED ${hasPass?'✅ ACTIVO':'⏳ verificando...'}</div></div>
   <div id="ui"></div>
 </div>`;
 
@@ -559,6 +563,14 @@ export function init(container, args){
         candy.appendChild(bombBadge);
         const wrapBorder=document.createElement('div'); wrapBorder.className='bomb-wrap'; candy.appendChild(wrapBorder);
         if(tok.name!=='WASA' && tok.name!=='DASH'){ candy.style.background=`linear-gradient(180deg, ${tok.light}, ${tok.bg})`; candy.style.borderColor='#000'; }
+      }
+      else if(obj.s==='h' || obj.s==='v'){
+        candy.innerHTML='';
+        const wrap=document.createElement('div'); wrap.style.width='100%'; wrap.style.height='100%'; wrap.style.display='grid'; wrap.style.placeItems='center'; wrap.appendChild(createTokenImg(tok, tok.icon));
+        candy.appendChild(wrap);
+        if(tok.name!=='WASA' && tok.name!=='DASH'){ candy.style.background=`linear-gradient(180deg, ${tok.light}, ${tok.bg})`; }
+        const stripe=document.createElement('div'); stripe.className='stripe-line'; candy.appendChild(stripe);
+        const arrow=document.createElement('div'); arrow.className='arrow-badge'; arrow.textContent = obj.s==='h' ? '↔️' : '↕️'; candy.appendChild(arrow);
       }
       else { candy.innerHTML=''; candy.appendChild(createTokenImg(tok, tok.icon)); if(tok.name!=='WASA' && tok.name!=='DASH'){ candy.style.background=`linear-gradient(180deg, ${tok.light}, ${tok.bg})`; candy.style.borderColor=tok.bd; } }
       cellEl.classList.remove('sel','matched','new'); if(sel && sel.r==r && sel.c==c) cellEl.classList.add('sel');
