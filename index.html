@@ -155,16 +155,18 @@ main{padding:14px 12px}
 .section-new .section-head{margin:0;padding:14px 18px 12px;border-bottom:1px solid rgba(251,191,36,0.18)}
 .section-new h2{color:#fde68a}
 .new-wrapper{position:relative;overflow:hidden;height:260px;isolation:isolate}
-.new-track{ display:flex; width:300%; height:100%; animation: newAuto 24s infinite linear; will-change:transform; }
+.new-track{ display:flex; width:300%; height:100%; animation: newAuto 36s infinite linear; will-change:transform; }
 .new-wrapper:hover .new-track{ animation-play-state: paused; }
 .new-wrapper:hover .new-progress-bar{ animation-play-state: paused; }
 @keyframes newAuto{
   0%{ transform: translateX(0); }
-  29.16%{ transform: translateX(0); }
+  30.55%{ transform: translateX(0); }
   33.33%{ transform: translateX(-33.3333%); }
-  62.5%{ transform: translateX(-33.3333%); }
+  63.88%{ transform: translateX(-33.3333%); }
   66.66%{ transform: translateX(-66.6666%); }
-  95.83%{ transform: translateX(-66.6666%); }
+  97.22%{ transform: translateX(-66.6666%); }
+  100%{ transform: translateX(0); }
+}
   100%{ transform: translateX(0); }
 }
 .new-slide{flex:0 0 33.3333%;display:grid;grid-template-columns:38% 62%;background:linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(30,27,75,0.6) 100%);position:relative;min-width:0}
@@ -179,7 +181,7 @@ main{padding:14px 12px}
 .new-meta{display:flex;gap:10px;font-size:10px;color:#94a3b8;margin-bottom:12px;flex-wrap:wrap}
 .new-cta{display:inline-flex;align-items:center;gap:6px;background:#fff;color:#0f172a;font-weight:900;font-size:11px;padding:9px 18px;border-radius:9999px;width:fit-content;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);transition:.2s}
 .new-progress{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.08);z-index:1;pointer-events:none}
-.new-progress-bar{height:100%;width:0;background:linear-gradient(90deg,#fbbf24,#f59e0b);animation: newProg 8s linear infinite}
+.new-progress-bar{height:100%;width:0;background:linear-gradient(90deg,#fbbf24,#f59e0b);animation: newProg 12s linear infinite}
 @keyframes newProg{ 0%{width:0} 100%{width:100%} }
 @media(max-width:700px){
 .new-wrapper{height:auto;overflow:visible}
@@ -286,7 +288,7 @@ footer.wasa-footer{background:rgba(5,8,20,0.85);backdrop-filter:blur(12px);borde
 
     <div id="indexContent">
       <div id="newSection" class="section-block section-new" style="display:none">
-        <div class="section-head"><h2>🆕 NUEVOS JUEGOS</h2><span class="count">8s por juego • pausa al hover • SEO</span></div>
+        <div class="section-head"><h2>🆕 NUEVOS JUEGOS</h2><span class="count">12s por juego • pausa al hover • SEO</span></div>
         <div class="new-wrapper" id="newWrapper">
           <div class="new-track" id="newTrack"></div>
           <div class="new-progress"><div class="new-progress-bar"></div></div>
