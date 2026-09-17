@@ -318,13 +318,16 @@ function shareCurrentGame(){
 
 async function loadGames(){
   try{
-    // GitHub Pages: usar path absoluto desde root para que funcione desde /play/?game=
-    const r=await fetch('/games.json?t='+Date.now(), {cache:'no-store'});
+    // Fetch con timeout de 2 segundos para que no se cuelgue el reload
+    const controller = new AbortController();
+    const timeoutId = setTimeout(()=>controller.abort(), 2000);
+    const r=await fetch('/games.json?t='+Date.now(), {cache:'no-store', signal: controller.signal});
+    clearTimeout(timeoutId);
     if(!r.ok) throw new Error('games.json HTTP '+r.status);
     GAMES=await r.json();
     console.log('[WASA] games.json cargado:', GAMES.length, 'juegos');
   }catch(e){
-    console.warn('[WASA] No se pudo cargar games.json, usando fallback', e);
+    console.warn('[WASA] No se pudo cargar games.json rapido, usando fallback', e);
     GAMES=[
       {slug:'2048',title:'2048',cat:'puzzle',live:true},
       {slug:'2048-madera',title:'2048 MADERA',cat:'puzzle',live:true},
@@ -339,73 +342,39 @@ async function loadGames(){
   }
   try{ renderNewCarousel(); }catch(e){ console.error('renderNewCarousel', e); }
   try{ renderGrid(); }catch(e){ console.error('renderGrid', e); }
-  
-  // === DEEP LINK + TU IDEA DE VARIABLE LOCAL PARA RELOAD ===
-  let deep = getGameFromUrl();
-  
-  // Detectar si es reload: performance.navigation.type === 1 (reload) o navigation.type === 'reload'
-  let isReload = false;
+  // Si por algun motivo el modal no se abrio antes, reintentar ahora que GAMES ya cargo
   try{
-    const nav = performance.getEntriesByType('navigation')[0];
-    if(nav && nav.type === 'reload') isReload = true;
-    if(performance.navigation && performance.navigation.type === 1) isReload = true;
-  }catch(e){}
-
-  // Si no hay ?game= en URL pero hay variable guardada y fue reload o session indica que estaba en juego
-  if(!deep){
-    try{
-      const lastSession = sessionStorage.getItem('wasa_last_game_session');
-      const lastLocal = localStorage.getItem('wasa_last_game');
-      const wasInGame = sessionStorage.getItem('wasa_in_game');
-      const gameOpen = localStorage.getItem('wasa_game_open');
-      
-      console.log('[WASA] No hay ?game= en URL, check storage:', {lastSession, lastLocal, wasInGame, gameOpen, isReload});
-      
-      // Caso 1: recarga - sessionStorage sigue vivo y teniamos juego abierto
-      if(wasInGame === '1' && lastSession){
-        deep = lastSession;
-        console.log('[WASA] Recuperando de sessionStorage por reload:', deep);
+    if(!document.getElementById('modal')?.classList.contains('open')){
+      const deepRetry = getGameFromUrl() || sessionStorage.getItem('wasa_last_game_session');
+      if(deepRetry){
+        console.log('[WASA] Retry post-games.json:', deepRetry);
+        openGame(deepRetry, true);
       }
-      // Caso 2: GitHub redirect a /play/ perdio ?game= pero localStorage tiene el juego y fue reload reciente
-      else if(isReload && lastLocal && gameOpen === '1'){
-        // Solo si el ultimo juego fue hace menos de 10 segundos (evita que al volver dias despues se auto-abra)
-        const lastTime = parseInt(localStorage.getItem('wasa_last_game_time')||'0');
-        const diff = Date.now() - lastTime;
-        if(diff < 10000){
-          deep = lastLocal;
-          console.log('[WASA] Recuperando de localStorage por reload reciente:', deep, diff+'ms');
-        } else {
-          console.log('[WASA] localStorage muy viejo, no restaurar', diff);
-          // Limpiar si es muy viejo
+    }
+  }catch(e){}
+  
+  
+  // Deep link ya manejado en tryOpenDeepLinkImmediately() antes de loadGames()
+  // Este es solo retry por si el primer intento fallo
+  try{
+    const params = new URLSearchParams(location.search);
+    const hasGameParam = params.get('game');
+    if(!hasGameParam){
+      // Si no hay param y no fue reload, limpiar storage
+      let isReloadCheck = false;
+      try{
+        const nav = performance.getEntriesByType('navigation')[0];
+        if(nav && nav.type === 'reload') isReloadCheck = true;
+      }catch(e){}
+      if(!isReloadCheck && !sessionStorage.getItem('wasa_in_game')){
+        try{
           localStorage.removeItem('wasa_last_game');
           localStorage.setItem('wasa_game_open','0');
-        }
+        }catch(e){}
       }
-    }catch(e){}
-  }
+    }
+  }catch(e){}
 
-  if(deep){
-    console.log('[WASA] Deep link detectado:', deep, 'desde', location.pathname + location.search, 'isReload:', isReload);
-    setTimeout(()=>{ 
-      try{ openGame(deep, true); }catch(e){ console.error('openGame deep failed', e); }
-    }, 100);
-    setTimeout(()=>{
-      if(!document.getElementById('modal')?.classList.contains('open')){
-        console.log('[WASA] Retry deep link:', deep);
-        try{ openGame(deep, true); }catch(e){}
-      }
-    }, 800);
-  } else {
-    // Si no hay deep y no fue reload, limpiar storage para que no se auto-abra la proxima vez que entre al index normal
-    try{
-      const wasInGame = sessionStorage.getItem('wasa_in_game');
-      // Si entra normal al index sin ?game= y sin ser reload, limpiar
-      if(!isReload && !wasInGame){
-        localStorage.removeItem('wasa_last_game');
-        localStorage.setItem('wasa_game_open','0');
-      }
-    }catch(e){}
-  }
 }
 
 function showAllGames(){showAll=true; renderGrid(); const el=document.getElementById('viewAllWrap'); if(el) el.style.display='none';}
@@ -569,9 +538,56 @@ addEventListener('keydown',e=>{
   }
 });
 
+// === FIX DEFINITIVO: abrir juego INMEDIATO sin esperar games.json ===
+function tryOpenDeepLinkImmediately(){
+  try{
+    let deep = null;
+    // 1. Intentar desde URL ?game=
+    try{ deep = getGameFromUrl(); }catch(e){}
+    
+    // 2. Si no hay en URL, usar tu idea de variable local + reload detection
+    if(!deep){
+      let isReload = false;
+      try{
+        const nav = performance.getEntriesByType('navigation')[0];
+        if(nav && nav.type === 'reload') isReload = true;
+        if(performance.navigation && performance.navigation.type === 1) isReload = true;
+      }catch(e){}
+      
+      try{
+        const lastSession = sessionStorage.getItem('wasa_last_game_session');
+        const lastLocal = localStorage.getItem('wasa_last_game');
+        const wasInGame = sessionStorage.getItem('wasa_in_game');
+        const gameOpen = localStorage.getItem('wasa_game_open');
+        if(wasInGame === '1' && lastSession){
+          deep = lastSession;
+          console.log('[WASA IMMEDIATE] Recuperando de sessionStorage:', deep);
+        } else if(isReload && lastLocal && gameOpen === '1'){
+          const lastTime = parseInt(localStorage.getItem('wasa_last_game_time')||'0');
+          if(Date.now() - lastTime < 15000){
+            deep = lastLocal;
+            console.log('[WASA IMMEDIATE] Recuperando de localStorage reload:', deep);
+          }
+        }
+      }catch(e){}
+    }
+    
+    if(deep){
+      console.log('[WASA IMMEDIATE] Abriendo juego inmediato:', deep, 'URL:', location.href);
+      // Abrir sin esperar a GAMES
+      setTimeout(()=>{ try{ openGame(deep, true); }catch(e){ console.error(e); } }, 50);
+      return true;
+    }
+  }catch(e){ console.error('tryOpenDeepLinkImmediately', e); }
+  return false;
+}
+
 addEventListener('DOMContentLoaded',()=>{
   if(!localStorage.getItem('wasa_device_id')) localStorage.setItem('wasa_device_id','dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36));
   setCoins(getCoins());
+  // INTENTAR ABRIR JUEGO INMEDIATO ANTES DE CARGAR games.json
+  tryOpenDeepLinkImmediately();
+  // Luego cargar grilla
   loadGames();
 });
 </script>
