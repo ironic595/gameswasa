@@ -298,7 +298,7 @@
   <div class="footer-bottom"><div class="footer-copy">© 2026 WASA GAMES • Play Free, Farm $WASA • v9.9 FIX ADS ORIGINAL EXACTO</div></div>
 </footer>
 
-<div id="modal"><div id="modalTop"><div style="display:flex;align-items:center;gap:12px"><div id="modalTitle">WASA</div><div class="pill hd" id="modalQuality">HD</div></div><div id="modalMeta"><div class="pill coins" id="modalCoins">0 $WASA</div><button id="modalClose" onclick="closeGame()">✕ Close</button></div></div><div id="modalContainer"></div></div>
+<div id="modal"><div id="modalTop"><div style="display:flex;align-items:center;gap:12px"><div id="modalTitle">WASA</div><div class="pill hd" id="modalQuality">HD</div></div><div id="modalMeta"><div class="pill coins" id="modalCoins">0 $WASA</div><button onclick="shareCurrentGame()" style="border:1px solid rgba(56,189,248,0.4);border-radius:20px;padding:6px 12px;font-size:11px;background:rgba(56,189,248,0.15);color:#38bdf8;cursor:pointer" id="shareBtn">🔗 Compartir</button><button id="modalClose" onclick="closeGame()">✕ Close</button></div></div><div id="modalContainer"></div></div>
 
 <div id="walletChooser" class="wasa-overlay" onclick="if(event.target===this) closeWalletChooser()">
   <div class="wasa-box">
@@ -363,6 +363,7 @@
 <script>
 let GAMES=[]; let currentCat='all'; let showAll=false;
 let heroIdx=0;
+let currentGameSlug=null; // variable con nombre del juego
 function setHero(i){
   heroIdx=i%2;
   document.querySelectorAll('.hero-carousel').forEach(car=>{
@@ -378,7 +379,6 @@ function openReferral(){
   const link = 'https://games.wasa.chat/?ref='+code.slice(-8);
   prompt('Tu link de referido (20% comisión):', link);
 }
-function buyWasaPass(){ window.location.href='/wasa-pass.html'; }
 function fmtWASA(n){ const v=parseFloat(n)||0; if(v===0) return '0'; if(v<0.001) return v.toFixed(6).replace(/0+$/,'').replace(/\.$/,''); if(v<1) return (Math.round(v*1000000)/1000000).toString(); return (Math.round(v*1000)/1000).toString(); }
 function getCoins(){ return window.getCoins? window.getCoins() : parseFloat(localStorage.getItem('wasa_coins')||'0'); }
 function setCoins(n){ return window.setCoins? window.setCoins(n) : localStorage.setItem('wasa_coins',n); }
@@ -420,10 +420,86 @@ function renderGrid(){
   if(gridEl) gridEl.innerHTML=toShow.map(g=>gameCardHTML(g)).join('');
   if(viewAllWrapEl) viewAllWrapEl.style.display = (!showAll && filtered.length>15) ? 'block' : 'none';
 }
-async function openGame(slug){ const modal=document.getElementById('modal'); const container=document.getElementById('modalContainer'); const titleEl=document.getElementById('modalTitle'); const qualityEl=document.getElementById('modalQuality'); const isLow=(navigator.deviceMemory||4)<=2; const isMob=innerWidth<900; const quality=isLow||isMob?'lite':'hd'; const game=GAMES.find(g=>g.slug===slug); titleEl.textContent=(game?.title||slug).toUpperCase(); qualityEl.textContent=quality.toUpperCase(); setCoins(getCoins()); modal.classList.add('open'); document.body.style.overflow='hidden'; history.pushState({},'',`/play?game=${slug}`); container.innerHTML=`Loading ${slug}...`; window.vrAd=0; try{ const mod=await import(`/games/${slug}/game.js?v=9.9&t=${Date.now()}`, { cache: 'no-store' }); container.innerHTML=''; if(mod.init){ mod.init(container,{quality,getCoins,addCoins,setCoins,slug}); } }catch(e){container.innerHTML=`No encontrado /games/${slug}/game.js - ${e.message}`;} }
-function closeGame(){ document.getElementById('modal').classList.remove('open'); document.getElementById('modalContainer').innerHTML=''; document.body.style.overflow=''; history.pushState({},'',`/`); }
+function getGameSlugFromURL(){
+  const p = new URLSearchParams(location.search).get('game');
+  return p ? p.trim().toLowerCase() : "";
+}
+function shareCurrentGame(){
+  if(!currentGameSlug) return;
+  const shareUrl = `https://games.wasa.chat/play/${currentGameSlug}/`; // ruta del index de la carpeta play de cada juego para que utilice esos og:
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(shareUrl).then(()=>{
+      const btn=document.getElementById('shareBtn');
+      const old=btn.textContent; btn.textContent='✅ Copiado!'; setTimeout(()=>btn.textContent=old,1500);
+    });
+  } else {
+    prompt('Copia el link (tiene og:image):', shareUrl);
+  }
+}
+async function openGame(slug){
+  currentGameSlug = slug; // guarda variable con nombre del juego
+  try{
+    localStorage.setItem('wasa_last_game', slug);
+    sessionStorage.setItem('wasa_last_game_session', slug);
+    sessionStorage.setItem('wasa_in_game', '1');
+  }catch(e){}
+  const modal=document.getElementById('modal');
+  const container=document.getElementById('modalContainer');
+  const titleEl=document.getElementById('modalTitle');
+  const qualityEl=document.getElementById('modalQuality');
+  const isLow=(navigator.deviceMemory||4)<=2; const isMob=innerWidth<900;
+  const quality=isLow||isMob?'lite':'hd';
+  const game=GAMES.find(g=>g.slug===slug);
+  titleEl.textContent=(game?.title||slug).toUpperCase();
+  qualityEl.textContent=quality.toUpperCase();
+  setCoins(getCoins());
+  modal.classList.add('open');
+  document.body.style.overflow='hidden';
+  history.pushState({},'',`/play?game=${slug}`);
+  container.innerHTML=`Loading ${slug}...`;
+  window.vrAd=0;
+  try{
+    const mod=await import(`/games/${slug}/game.js?v=9.9&t=${Date.now()}`, { cache: 'no-store' });
+    container.innerHTML='';
+    if(mod.init){ mod.init(container,{quality,getCoins,addCoins,setCoins,slug}); }
+  }catch(e){container.innerHTML=`No encontrado /games/${slug}/game.js - ${e.message}`;}
+}
+function closeGame(){
+  document.getElementById('modal').classList.remove('open');
+  document.getElementById('modalContainer').innerHTML='';
+  document.body.style.overflow='';
+  currentGameSlug=null;
+  try{
+    localStorage.removeItem('wasa_last_game');
+    sessionStorage.removeItem('wasa_last_game_session');
+    sessionStorage.removeItem('wasa_in_game');
+  }catch(e){}
+  history.pushState({},'',`/`);
+}
 addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeGame(); closeWalletChooser(); closeWasaBuy(); closeAuthEmail(); closeUserProfile(); const m=document.getElementById('userDropdown'); if(m) m.classList.remove('open'); }});
-addEventListener('DOMContentLoaded',()=>{ if(!localStorage.getItem('wasa_device_id')) localStorage.setItem('wasa_device_id','dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36)); setCoins(getCoins()); loadGames(); });
+
+// Al redirigir si variable de nombre del juego no esta vacia o no es x (osea si tiene el nombre de un juego), simula hacer click en uno de los juegos, para abrirlo
+addEventListener('DOMContentLoaded',()=>{
+  if(!localStorage.getItem('wasa_device_id')) localStorage.setItem('wasa_device_id','dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36));
+  setCoins(getCoins());
+  loadGames();
+  let gameName = getGameSlugFromURL();
+  if(!gameName){
+    try{
+      const last=sessionStorage.getItem('wasa_last_game_session');
+      const was=sessionStorage.getItem('wasa_in_game');
+      if(was==='1' && last && last!=="" && last!=="x") gameName=last;
+    }catch(e){}
+  }
+  if(gameName && gameName!=="" && gameName!=="x"){
+    console.log('[WASA] GAME_NAME:', gameName, '-> abriendo https://games.wasa.chat/play?game='+gameName);
+    const tryOpen = () => {
+      if(GAMES.length>0){ openGame(gameName); }
+      else { setTimeout(tryOpen, 300); }
+    };
+    setTimeout(tryOpen, 600);
+  }
+});
 </script>
 <script src="./wasa-conection.js?v=9.9"></script>
 <div style="position: absolute; z-index: 99999">
