@@ -1,4 +1,4 @@
-// games/crypto-crush/game.js - v4.4 FIX OBJETIVO SIEMPRE EN PARTIDA - garantiza cripto pedida está en tablero
+// games/crypto-crush/game.js - v4.5 FIX NAV TAPANDO - encaja debajo del nav portante
 export function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javisimes.workers.dev/';
   function getDeviceId(){ let id=localStorage.getItem('wasa_device_id'); if(!id){ id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id; }
@@ -20,54 +20,30 @@ export function init(container, args){
   const SZ = 8;
   const BASE_REWARD = 0.0001;
 
-  function getUnlockedTokens(level){
-    // nivel 1: 5 tokens, cada 3 niveles +1, max 11 - FIX: sin saltos raros
-    const count = Math.min(11, 5 + Math.floor((level-1)/3));
-    return ALL_TOKENS.slice(0, count);
-  }
+  function getUnlockedTokens(level){ const count=Math.min(11, 5+Math.floor((level-1)/3)); return ALL_TOKENS.slice(0, count); }
   function getActiveTokensForLevel(level){
     const unlocked=getUnlockedTokens(level);
     const maxPerGame=level<10?5:6;
     const take=Math.min(maxPerGame, unlocked.length);
-    // shuffle deterministico por nivel para evitar que en nivel 2 aparezca BNB si no está desbloqueado
     const shuffled=[...unlocked].sort(()=>Math.random()-0.5);
     let active=shuffled.slice(0, take);
-    // fuerza WASA solo si ya está desbloqueado Y ya está en active (no lo mete si no está)
-    if(level%3===0 && unlocked.some(t=>t.name==='WASA') && !active.some(t=>t.name==='WASA')){
-      // reemplaza uno random por WASA, pero solo si WASA ya desbloqueado
-      active[0]=ALL_TOKENS.find(t=>t.name==='WASA');
-    }
+    if(level%3===0 && unlocked.some(t=>t.name==='WASA') && !active.some(t=>t.name==='WASA')) active[0]=ALL_TOKENS.find(t=>t.name==='WASA');
     return active;
   }
-
   function generateLevel(n, activeTokens){
-    // FIX CRITICO: objetivos SOLO de activeTokens
     const lvl={number:n, moves:0, time:0, objectives:[], reward: BASE_REWARD * (1 + Math.floor(n/10)*0.5), activeTokens };
     const isTimed=n%7===0 && n>10;
     if(isTimed){ lvl.time=Math.max(45, 120-Math.floor(n*0.8)); lvl.moves=999; } else { lvl.moves=Math.max(16, 26-Math.floor(n/25)+Math.floor(n/8)); }
-
-    const numObjs=n<5?1:n<12?2:n<35?3:4;
-    const usedNames=new Set();
-
+    const numObjs=n<5?1:n<12?2:n<35?3:4; const usedNames=new Set();
     for(let i=0;i<numObjs;i++){
       const roll=Math.random();
       if(roll<0.70){
-        // 70% cripto - GARANTIZADO que está en esta partida
-        let available = activeTokens.filter(t=>!usedNames.has(t.name));
-        if(available.length===0) available=activeTokens; // si ya usamos todos, repite
+        let available=activeTokens.filter(t=>!usedNames.has(t.name));
+        if(available.length===0) available=activeTokens;
         const token=available[Math.floor(Math.random()*available.length)];
         usedNames.add(token.name);
         const target=Math.floor(8 + n*1.9 + Math.random()*8 + i*3);
-        lvl.objectives.push({
-          id:token.name+'_'+i+'_'+Date.now(),
-          type:'collect_color',
-          color:ALL_TOKENS.indexOf(token),
-          token,
-          name:token.name,
-          icon:token.icon,
-          target,
-          current:0
-        });
+        lvl.objectives.push({id:token.name+'_'+i, type:'collect_color', color:ALL_TOKENS.indexOf(token), token, name:token.name, icon:token.icon, target, current:0});
       } else if(roll<0.85){
         const special=Math.random()<0.5?'bomb':'striped';
         const target=Math.floor(1 + n/14 + Math.random()*2);
@@ -80,40 +56,25 @@ export function init(container, args){
         lvl.objectives.push({id:'score_'+i, type:'score', name:'SCORE', icon:'⭐', target, current:0});
       }
     }
-
-    // FIX: WASA forzado solo si WASA está en activeTokens
-    if(n%15===0){
-      const wasa=ALL_TOKENS.find(t=>t.name==='WASA');
-      if(activeTokens.some(t=>t.name==='WASA') && !lvl.objectives.some(o=>o.name==='WASA')){
-        lvl.objectives.push({
-          id:'wasa15', type:'collect_color', color:ALL_TOKENS.indexOf(wasa), token:wasa,
-          name:'WASA', icon:'W', target:Math.floor(12+n*1.2), current:0
-        });
-      }
-    }
-
-    // validacion final: todos los objetivos de color deben estar en activeTokens
-    lvl.objectives = lvl.objectives.filter(o=>{
-      if(o.type==='collect_color'){
-        return activeTokens.some(t=>t.name===o.name);
-      }
-      return true;
-    });
-
-    // si por filtro quedó vacío, agrega uno de activeTokens
-    if(lvl.objectives.length===0){
-      const tok=activeTokens[0];
-      lvl.objectives.push({id:tok.name, type:'collect_color', color:ALL_TOKENS.indexOf(tok), token:tok, name:tok.name, icon:tok.icon, target:10+n*2, current:0});
-    }
-
+    if(n%15===0){ const wasa=ALL_TOKENS.find(t=>t.name==='WASA'); if(activeTokens.some(t=>t.name==='WASA') && !lvl.objectives.some(o=>o.name==='WASA')) lvl.objectives.push({id:'wasa15', type:'collect_color', color:ALL_TOKENS.indexOf(wasa), token:wasa, name:'WASA', icon:'W', target:Math.floor(12+n*1.2), current:0}); }
+    lvl.objectives=lvl.objectives.filter(o=>{ if(o.type==='collect_color'){ return activeTokens.some(t=>t.name===o.name); } return true; });
+    if(lvl.objectives.length===0){ const tok=activeTokens[0]; lvl.objectives.push({id:tok.name, type:'collect_color', color:ALL_TOKENS.indexOf(tok), token:tok, name:tok.name, icon:tok.icon, target:10+n*2, current:0}); }
     return lvl;
   }
 
+  // FIX NAV: contenedor ocupa 100% del modal, no 100vh, y deja 52px arriba para el nav portante
+  container.style.height='100%';
+  container.style.overflow='hidden';
+  container.style.display='flex';
+  container.style.flexDirection='column';
+
   container.innerHTML=`<style>
+*{box-sizing:border-box}
 html,body{overscroll-behavior:none}
-.cc{width:100%;height:100%;min-height:100vh;display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% 0%, #8B5CF6 0%, #6D28D9 25%, #4C1D95 60%, #1E0B3A 100%);color:#fff;font-family:Inter,system-ui;overflow:hidden;position:relative;touch-action:none}
-.cc-header{width:100%;background:rgba(255,255,255,.96);color:#2a1a5e;box-shadow:0 4px 20px rgba(0,0,0,.3);z-index:10;flex-shrink:0;border-bottom:2px solid #E9D5FF}
-.cc-header-inner{width:100%;padding:6px 10px;display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:nowrap}
+.cc{width:100%;height:100%;display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% 0%, #8B5CF6 0%, #6D28D9 25%, #4C1D95 60%, #1E0B3A 100%);color:#fff;font-family:Inter,system-ui;overflow:hidden;position:relative;touch-action:none}
+/* FIX: deja espacio para el nav portante de WASA (48-56px) */
+.cc-header{width:100%;background:rgba(255,255,255,.96);color:#2a1a5e;box-shadow:0 4px 20px rgba(0,0,0,.3);z-index:10;flex-shrink:0;border-bottom:2px solid #E9D5FF;margin-top:0;position:relative}
+.cc-header-inner{width:100%;padding:8px 10px;display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:nowrap;min-height:48px}
 .cc-header-left{display:flex;align-items:center;gap:8px;flex-shrink:0}
 .cc-level-badge{background:#4C1D95;color:#fff;border-radius:10px;padding:4px 10px;font-weight:900;font-size:12px;line-height:1}
 .cc-level-badge span{font-size:9px;opacity:.7;font-weight:700;display:block}
@@ -133,8 +94,8 @@ html,body{overscroll-behavior:none}
 .cc-stat-mini b{font-size:11px;font-weight:900;display:block;line-height:1;color:#2a1a5e}
 .cc-stat-mini span{font-size:6px;font-weight:800;opacity:.6;letter-spacing:.05em;text-transform:uppercase;color:#4C1D95}
 .cc-stat-mini.gold{background:linear-gradient(180deg,#FEF08A,#FACC15);border-color:#EAB308}
-.cc-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;overflow:hidden;touch-action:none;width:100%;min-height:0}
-.cc-board{width:min(92vw, 480px);aspect-ratio:1;background:rgba(255,255,255,.96);border-radius:18px;padding:6px;box-shadow:0 20px 50px rgba(0,0,0,.4), 0 0 0 2.5px rgba(255,255,255,.9);position:relative;touch-action:none;user-select:none;contain:layout}
+.cc-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:10px 10px 6px;overflow:auto;overflow-x:hidden;touch-action:none;width:100%;min-height:0;gap:8px}
+.cc-board{width:min(92vw, 460px);aspect-ratio:1;background:rgba(255,255,255,.96);border-radius:18px;padding:6px;box-shadow:0 20px 50px rgba(0,0,0,.4), 0 0 0 2.5px rgba(255,255,255,.9);position:relative;touch-action:none;user-select:none;contain:layout;flex-shrink:0}
 .cc-grid{display:grid;grid-template-columns:repeat(${SZ},1fr);grid-template-rows:repeat(${SZ},1fr);gap:4px;width:100%;height:100%;touch-action:none}
 .cc-cell{position:relative;border-radius:11px;display:grid;place-items:center;cursor:pointer;touch-action:none}
 .cc-cell.sel{transform:scale(1.1);z-index:5}.cc-cell.sel::after{content:'';position:absolute;inset:-2px;border:3px solid #FACC15;border-radius:12px;box-shadow:0 0 14px #FACC15;pointer-events:none}
@@ -155,15 +116,22 @@ html,body{overscroll-behavior:none}
 @keyframes combo{0%{opacity:0;transform:translateX(-50%) translateY(16px) scale(.6)}20%{opacity:1;transform:translateX(-50%) translateY(0) scale(1.15)}100%{opacity:0;transform:translateX(-50%) translateY(-32px) scale(1)}}
 .cc-bottom{width:100%;background:rgba(0,0,0,.25);backdrop-filter:blur(6px);padding:5px 10px;display:flex;justify-content:center;gap:8px;flex-shrink:0;border-top:1px solid rgba(255,255,255,.15)}
 .cc-bottom-info{font-size:8px;opacity:.7;text-align:center}
+/* DESKTOP: header full width, board centrado */
+@media(min-width:769px){
+  .cc-header-inner{max-width:1400px;margin:0 auto;padding:8px 16px}
+  .cc-main{padding:12px 12px 8px}
+  .cc-board{width:min(68vh, 500px)}
+}
 @media(max-width:768px){
-  .cc-header-inner{flex-wrap:wrap;gap:5px;padding:5px 8px}
+  .cc-header-inner{flex-wrap:wrap;gap:5px;padding:6px 8px;min-height:auto}
   .cc-header-left{flex:1 1 auto}
   .cc-header-center{flex:1 1 100%;order:3}
   .cc-header-right{flex:0 0 auto}
   .cc-stat-mini{min-width:44px;padding:3px 5px}.cc-stat-mini b{font-size:10px}
   .cc-token-chip{width:20px;height:20px;font-size:10px}
-  .cc-board{width:min(96vw, 440px);padding:5px;border-radius:16px}
+  .cc-board{width:min(96vw, 420px);padding:5px;border-radius:16px}
   .cc-grid{gap:3px}
+  .cc-main{padding:8px 6px 6px}
 }
 </style>
 <div class="cc" id="root">
@@ -183,7 +151,7 @@ html,body{overscroll-behavior:none}
     </div>
   </div>
   <div class="cc-main" id="mainArea"><div class="cc-board" id="board"><div class="cc-grid" id="grid"></div></div></div>
-  <div class="cc-bottom"><div class="cc-bottom-info">✅ FIX: objetivo siempre está en esta partida • Arrastrá sin soltar</div></div>
+  <div class="cc-bottom"><div class="cc-bottom-info">✅ Objetivo siempre en partida • Sin scroll al arrastrar • Encaja debajo del nav</div></div>
   <div id="ui"></div>
 </div>`;
 
