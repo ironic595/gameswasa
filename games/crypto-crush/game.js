@@ -1,21 +1,26 @@
-// games/crypto-crush/game.js - v4.5 FIX NAV TAPANDO - encaja debajo del nav portante
+// games/crypto-crush/game.js - v4.6 IMAGENES LIVIANAS - usa btc.png, bnb.png etc en vez de "B"
 export function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javisimes.workers.dev/';
   function getDeviceId(){ let id=localStorage.getItem('wasa_device_id'); if(!id){ id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id; }
   function fmt(n){ const v=parseFloat(n)||0; if(v===0) return '0'; return (Math.round(v*1e7)/1e7).toFixed(7).replace(/0+$/,'').replace(/\.$/,''); }
 
+  // CONFIGURA ACA DONDE ESTAN TUS IMAGENES
+  // Opcion 1: ./assets/btc.png (recomendado)
+  // Opcion 2: ./btc.png (mismo folder que game.js)
+  const ASSET_BASE = './assets/'; // cambia a './' si las pones al lado de game.js
+
   const ALL_TOKENS = [
-    {icon:'₿', name:'BTC',  bg:'#FFB347', bd:'#FF8C00', light:'#FFD699'},
-    {icon:'Ξ', name:'ETH',  bg:'#7DD3FC', bd:'#0EA5E9', light:'#BAE6FD'},
-    {icon:'Đ', name:'DASH', bg:'#60A5FA', bd:'#2563EB', light:'#93C5FD'},
-    {icon:'Ł', name:'LTC',  bg:'#D1D5DB', bd:'#9CA3AF', light:'#F3F4F6'},
-    {icon:'W', name:'WASA', bg:'#FDE047', bd:'#EAB308', light:'#FEF08A'},
-    {icon:'B', name:'BNB',  bg:'#FBBF24', bd:'#D97706', light:'#FDE68A'},
-    {icon:'₮', name:'USDT', bg:'#6EE7B7', bd:'#10B981', light:'#A7F3D0'},
-    {icon:'🐶', name:'DOGE',  bg:'#FDE68A', bd:'#EAB308', light:'#FEF9C3'},
-    {icon:'🐕', name:'SHIB',  bg:'#FDA4AF', bd:'#F43F5E', light:'#FFE4E6'},
-    {icon:'🐸', name:'PEPE',  bg:'#86EFAC', bd:'#22C55E', light:'#DCFCE7'},
-    {icon:'🐺', name:'FLOKI', bg:'#C4B5FD', bd:'#7C3AED', light:'#DDD6FE'},
+    {icon:'₿', name:'BTC',  bg:'#FFB347', bd:'#FF8C00', light:'#FFD699', img:'btc.png'},
+    {icon:'Ξ', name:'ETH',  bg:'#7DD3FC', bd:'#0EA5E9', light:'#BAE6FD', img:'eth.png'},
+    {icon:'Đ', name:'DASH', bg:'#60A5FA', bd:'#2563EB', light:'#93C5FD', img:'dash.png'},
+    {icon:'Ł', name:'LTC',  bg:'#D1D5DB', bd:'#9CA3AF', light:'#F3F4F6', img:'ltc.png'},
+    {icon:'W', name:'WASA', bg:'#FDE047', bd:'#EAB308', light:'#FEF08A', img:'wasa.png'},
+    {icon:'B', name:'BNB',  bg:'#FBBF24', bd:'#D97706', light:'#FDE68A', img:'bnb.png'},
+    {icon:'₮', name:'USDT', bg:'#6EE7B7', bd:'#10B981', light:'#A7F3D0', img:'usdt.png'},
+    {icon:'🐶', name:'DOGE',  bg:'#FDE68A', bd:'#EAB308', light:'#FEF9C3', img:'doge.png'},
+    {icon:'🐕', name:'SHIB',  bg:'#FDA4AF', bd:'#F43F5E', light:'#FFE4E6', img:'shib.png'},
+    {icon:'🐸', name:'PEPE',  bg:'#86EFAC', bd:'#22C55E', light:'#DCFCE7', img:'pepe.png'},
+    {icon:'🐺', name:'FLOKI', bg:'#C4B5FD', bd:'#7C3AED', light:'#DDD6FE', img:'floki.png'},
   ];
   const SZ = 8;
   const BASE_REWARD = 0.0001;
@@ -62,7 +67,6 @@ export function init(container, args){
     return lvl;
   }
 
-  // FIX NAV: contenedor ocupa 100% del modal, no 100vh, y deja 52px arriba para el nav portante
   container.style.height='100%';
   container.style.overflow='hidden';
   container.style.display='flex';
@@ -72,19 +76,20 @@ export function init(container, args){
 *{box-sizing:border-box}
 html,body{overscroll-behavior:none}
 .cc{width:100%;height:100%;display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% 0%, #8B5CF6 0%, #6D28D9 25%, #4C1D95 60%, #1E0B3A 100%);color:#fff;font-family:Inter,system-ui;overflow:hidden;position:relative;touch-action:none}
-/* FIX: deja espacio para el nav portante de WASA (48-56px) */
-.cc-header{width:100%;background:rgba(255,255,255,.96);color:#2a1a5e;box-shadow:0 4px 20px rgba(0,0,0,.3);z-index:10;flex-shrink:0;border-bottom:2px solid #E9D5FF;margin-top:0;position:relative}
+.cc-header{width:100%;background:rgba(255,255,255,.96);color:#2a1a5e;box-shadow:0 4px 20px rgba(0,0,0,.3);z-index:10;flex-shrink:0;border-bottom:2px solid #E9D5FF}
 .cc-header-inner{width:100%;padding:8px 10px;display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:nowrap;min-height:48px}
 .cc-header-left{display:flex;align-items:center;gap:8px;flex-shrink:0}
 .cc-level-badge{background:#4C1D95;color:#fff;border-radius:10px;padding:4px 10px;font-weight:900;font-size:12px;line-height:1}
 .cc-level-badge span{font-size:9px;opacity:.7;font-weight:700;display:block}
 .cc-tokens{display:flex;gap:4px;align-items:center}
-.cc-token-chip{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;font-weight:900;font-size:12px;border:1.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.15);flex-shrink:0;transition:all .2s}
+.cc-token-chip{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-weight:900;font-size:12px;border:1.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.15);flex-shrink:0;transition:all .2s;overflow:hidden;background:#fff}
+.cc-token-chip img{width:78%;height:78%;object-fit:contain;display:block}
 .cc-token-chip.needed{transform:scale(1.25);box-shadow:0 0 0 2.5px #22C55E, 0 0 12px #22C55E;z-index:2;border-color:#22C55E}
 .cc-header-center{flex:1;min-width:0;display:flex;gap:6px;align-items:center;overflow:hidden}
 .cc-obj-mini{flex:1;min-width:70px;background:#F5F3FF;border:1.5px solid #DDD6FE;border-radius:10px;padding:4px 7px;display:flex;align-items:center;gap:5px}
 .cc-obj-mini.done{background:#DCFCE7;border-color:#22C55E}
-.cc-obj-mini-icon{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;font-weight:900;font-size:11px;flex-shrink:0}
+.cc-obj-mini-icon{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;font-weight:900;font-size:11px;flex-shrink:0;overflow:hidden;background:#fff}
+.cc-obj-mini-icon img{width:80%;height:80%;object-fit:contain}
 .cc-obj-mini-info{flex:1;min-width:0}
 .cc-obj-mini-name{font-weight:900;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cc-obj-mini-bar{height:4px;background:#EDE9FE;border-radius:999px;overflow:hidden;margin-top:2px}
@@ -99,12 +104,14 @@ html,body{overscroll-behavior:none}
 .cc-grid{display:grid;grid-template-columns:repeat(${SZ},1fr);grid-template-rows:repeat(${SZ},1fr);gap:4px;width:100%;height:100%;touch-action:none}
 .cc-cell{position:relative;border-radius:11px;display:grid;place-items:center;cursor:pointer;touch-action:none}
 .cc-cell.sel{transform:scale(1.1);z-index:5}.cc-cell.sel::after{content:'';position:absolute;inset:-2px;border:3px solid #FACC15;border-radius:12px;box-shadow:0 0 14px #FACC15;pointer-events:none}
-.cc-candy{width:86%;height:86%;border-radius:12px;display:grid;place-items:center;font-weight:900;font-size:15px;position:relative;box-shadow:0 3px 0 rgba(0,0,0,.12), inset 0 1.5px 0 rgba(255,255,255,.9);border:1.5px solid rgba(0,0,0,.06);overflow:hidden}
-.cc-candy::before{content:'';position:absolute;top:8%;left:14%;width:34%;height:26%;background:rgba(255,255,255,.8);border-radius:50%}
+.cc-candy{width:86%;height:86%;border-radius:12px;display:grid;place-items:center;font-weight:900;font-size:15px;position:relative;box-shadow:0 3px 0 rgba(0,0,0,.12), inset 0 1.5px 0 rgba(255,255,255,.9);border:1.5px solid rgba(0,0,0,.06);overflow:hidden;background:#fff}
+.cc-candy img{width:72%;height:72%;object-fit:contain;display:block;pointer-events:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.15))}
+.cc-candy::before{content:'';position:absolute;top:8%;left:14%;width:34%;height:26%;background:rgba(255,255,255,.85);border-radius:50%;pointer-events:none;z-index:1}
 .cc-candy.bomb{box-shadow:0 0 0 2px #fff, 0 3px 0 rgba(0,0,0,.15), 0 0 14px currentColor}
-.cc-candy.striped-h::after{content:'';position:absolute;left:-4px;right:-4px;top:50%;height:5px;background:repeating-linear-gradient(90deg, #fff 0 5px, transparent 5px 10px);transform:translateY(-50%);border-radius:999px}
-.cc-candy.striped-v::after{content:'';position:absolute;top:-4px;bottom:-4px;left:50%;width:5px;background:repeating-linear-gradient(180deg, #fff 0 5px, transparent 5px 10px);transform:translateX(-50%);border-radius:999px}
+.cc-candy.striped-h::after{content:'';position:absolute;left:-4px;right:-4px;top:50%;height:5px;background:repeating-linear-gradient(90deg, #fff 0 5px, transparent 5px 10px);transform:translateY(-50%);border-radius:999px;z-index:2}
+.cc-candy.striped-v::after{content:'';position:absolute;top:-4px;bottom:-4px;left:50%;width:5px;background:repeating-linear-gradient(180deg, #fff 0 5px, transparent 5px 10px);transform:translateX(-50%);border-radius:999px;z-index:2}
 .cc-candy.color-bomb{background:radial-gradient(circle at 30% 30%, #fff, #ddd 20%, #aaa 40%, #444 100%) !important;border:2.5px solid #fff !important;box-shadow:0 0 16px #fff !important;animation:rainbow 1.5s linear infinite}
+.cc-candy.color-bomb img{display:none}
 @keyframes rainbow{0%{filter:hue-rotate(0deg) brightness(1.15)}100%{filter:hue-rotate(360deg) brightness(1.15)}}
 .cc-cell.matched{animation:pop .38s cubic-bezier(.34,1.56,.64,1) forwards}
 @keyframes pop{0%{transform:scale(1)}25%{transform:scale(1.32)}100%{transform:scale(0) rotate(80deg);opacity:0}}
@@ -116,7 +123,6 @@ html,body{overscroll-behavior:none}
 @keyframes combo{0%{opacity:0;transform:translateX(-50%) translateY(16px) scale(.6)}20%{opacity:1;transform:translateX(-50%) translateY(0) scale(1.15)}100%{opacity:0;transform:translateX(-50%) translateY(-32px) scale(1)}}
 .cc-bottom{width:100%;background:rgba(0,0,0,.25);backdrop-filter:blur(6px);padding:5px 10px;display:flex;justify-content:center;gap:8px;flex-shrink:0;border-top:1px solid rgba(255,255,255,.15)}
 .cc-bottom-info{font-size:8px;opacity:.7;text-align:center}
-/* DESKTOP: header full width, board centrado */
 @media(min-width:769px){
   .cc-header-inner{max-width:1400px;margin:0 auto;padding:8px 16px}
   .cc-main{padding:12px 12px 8px}
@@ -151,7 +157,7 @@ html,body{overscroll-behavior:none}
     </div>
   </div>
   <div class="cc-main" id="mainArea"><div class="cc-board" id="board"><div class="cc-grid" id="grid"></div></div></div>
-  <div class="cc-bottom"><div class="cc-bottom-info">✅ Objetivo siempre en partida • Sin scroll al arrastrar • Encaja debajo del nav</div></div>
+  <div class="cc-bottom"><div class="cc-bottom-info">🖼️ Usa imágenes: pon btc.png, bnb.png en /assets/ • Se diferencian al toque</div></div>
   <div id="ui"></div>
 </div>`;
 
@@ -166,6 +172,28 @@ html,body{overscroll-behavior:none}
   function openAd(t){ if(window.vrAd!==0 && window.vrAd!==undefined) return; pendingAd=t; window.vrAdType=t; window.vrAd=1; ui.innerHTML=`<div style="position:fixed;inset:0;background:rgba(0,0,0,.7);display:grid;place-items:center;z-index:50;color:white;font-weight:800">Cargando anuncio...</div>`; }
   function randColorFromActive(active){ const tok=active[Math.floor(Math.random()*active.length)]; return ALL_TOKENS.indexOf(tok); }
   function makeCell(color, special=null){ return {c:color, s:special}; }
+
+  // helper para crear imagen con fallback a letra
+  function createTokenImg(token, fallbackText){
+    const img=document.createElement('img');
+    img.src=ASSET_BASE + token.img;
+    img.alt=token.name;
+    img.loading='lazy';
+    img.onerror=()=>{
+      // si falla assets/, prueba en misma carpeta
+      if(img.src.includes('assets/')){
+        img.src=token.img;
+      } else {
+        // fallback final a letra
+        const span=document.createElement('span');
+        span.textContent=fallbackText || token.icon;
+        span.style.fontWeight='900';
+        span.style.fontSize='12px';
+        img.replaceWith(span);
+      }
+    };
+    return img;
+  }
 
   function loadLevel(n){
     currentLevelNum=n; localStorage.setItem('wcrush_level', n);
@@ -183,8 +211,8 @@ html,body{overscroll-behavior:none}
       chip.className='cc-token-chip'+(neededNames.has(tok.name)?' needed':'');
       chip.style.background=`linear-gradient(180deg, ${tok.light}, ${tok.bg})`;
       chip.style.borderColor=tok.bd;
-      chip.textContent=tok.icon;
       chip.title=tok.name + (neededNames.has(tok.name)?' - OBJETIVO':'');
+      chip.appendChild(createTokenImg(tok, tok.icon));
       activeDiv.appendChild(chip);
     });
     startSession(); draw(); updateObjectivesUI(); updateUI();
@@ -205,8 +233,12 @@ html,body{overscroll-behavior:none}
     level.objectives.forEach(obj=>{
       const item=document.createElement('div'); item.className='cc-obj-mini'+(obj.current>=obj.target?' done':'');
       const icon=document.createElement('div'); icon.className='cc-obj-mini-icon';
-      if(obj.type==='collect_color'){ const tok=ALL_TOKENS[obj.color]; icon.style.background=`linear-gradient(180deg, ${tok.light}, ${tok.bg})`; icon.textContent=tok.icon; icon.style.border=`1.5px solid ${tok.bd}`; }
-      else { icon.style.background='#fff'; icon.textContent=obj.icon; }
+      if(obj.type==='collect_color'){
+        const tok=ALL_TOKENS[obj.color];
+        icon.style.background=`linear-gradient(180deg, ${tok.light}, ${tok.bg})`;
+        icon.style.border=`1.5px solid ${tok.bd}`;
+        icon.appendChild(createTokenImg(tok, tok.icon));
+      } else { icon.style.background='#fff'; icon.textContent=obj.icon; }
       const info=document.createElement('div'); info.className='cc-obj-mini-info'; info.innerHTML=`<div class="cc-obj-mini-name">${obj.name} ${obj.current}/${obj.target}</div><div class="cc-obj-mini-bar"><div class="cc-obj-mini-fill" style="width:${Math.min(100, obj.current/obj.target*100)}%"></div></div>`;
       item.appendChild(icon); item.appendChild(info); list.appendChild(item);
     });
@@ -216,11 +248,21 @@ html,body{overscroll-behavior:none}
     for(let r=0;r<SZ;r++) for(let c=0;c<SZ;c++){
       const idx=r*SZ+c; const cellEl=gridEl.children[idx]; if(!cellEl) continue;
       const obj=board[r][c]; if(!obj){ cellEl.innerHTML=''; continue; }
-      let candy=cellEl.querySelector('.cc-candy'); if(!candy){ candy=document.createElement('div'); cellEl.appendChild(candy); }
+      let candy=cellEl.querySelector('.cc-candy');
+      if(!candy){ candy=document.createElement('div'); cellEl.appendChild(candy); }
       let cls='cc-candy'; if(obj.s==='bomb') cls+=' bomb'; else if(obj.s==='h') cls+=' striped-h'; else if(obj.s==='v') cls+=' striped-v'; else if(obj.s==='color') cls+=' color-bomb';
       candy.className=cls;
-      if(obj.s==='color'){ candy.textContent='🌈'; }
-      else { const tok=ALL_TOKENS[obj.c]; candy.textContent=tok.icon; candy.style.background=`linear-gradient(180deg, ${tok.light}, ${tok.bg})`; candy.style.borderColor=tok.bd; }
+      if(obj.s==='color'){
+        candy.textContent='🌈';
+        candy.innerHTML='🌈';
+      } else {
+        const tok=ALL_TOKENS[obj.c];
+        // limpia y pone imagen
+        candy.innerHTML='';
+        candy.appendChild(createTokenImg(tok, tok.icon));
+        candy.style.background=`linear-gradient(180deg, ${tok.light}, ${tok.bg})`;
+        candy.style.borderColor=tok.bd;
+      }
       cellEl.classList.remove('sel','matched','new'); if(sel && sel.r==r && sel.c==c) cellEl.classList.add('sel');
     }
   }
