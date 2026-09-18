@@ -1,4 +1,4 @@
-// /games/ahorcado/game.js - v26.2 - SAPO PARADO ARRIBA DE TABLA + LANG SOLO MENU
+// /games/ahorcado/game.js - v27.0 - PASS X5 REAL + SECURE SERVER + SAPO PARADO ARRIBA DE TABLA
 export async function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javimsites.workers.dev/';
   const getDeviceId = ()=> window.getDeviceId?window.getDeviceId():(()=>{let id=localStorage.getItem('wasa_device_id'); if(!id){id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id;})();
@@ -76,6 +76,7 @@ export async function init(container, args){
           <div class="ah-timer"><div id="ah-timer-bar" class="ah-timer-bar" style="width:100%"></div></div>
           <div id="ah-timer-text" class="ah-timer-text">30s</div>
           <div id="ah-rally-info" style="text-align:center;font-size:11px;font-weight:900;margin-top:6px;display:none"></div>
+          <div id="ah-pass-badge" style="display:none;text-align:center;margin-top:6px;background:linear-gradient(135deg,#A855F7,#7E22CE);color:#fff;border-radius:8px;padding:4px 8px;font-size:10px;font-weight:900">💎 PASS X5 ACTIVO</div>
         </div>
         <div class="ah-keys-wrap"><div id="ah-keys" class="ah-keys-qwerty"></div></div>
       </div>
@@ -84,7 +85,7 @@ export async function init(container, args){
     <div id="ah-menu"></div>
   </div>`;
 
-  const tower=container.querySelector('#tower'); const elWord=container.querySelector('#ah-word'); const elKeys=container.querySelector('#ah-keys'); const elHint=container.querySelector('#ah-hint'); const elWin=container.querySelector('#ah-win'); const elMenu=container.querySelector('#ah-menu'); const elRallyInfo=container.querySelector('#ah-rally-info');
+  const tower=container.querySelector('#tower'); const elWord=container.querySelector('#ah-word'); const elKeys=container.querySelector('#ah-keys'); const elHint=container.querySelector('#ah-hint'); const elWin=container.querySelector('#ah-win'); const elMenu=container.querySelector('#ah-menu'); const elRallyInfo=container.querySelector('#ah-rally-info'); const elPassBadge=container.querySelector('#ah-pass-badge');
   const loaded=await loadVendor(); if(!loaded){ elWord.textContent='Falta vendor'; return; }
   const chunk=window._0x4a2f || window.webpackChunkWasa['8f3c2a1b']; const key=chunk.k; const dict=chunk.w;
   let currentLang='es'; const CACHE_KEY='sapo_cache_mostaza_v27_waterPNG';
@@ -108,8 +109,49 @@ export async function init(container, args){
   function setBest(v){ if(v>getBest()) localStorage.setItem(BEST_KEY,String(v)); }
   function getTotalWins(){ return parseInt(localStorage.getItem(TOTAL_KEY)||'0'); }
   function incTotal(){ localStorage.setItem(TOTAL_KEY,String(getTotalWins()+1)); }
-  async function startSess(){ try{ const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'start_game_session',email,wallet,device_id,game_slug:'ahorcado', level:1})}); const j=await r.json(); if(j.ok) sess=j.session_id; }catch{} }
-  async function claim(isDouble,ad,customReward){ if(claiming) return false; claiming=true; try{ const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward',session_id:sess,email,wallet,device_id,game_slug:'ahorcado',ad_watched:ad,double_reward:isDouble, time_taken: 10, custom_reward: customReward, rally_score: rallyScore})}); const j=await r.json(); if(j.ok){ const bal=j.wasa_balance??j.guest_balance??0; if(j.is_guest) localStorage.setItem('wasa_coins_guest',bal); else localStorage.setItem('wasa_coins',bal); if(window.setCoinsUI) window.setCoinsUI(bal); sess=null; claiming=false; return j; } }catch{} claiming=false; return false; }
+
+  // --- PASS X5 SECURE ---
+  let hasPass=false, passChecked=false;
+  function fmt(n){ const v=parseFloat(n)||0; return (Math.round(v*1e7)/1e7).toFixed(7).replace(/0+$/,'').replace(/\.$/,''); }
+  function getBase(){ return 0.0001; }
+  function getReward(isRally=false){ const base = isRally ? (rallyScore*0.0001) : 0.0001; return base * (hasPass?5:1); }
+  async function checkPass(){
+    if(passChecked) return hasPass;
+    try{
+      const email=localStorage.getItem('wasa_email')||'', wallet=localStorage.getItem('wasa_wallet')||'', device_id=getDeviceId();
+      const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'check_pass', email, wallet, device_id})});
+      const j=await r.json();
+      if(j.ok && (j.has_pass||j.hasPass)){ hasPass=true; localStorage.setItem('wasa_pass_active','1'); }
+    }catch{ hasPass = localStorage.getItem('wasa_pass_active')==='1'; }
+    passChecked=true; updatePassUI(); return hasPass;
+  }
+  function updatePassUI(){
+    if(elPassBadge) elPassBadge.style.display = hasPass ? 'block' : 'none';
+    if(elRallyInfo && gameMode==='rally'){
+      const mult = hasPass ? ' 💎 X5' : '';
+      elRallyInfo.textContent = `RALLY: ${rallyScore} • Vidas: ${maxErrors-errors}/${maxErrors} • ${fmt(getReward(true))} WASA${mult}`;
+    }
+  }
+
+  async function startSess(level=1, rally=0){ try{ const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'start_game_session',email,wallet,device_id,game_slug:'ahorcado', level: rally||level})}); const j=await r.json(); if(j.ok) sess=j.session_id; }catch{} }
+  // SECURE CLAIM - no custom_reward, server calcula
+  async function claim(isDouble,ad,rallyScoreForReward=0){ 
+    if(claiming) return false; claiming=true; 
+    try{ 
+      const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); 
+      // si es rally, mandamos rally_score, el server calcula rally*base*mult
+      const body = {action:'claim_reward',session_id:sess,email,wallet,device_id,game_slug:'ahorcado',ad_watched:ad,double_reward:isDouble, time_taken: 10, level: rallyScoreForReward||1, rally_score: rallyScoreForReward||rallyScore};
+      const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); 
+      const j=await r.json(); 
+      if(j.ok){ 
+        const bal=j.wasa_balance??j.guest_balance??0; 
+        if(j.is_guest) localStorage.setItem('wasa_coins_guest',bal); else localStorage.setItem('wasa_coins',bal); 
+        if(window.setCoinsUI) window.setCoinsUI(bal); 
+        sess=null; claiming=false; return j; 
+      } 
+    }catch(e){ console.error('claim err',e); } 
+    claiming=false; return false; 
+  }
 
   function buildTower(){
     tower.querySelectorAll('.ah-plank,.ah-frog').forEach(e=>e.remove());
@@ -138,11 +180,12 @@ export async function init(container, args){
     if(!isRallyContinue){ rallyScore=0; errors=0; currentCat=getRandomCat(); buildTower(); }
     const words=await getWords(currentCat);
     let newWord; do{ newWord=words[Math.floor(Math.random()*words.length)].toUpperCase(); } while(newWord===word && words.length>1);
-    word=newWord; guessed=new Set(); if(!isRallyContinue){ elWin.innerHTML=''; sess=null; startSess(); }
+    word=newWord; guessed=new Set(); if(!isRallyContinue){ elWin.innerHTML=''; sess=null; startSess(isRallyContinue?rallyScore:1, rallyScore); }
+    else { startSess(rallyScore, rallyScore); }
     elHint.textContent=`${currentCat.replace(currentLang+'_','').toUpperCase()} • ${words.length} palabras`;
     if(gameMode==='rally'){
       elRallyInfo.style.display='block';
-      elRallyInfo.textContent=`RALLY: ${rallyScore} • Vidas: ${maxErrors-errors}/${maxErrors} • ${(rallyScore*0.0001).toFixed(4)} WASA`;
+      updatePassUI();
     } else { elRallyInfo.style.display='none'; }
     buildKeys(); update(); startTimer();
   }
@@ -158,7 +201,7 @@ export async function init(container, args){
           if(!word.includes(l)){
             const plankToBreak=planks[errors]; if(plankToBreak) plankToBreak.classList.add('broken');
             errors++; b.classList.add('miss'); S.miss();
-            if(errors<maxErrors){ moveFrog(); if(gameMode==='rally'){ elRallyInfo.textContent=`RALLY: ${rallyScore} • Vidas: ${maxErrors-errors}/${maxErrors} • ${(rallyScore*0.0001).toFixed(4)} WASA`; } }
+            if(errors<maxErrors){ moveFrog(); if(gameMode==='rally'){ updatePassUI(); } }
             else{ if(frogEl) frogEl.classList.add('fall'); }
           } else{ b.classList.add('hit'); S.hit(); }
           b.classList.add('used'); update();
@@ -167,10 +210,13 @@ export async function init(container, args){
     });
   }
   function t(){
+    const baseReward = getBase();
+    const rew = hasPass? baseReward*5 : baseReward;
+    const rewX2 = rew*2;
     if(currentLang==='en'){
-      return { winTitle:'YOU WON!', loseTitle:'FELL INTO WATER!', winBubble:(w)=>`My model predicted: <b>${w}</b> ✅`, loseBubble:(w)=>`Word was: <b>${w}</b>`, continueBtn:'CONTINUE +0.0001 $WASA', x2Btn:'X2 AD → +0.0002 $WASA', retryBtn:'RETRY', nextRally:'NEXT WORD', claimRally:'CASH OUT', validating:'VALIDATING...', accredited:'✅ CREDITED', loadingAd:'LOADING AD...', errorRetry:'ERROR' };
+      return { winTitle:'YOU WON!', loseTitle:'FELL INTO WATER!', winBubble:(w)=>`My model predicted: <b>${w}</b> ✅`, loseBubble:(w)=>`Word was: <b>${w}</b>`, continueBtn:`CONTINUE +${fmt(rew)} $WASA${hasPass?' 💎 X5':''}`, x2Btn:`X2 AD → +${fmt(rewX2)} $WASA${hasPass?' 💎 X10':''}`, retryBtn:'RETRY', nextRally:'NEXT WORD', claimRally:'CASH OUT', validating:'VALIDATING...', accredited:'✅ CREDITED', loadingAd:'LOADING AD...', errorRetry:'ERROR' };
     }else{
-      return { winTitle:'¡GANASTE!', loseTitle:'¡SE CAYÓ AL AGUA!', winBubble:(w)=>`Era: <b>${w}</b> ✅`, loseBubble:(w)=>`Era: <b>${w}</b>`, continueBtn:'CONTINUAR +0.0001 $WASA', x2Btn:'VER ANUNCIO x2 → +0.0002 $WASA', retryBtn:'REINTENTAR', nextRally:'SIGUIENTE PALABRA', claimRally:'COBRAR Y SALIR', validating:'VALIDANDO...', accredited:'✅ ACREDITADO', loadingAd:'CARGANDO...', errorRetry:'ERROR' };
+      return { winTitle:'¡GANASTE!', loseTitle:'¡SE CAYÓ AL AGUA!', winBubble:(w)=>`Era: <b>${w}</b> ✅`, loseBubble:(w)=>`Era: <b>${w}</b>`, continueBtn:`CONTINUAR +${fmt(rew)} $WASA${hasPass?' 💎 X5':''}`, x2Btn:`VER ANUNCIO x2 → +${fmt(rewX2)} $WASA${hasPass?' 💎 X10':''}`, retryBtn:'REINTENTAR', nextRally:'SIGUIENTE PALABRA', claimRally:'COBRAR Y SALIR', validating:'VALIDANDO...', accredited:'✅ ACREDITADO', loadingAd:'CARGANDO...', errorRetry:'ERROR' };
     }
   }
   function update(){
@@ -180,20 +226,22 @@ export async function init(container, args){
       clearInterval(timerIv); try{ ctx().resume(); }catch{} S.win(); incTotal();
       if(gameMode==='rally'){
         rallyScore++; setBest(rallyScore);
-        elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card"><h2 style="margin:0 0 8px;font-weight:900;font-size:20px">¡${rallyScore}!</h2><div class="ah-bubble">Correcto: <b>${word}</b> ✅<br><br>🔥 RALLY: <b>${rallyScore}</b> • Vidas: ${maxErrors-errors}/${maxErrors}<br>💰 ${(rallyScore*0.0001).toFixed(4)} WASA</div><img src="${FROG_WIN}" class="ah-sapo-img"><button id="btnNextRally" style="width:100%;height:52px;border-radius:22px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0;cursor:pointer;font-size:14px;margin-top:8px">${L.nextRally} →</button><button id="btnEndRally" style="width:100%;height:46px;margin-top:10px;border-radius:18px;background:#fff;border:2px solid #8a5a00;color:#2b1a0a;font-weight:900;cursor:pointer;font-size:12px">${L.claimRally} ${(rallyScore*0.0001).toFixed(4)} WASA</button></div></div>`;
+        const totalReward = getReward(true);
+        const totalX2 = totalReward*2;
+        elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card"><h2 style="margin:0 0 8px;font-weight:900;font-size:20px">¡${rallyScore}!</h2><div class="ah-bubble">Correcto: <b>${word}</b> ✅<br><br>🔥 RALLY: <b>${rallyScore}</b> • Vidas: ${maxErrors-errors}/${maxErrors}<br>💰 ${fmt(totalReward)} WASA${hasPass?' 💎 X5':''}</div><img src="${FROG_WIN}" class="ah-sapo-img"><button id="btnNextRally" style="width:100%;height:52px;border-radius:22px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0;cursor:pointer;font-size:14px;margin-top:8px">${L.nextRally} →</button><button id="btnEndRally" style="width:100%;height:46px;margin-top:10px;border-radius:18px;background:#fff;border:2px solid #8a5a00;color:#2b1a0a;font-weight:900;cursor:pointer;font-size:12px">${L.claimRally} ${fmt(totalReward)} WASA${hasPass?' 💎':''}</button></div></div>`;
         elWin.querySelector('#btnNextRally').onclick=()=>{ elWin.innerHTML=''; newRound(true); };
-        elWin.querySelector('#btnEndRally').onclick=async(e)=>{ isPaused=true; e.target.textContent=L.validating; e.target.disabled=true; const res=await claim(false,false,rallyScore*0.0001); if(res){ S.coin(); showMenu(); } else { e.target.textContent=L.errorRetry; e.target.disabled=false; isPaused=false; } };
+        elWin.querySelector('#btnEndRally').onclick=async(e)=>{ isPaused=true; e.target.textContent=L.validating; e.target.disabled=true; const res=await claim(false,false,rallyScore); if(res){ S.coin(); showMenu(); } else { e.target.textContent=L.errorRetry; e.target.disabled=false; isPaused=false; } };
       } else {
         elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card"><h2 style="margin:0 0 8px;font-weight:900;font-size:18px">${L.winTitle}</h2><div class="ah-bubble">${L.winBubble(word)}</div><img src="${FROG_WIN}" class="ah-sapo-img"><button id="btnClaim" style="width:100%;height:48px;border-radius:22px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0;cursor:pointer;font-size:13px;margin-top:8px">${L.continueBtn}</button><button id="btnX2" style="width:100%;height:48px;margin-top:8px;border-radius:22px;background:linear-gradient(90deg,#FF00D4,#00F0FF);color:#fff;font-weight:900;border:0;cursor:pointer;font-size:13px">${L.x2Btn}</button></div></div>`;
-        elWin.querySelector('#btnClaim').onclick=async(e)=>{ e.target.textContent=L.validating; e.target.disabled=true; const ok=await claim(false,false); if(ok){ S.coin(); setTimeout(()=>newRound(false),600); } else{ e.target.textContent=L.errorRetry; e.target.disabled=false; } };
+        elWin.querySelector('#btnClaim').onclick=async(e)=>{ e.target.textContent=L.validating; e.target.disabled=true; const ok=await claim(false,false,0); if(ok){ S.coin(); setTimeout(()=>newRound(false),600); } else{ e.target.textContent=L.errorRetry; e.target.disabled=false; } };
         elWin.querySelector('#btnX2').onclick=()=>{ isPaused=true; window.vrAd=1; window.vrAdType='double'; window._sapoPending=true; elWin.querySelector('#btnX2').textContent=L.loadingAd; };
       }
     }else if(lose){
       clearInterval(timerIv); try{ ctx().resume(); }catch{} S.lose();
       if(gameMode==='rally'){
-        const total=rallyScore*0.0001;
-        elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card" style="background:#ffe9e9;border-color:#7a0000"><h2 style="margin:0 0 8px;font-weight:900;color:#7a0000;font-size:18px">¡RALLY TERMINADO!</h2><div class="ah-bubble" style="background:#7a0000;color:#fff">Palabra: <b>${word}</b><br><br>🏆 Total: <b>${rallyScore}</b><br>💧 ${total.toFixed(4)} WASA</div><img src="${FROG_LOSE}" class="ah-sapo-img"><button id="btnClaimRally" style="width:100%;height:48px;margin-top:8px;border-radius:22px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0;cursor:pointer;font-size:13px">${rallyScore>0?`COBRAR ${total.toFixed(4)} WASA`:'VOLVER AL MENÚ'}</button><button id="btnX2Rally" style="width:100%;height:48px;margin-top:8px;border-radius:22px;background:linear-gradient(90deg,#FF8C00,#FF00D4);color:#fff;font-weight:900;border:0;cursor:pointer;font-size:13px;${rallyScore===0?'display:none':''}">📺 X2 → ${(total*2).toFixed(4)} WASA</button><button id="btnRetryRally" style="width:100%;height:42px;margin-top:8px;border-radius:18px;background:#fff;border:2px solid #8a5a00;color:#2b1a0a;font-weight:900;cursor:pointer;font-size:12px">MENÚ</button></div></div>`;
-        elWin.querySelector('#btnClaimRally').onclick=async(e)=>{ if(rallyScore===0){ showMenu(); return; } isPaused=true; e.target.textContent=t().validating; e.target.disabled=true; const res=await claim(false,false,total); if(res){ S.coin(); showMenu(); } };
+        const total=getReward(true);
+        elWin.innerHTML=`<div class="ah-win"><div class="ah-win-card" style="background:#ffe9e9;border-color:#7a0000"><h2 style="margin:0 0 8px;font-weight:900;color:#7a0000;font-size:18px">¡RALLY TERMINADO!</h2><div class="ah-bubble" style="background:#7a0000;color:#fff">Palabra: <b>${word}</b><br><br>🏆 Total: <b>${rallyScore}</b><br>💧 ${fmt(total)} WASA${hasPass?' 💎 X5':''}</div><img src="${FROG_LOSE}" class="ah-sapo-img"><button id="btnClaimRally" style="width:100%;height:48px;margin-top:8px;border-radius:22px;background:#2b1a0a;color:#FFD86A;font-weight:900;border:0;cursor:pointer;font-size:13px">${rallyScore>0?`COBRAR ${fmt(total)} WASA`:'VOLVER AL MENÚ'}</button><button id="btnX2Rally" style="width:100%;height:48px;margin-top:8px;border-radius:22px;background:linear-gradient(90deg,#FF8C00,#FF00D4);color:#fff;font-weight:900;border:0;cursor:pointer;font-size:13px;${rallyScore===0?'display:none':''}">📺 X2 → ${fmt(total*2)} WASA</button><button id="btnRetryRally" style="width:100%;height:42px;margin-top:8px;border-radius:18px;background:#fff;border:2px solid #8a5a00;color:#2b1a0a;font-weight:900;cursor:pointer;font-size:12px">MENÚ</button></div></div>`;
+        elWin.querySelector('#btnClaimRally').onclick=async(e)=>{ if(rallyScore===0){ showMenu(); return; } isPaused=true; e.target.textContent=t().validating; e.target.disabled=true; const res=await claim(false,false,rallyScore); if(res){ S.coin(); showMenu(); } };
         elWin.querySelector('#btnX2Rally').onclick=()=>{ isPaused=true; window.vrAd=1; window.vrAdType='double_rally'; window._sapoPendingRally=true; elWin.querySelector('#btnX2Rally').textContent=t().loadingAd; };
         elWin.querySelector('#btnRetryRally').onclick=()=>showMenu();
       } else {
@@ -205,7 +253,9 @@ export async function init(container, args){
   function showMenu(){
     elWin.innerHTML=''; clearInterval(timerIv); isPaused=false;
     const best=getBest(); const total=getTotalWins();
-    elMenu.innerHTML=`<div class="ah-menu"><div class="ah-menu-top"><img src="${FROG_URL}" style="width:110px;height:110px" onerror="this.style.display='none'"><h1 style="margin:0;font-weight:900;font-size:26px">AHORCADO SAPO</h1><p style="margin:0;opacity:.7;font-weight:700;font-size:13px">Adivina antes de caer al agua</p><div class="ah-stat-box"><div class="ah-stat"><b>🏆 ${best}</b><span>RÉCORD RALLY</span></div><div class="ah-stat"><b>🎯 ${total}</b><span>PALABRAS</span></div><div class="ah-stat"><b>💧 6</b><span>VIDAS</span></div></div><button id="btnNormal" class="ah-mode-btn" style="background:#2b1a0a;color:#FFD86A">🎯 MODO NORMAL<br><span style="font-size:11px;opacity:.8">0.0001 WASA por palabra</span></button><button id="btnRally" class="ah-mode-btn" style="background:linear-gradient(90deg,#FF8C00,#FF00D4);color:#fff">🔥 MODO RALLY<br><span style="font-size:11px">Récord: ${best} • Vidas compartidas</span></button><div style="margin-top:12px;display:flex;gap:8px"><button id="langEsM" style="padding:8px 18px;border-radius:20px;border:2px solid #8a5a00;font-weight:900;cursor:pointer;background:${currentLang==='es'?'#2b1a0a;color:#FFD86A':'#fffef6'}">ES</button><button id="langEnM" style="padding:8px 18px;border-radius:20px;border:2px solid #8a5a00;font-weight:900;cursor:pointer;background:${currentLang==='en'?'#2b1a0a;color:#FFD86A':'#fffef6'}">EN</button></div></div></div>`;
+    checkPass();
+    const passBanner = hasPass ? `<div style="background:linear-gradient(135deg,#A855F7,#7E22CE);color:#fff;border-radius:10px;padding:6px 10px;font-weight:900;font-size:11px;width:min(520px,92vw);text-align:center">💎 WASA PASS X5 ACTIVO - Ganas x5 en cada palabra</div>` : `<div style="background:#fffef6;border:1.5px dashed #8a5a00;border-radius:10px;padding:6px 10px;font-size:10px;width:min(520px,92vw);text-align:center"><a href="/wasa-pass.html" style="color:#7E22CE;font-weight:900;text-decoration:none">💎 Con PASS X5 ganarías 0.0005 por palabra → Comprar 5 USDT</a></div>`;
+    elMenu.innerHTML=`<div class="ah-menu"><div class="ah-menu-top"><img src="${FROG_URL}" style="width:110px;height:110px" onerror="this.style.display='none'"><h1 style="margin:0;font-weight:900;font-size:26px">AHORCADO SAPO</h1><p style="margin:0;opacity:.7;font-weight:700;font-size:13px">Adivina antes de caer al agua</p>${passBanner}<div class="ah-stat-box"><div class="ah-stat"><b>🏆 ${best}</b><span>RÉCORD RALLY</span></div><div class="ah-stat"><b>🎯 ${total}</b><span>PALABRAS</span></div><div class="ah-stat"><b>💧 6</b><span>VIDAS</span></div></div><button id="btnNormal" class="ah-mode-btn" style="background:#2b1a0a;color:#FFD86A">🎯 MODO NORMAL<br><span style="font-size:11px;opacity:.8">0.0001 ${hasPass?'→ 0.0005 💎 X5':''} WASA por palabra</span></button><button id="btnRally" class="ah-mode-btn" style="background:linear-gradient(90deg,#FF8C00,#FF00D4);color:#fff">🔥 MODO RALLY<br><span style="font-size:11px">Récord: ${best} • Vidas compartidas</span></button><div style="margin-top:12px;display:flex;gap:8px"><button id="langEsM" style="padding:8px 18px;border-radius:20px;border:2px solid #8a5a00;font-weight:900;cursor:pointer;background:${currentLang==='es'?'#2b1a0a;color:#FFD86A':'#fffef6'}">ES</button><button id="langEnM" style="padding:8px 18px;border-radius:20px;border:2px solid #8a5a00;font-weight:900;cursor:pointer;background:${currentLang==='en'?'#2b1a0a;color:#FFD86A':'#fffef6'}">EN</button></div></div></div>`;
     elMenu.querySelector('#btnNormal').onclick=()=>{ gameMode='normal'; elMenu.innerHTML=''; rallyScore=0; elRallyInfo.style.display='none'; newRound(false); };
     elMenu.querySelector('#btnRally').onclick=()=>{ gameMode='rally'; elMenu.innerHTML=''; rallyScore=0; newRound(false); };
     elMenu.querySelector('#langEsM').onclick=()=>{ currentLang='es'; showMenu(); };
@@ -214,11 +264,11 @@ export async function init(container, args){
 
   const adIv=setInterval(async()=>{
     if(window.vrAd && window.vrAd!==0 && window.vrAd!==4){ isPaused=true; }
-    if(window.vrAd===4 && window.vrAdType==='double' && window._sapoPending){ window.vrAd=0; window.vrAdType=null; window._sapoPending=false; isPaused=false; const ok=await claim(true,true); if(ok){ S.coin(); showMenu(); } }
-    if(window.vrAd===4 && window.vrAdType==='double_rally' && window._sapoPendingRally){ window.vrAd=0; window.vrAdType=null; window._sapoPendingRally=false; isPaused=false; const total=rallyScore*0.0001*2; const res=await claim(true,true,total); if(res){ S.coin(); showMenu(); } }
+    if(window.vrAd===4 && window.vrAdType==='double' && window._sapoPending){ window.vrAd=0; window.vrAdType=null; window._sapoPending=false; isPaused=false; const ok=await claim(true,true,0); if(ok){ S.coin(); showMenu(); } }
+    if(window.vrAd===4 && window.vrAdType==='double_rally' && window._sapoPendingRally){ window.vrAd=0; window.vrAdType=null; window._sapoPendingRally=false; isPaused=false; const res=await claim(true,true,rallyScore); if(res){ S.coin(); showMenu(); } }
     if(window.vrAd===4 && window.vrAdType==='extra_time' && window._sapoExtraTimePending){ window.vrAd=0; window.vrAdType=null; window._sapoExtraTimePending=false; timeLeft=30; maxTime=30; isPaused=false; elWin.innerHTML=''; updateTimerUI(); clearInterval(timerIv); timerIv=setInterval(()=>{ if(isPaused) return; timeLeft--; updateTimerUI(); if(timeLeft<=0){ clearInterval(timerIv); S.lose(); showTimeOut(); } },1000); S.coin(); }
   },400);
 
+  await checkPass();
   showMenu();
   container._cleanup=()=>{ clearInterval(adIv); clearInterval(timerIv); try{ actx&&actx.close(); }catch{} };
-}
