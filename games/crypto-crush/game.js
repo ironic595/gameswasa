@@ -1,4 +1,4 @@
-// games/crypto-crush/game.js - v7.5 SOUND + PASS + ARROWS RESTORED integrado + MENU + BOMBA 💣 + RAYO ⚡
+// games/crypto-crush/game.js - v7.6 SECURE SERVER VALIDATION + ARROWS integrado + MENU + BOMBA 💣 + RAYO ⚡
 export function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javisimes.workers.dev/';
   function getDeviceId(){ let id=localStorage.getItem('wasa_device_id'); if(!id){ id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id; }
@@ -120,43 +120,26 @@ export function init(container, args){
       const email = localStorage.getItem('wasa_email')||'';
       const wallet = localStorage.getItem('wasa_wallet')||'';
       const device_id = getDeviceId();
-      // probamos varios actions que usaste en el worker
-      const actionsToTry = ['check_pass','get_pass_status','has_pass','get_balance','check_wasa_pass'];
-      for(const act of actionsToTry){
-        try{
-          const r = await fetch(WORKER_URL,{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({action:act, email, wallet, device_id, game_slug:'crypto-crush'})
-          });
-          const j = await r.json();
-          // diferentes workers devuelven distinto formato, normalizamos
-          const found = j.has_pass || j.hasPass || j.pass_active || j.passActive || j.wasa_pass || j.is_pass_holder || (j.balance && j.balance.pass) || j.pass;
-          if(j.ok && found){
-            hasPass=true; passMultiplier=5;
-            localStorage.setItem('wasa_pass_active','1');
-            if(showToast) debugInfo.textContent='✅ WASA PASS X5 ACTIVO';
-            checkingPass=false;
-            updatePassUI();
-            return true;
-          }
-          // si el endpoint existe y dice que no tiene, seguimos
-          if(j.ok && (j.has_pass===false || j.hasPass===false || j.pass_active===false)){
-            // no tiene pass, pero endpoint válido
-            break;
-          }
-        }catch{}
+      const r = await fetch(WORKER_URL,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({action:'check_pass', email, wallet, wallet_address:wallet, device_id, game_slug:'crypto-crush'})
+      });
+      const j = await r.json();
+      if(j.ok && (j.has_pass || j.hasPass)){
+        hasPass=true; passMultiplier=5;
+        localStorage.setItem('wasa_pass_active','1');
+        if(showToast) debugInfo.textContent='✅ WASA PASS X5 ACTIVO (validado servidor)';
+        checkingPass=false;
+        updatePassUI();
+        return true;
+      } else {
+        hasPass=false; passMultiplier=1;
+        localStorage.removeItem('wasa_pass_active');
+        if(showToast) debugInfo.textContent='❌ Sin WASA PASS - Compra en wasa-pass.html';
       }
-      // si llegamos acá, no tiene
-      if(showToast){
-        // no forzamos false si ya lo tenía cacheado, solo si nunca lo tuvo
-        if(!hasPass) debugInfo.textContent='❌ Sin WASA PASS - Compra en wasa-pass.html';
-      }
-    }catch(e){
-      console.log('check pass err',e);
-    }
+    }catch(e){ console.log('check pass err',e); }
     checkingPass=false;
-    // si no encontramos endpoint, mantenemos lo que había en localStorage
     updatePassUI();
     return hasPass;
   }
@@ -345,7 +328,7 @@ export function init(container, args){
     </div>
   </div>
   <div class="cc-main" id="mainArea"><div class="cc-board" id="board"><div class="cc-grid" id="grid"></div><div class="cc-thunder-fx" id="thunderFx"></div></div></div>
-  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">v7.5 SOUND + PASS + ARROWS RESTORED ${hasPass?'✅ ACTIVO':'⏳ verificando...'}</div></div>
+  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">v7.6 SECURE SERVER VALIDATION + ARROWS ${hasPass?'✅ ACTIVO':'⏳ verificando...'}</div></div>
   <div id="ui"></div>
 </div>`;
 
@@ -359,7 +342,7 @@ export function init(container, args){
   function getMemeUrl(fileName){ const base = workingBase || '/games/crypto-crush/assets/'; return base + fileName; }
   function pickRandomMeme(type){ const list = type==='laugh' ? MEME_LAUGH_FILES : MEME_CRY_FILES; return list[Math.floor(Math.random()*list.length)]; }
   async function startSession(){ try{ const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'start_game_session', email:localStorage.getItem('wasa_email'), wallet:localStorage.getItem('wasa_wallet'), device_id:getDeviceId(), game_slug:'crypto-crush', level:currentLevelNum})}); const j=await r.json(); if(j.ok) session=j.session_id; }catch{} }
-  async function claim(isDouble, ad, rewardToClaim){ if(claiming) return {ok:false}; if(!session) await startSession(); if(!session) return {ok:false}; claiming=true; try{ const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward', session_id:session, email:localStorage.getItem('wasa_email'), wallet:localStorage.getItem('wasa_wallet'), device_id:getDeviceId(), game_slug:'crypto-crush', level:currentLevelNum, ad_watched:ad, double_reward:isDouble, reward_amount:rewardToClaim, has_pass:hasPass, pass_multiplier:passMultiplier, time_taken:(Date.now()-startTime)/1000})}); const j=await r.json(); if(j.ok){ const b=j.wasa_balance??j.guest_balance??0; localStorage.setItem(j.is_guest?'wasa_coins_guest':'wasa_coins',b); if(window.setCoinsUI) window.setCoinsUI(b); session=null; claiming=false; return j; } claiming=false; return {ok:false, error:j.error}; }catch{ claiming=false; return {ok:false}; } }
+  async function claim(isDouble, ad){ if(claiming) return {ok:false}; if(!session) await startSession(); if(!session) return {ok:false}; claiming=true; try{ const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward', session_id:session, email:localStorage.getItem('wasa_email'), wallet:localStorage.getItem('wasa_wallet'), device_id:getDeviceId(), game_slug:'crypto-crush', level:currentLevelNum, ad_watched:ad, double_reward:isDouble, time_taken:(Date.now()-startTime)/1000})}); const j=await r.json(); if(j.ok){ const b=j.wasa_balance??j.guest_balance??0; localStorage.setItem(j.is_guest?'wasa_coins_guest':'wasa_coins',b); if(window.setCoinsUI) window.setCoinsUI(b); session=null; claiming=false; return j; } claiming=false; return {ok:false, error:j.error}; }catch{ claiming=false; return {ok:false}; } }
   function openAd(t){ if(window.vrAd!==0 && window.vrAd!==undefined) return; pendingAd=t; window.vrAdType=t; window.vrAd=1; ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.7);display:grid;place-items:center;z-index:50;color:white;font-weight:800">Cargando anuncio...</div>`; }
   function randColorFromActive(active){ const tok=active[Math.floor(Math.random()*active.length)]; return ALL_TOKENS.indexOf(tok); }
   function makeCell(color, special=null){ return {c:color, s:special}; }
@@ -693,8 +676,8 @@ export function init(container, args){
     ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#FFFBEB);border:3px solid #22C55E;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#0F172A"><img src="${laughUrl}" style="width:110px;height:110px;object-fit:contain;margin:0 auto 10px;display:block;filter:drop-shadow(0 4px 12px rgba(0,0,0,.3))" onerror="this.style.display='none'"><div style="font-size:11px;font-weight:900;opacity:.6;letter-spacing:.08em">${level.type==='time'?'⏰ TIEMPO':'🎯 NIVEL'} COMPLETADO</div><div style="font-weight:900;font-size:22px;color:#065F46;margin:4px 0">¡NIVEL ${currentLevelNum}!</div>${rewardBox}<button id="btnNext" style="width:100%;height:48px;border-radius:14px;font-weight:900;border:0;background:linear-gradient(135deg,#22C55E,#16A34A);color:#fff;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.15)">SIGUIENTE NIVEL ${currentLevelNum+1}</button>${doubleBox}<button id="btnMenuAfter" style="width:100%;height:38px;border-radius:10px;border:1.5px solid #DDD6FE;background:#fff;margin-top:8px;font-weight:800;cursor:pointer">☰ MENÚ</button></div></div>`;
     
     const btnNext=ui.querySelector('#btnNext'); const btnDouble=ui.querySelector('#btnDouble'); const btnMenuAfter=ui.querySelector('#btnMenuAfter');
-    if(btnNext){ btnNext.onclick=()=>{ btnNext.disabled=true; btnNext.textContent='CARGANDO...'; claim(false,false,finalReward).catch(()=>{}); ui.innerHTML=''; setTimeout(()=>{ currentLevelNum++; loadLevel(currentLevelNum); },100); }; }
-    if(btnDouble){ btnDouble.onclick=()=>{ pendingAd='double_level'; window._pendingReward=finalReward*2; openAd('double_level'); }; }
+    if(btnNext){ btnNext.onclick=()=>{ btnNext.disabled=true; btnNext.textContent='CARGANDO...'; claim(false,false).catch(()=>{}); ui.innerHTML=''; setTimeout(()=>{ currentLevelNum++; loadLevel(currentLevelNum); },100); }; }
+    if(btnDouble){ btnDouble.onclick=()=>{ pendingAd='double_level'; openAd('double_level'); }; }
     if(btnMenuAfter){ btnMenuAfter.onclick=()=>{ ui.innerHTML=''; showMainMenu(); }; }
   }
   function showFail(){
@@ -731,9 +714,9 @@ export function init(container, args){
   root.querySelector('#btnShop').onclick=()=>showBoosterShop();
   const watcher=setInterval(()=>{ if(window.vrAd===4 && pendingAd){ const t=pendingAd; pendingAd=null; window.vrAd=0; window.vrAdType=null; (async()=>{
     if(t==='double_level'){
-      const rewardToClaim = window._pendingReward || getRewardForLevel(level.reward)*2;
+      
       ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.7);display:grid;place-items:center;z-index:40;color:white">Validando X2 ${hasPass?'X10':''}...</div>`;
-      const res=await claim(true,true,rewardToClaim);
+      const res=await claim(true,true);
       if(res.ok){ totalReward+= (level.reward*passMultiplier); localStorage.setItem('wcrush_wasa', totalReward); currentLevelNum++; ui.innerHTML=''; setTimeout(()=>loadLevel(currentLevelNum),100); }
       else { ui.innerHTML=''; showWin(); }
     }
