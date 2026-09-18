@@ -1,4 +1,4 @@
-// v23 - RUZZLE BUBBLE - MOBILE OPTIMIZED - NO SCROLL - RECOMPENSA 0.0003 / X2 0.0006
+// v24 - RUZZLE BUBBLE - MOBILE OPTIMIZED - PASS X5 REAL + SECURE SERVER - 0.0003 / X5 0.0015
 export function init(container, args){
   const DINO_URL_IDLE = args?.dinoUrlIdle || window.RUZZLE_DINO_IDLE || '/games/ruzzle-bubble/dino_manos_cintura.png';
   const DINO_URL_WIN = args?.dinoUrlWin || window.RUZZLE_DINO_WIN || '/games/ruzzle-bubble/dino_festejando.png';
@@ -9,7 +9,22 @@ export function init(container, args){
   const B=8,Q=12,WE=32,UU=WE*0.865,RN=B*WE+WE/2+2,NU=Q*UU+80;
   const PAL=["#00D4FF","#FF3BB0","#FFD400","#2AFF8A","#FF7A2E"];
   const REWARD_BASE = 0.0003;
-  const REWARD_X2 = 0.0006;
+
+  // PASS X5 SECURE
+  let hasPass=false, passChecked=false;
+  function fmt(n){ const v=parseFloat(n)||0; return v.toFixed(7).replace(/0+$/,'').replace(/\.$/,''); }
+  function getReward(){ return REWARD_BASE * (hasPass?5:1); }
+  function getRewardX2(){ return getReward()*2; }
+  async function checkPass(){
+    if(passChecked) return hasPass;
+    try{
+      const email=localStorage.getItem('wasa_email')||'', wallet=localStorage.getItem('wasa_wallet')||'', device_id=getDeviceId();
+      const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'check_pass', email, wallet, device_id})});
+      const j=await r.json();
+      if(j.ok && (j.has_pass||j.hasPass)){ hasPass=true; localStorage.setItem('wasa_pass_active','1'); }
+    }catch{ hasPass = localStorage.getItem('wasa_pass_active')==='1'; }
+    passChecked=true; return hasPass;
+  }
 
   const COLOR_STAGES = [
     {name:'VIOLETA', light:'#f3e8ff', dark:'#7c3aed'},
@@ -71,15 +86,11 @@ export function init(container, args){
 #readyText{font-size:72px;font-weight:900;color:#fff;letter-spacing:.05em;text-shadow:0 0 12px #00F0FF,0 0 32px #FF00D4;transform:scale(.4);transition:transform.35s cubic-bezier(.175,.885,.32,1.275)}
 .dino-card{background:#15151f;border:1px solid rgba(42,255,138,.2);border-radius:16px;padding:10px;text-align:center;position:relative}
 .dino-img-bg{background:#15151f;border-radius:12px;padding:6px}
-
-/* MOBILE OPTIMIZED - NO SCROLL - TODO EN 1 PANTALLA */
 @media(max-width:900px){
   .pb6{height:100dvh;max-height:100dvh;overflow:hidden}
   .pb6-top{display:none!important}
   .pb6-wrap{padding:0;align-items:stretch;justify-content:flex-start;overflow:hidden;height:100%;flex:1;min-height:0}
   .pb6-body{flex-direction:column;align-items:stretch;justify-content:flex-start;width:100%;height:100%;gap:0;margin:0;position:relative;overflow:hidden;min-height:0}
-  
-  /* STATS ARRIBA COMPACTOS */
   .pb6-right{order:-1;flex:0 0 auto;width:100%;max-width:100%;gap:0;background:rgba(15,15,23,0.95);border-bottom:1px solid rgba(255,255,255,.06);padding:0;position:relative;z-index:3}
   .pb6-stats{display:flex!important;flex-direction:row!important;grid-template-columns:repeat(4,1fr)!important;width:100%!important;gap:0!important;background:transparent!important;border-radius:0!important}
   .pb6-st{flex:1 1 0;min-width:0;padding:6px 4px!important;border-radius:0!important;background:transparent!important;border:none!important;border-right:1px solid rgba(255,255,255,.06)!important;text-align:center}
@@ -87,25 +98,16 @@ export function init(container, args){
   .pb6-st b{font-size:11px!important;line-height:1.1;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pb6-st span{font-size:7px!important;opacity:.45}
   #pb6nxt{width:10px!important;height:10px!important}
-  
-  /* JUEGO AL MAXIMO */
   .pb6-left{flex:1 1 auto;width:100%;max-width:100%;min-height:0;background:transparent!important;border:none!important;border-radius:0!important;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 4px 2px;overflow:hidden;position:relative}
   .pb6-canvas{width:min(calc(100vw - 8px), 380px)!important;height:auto!important;aspect-ratio:${RN}/${NU};max-height:calc(100dvh - 110px);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.6);background:#0f0f17}
   .pb6-left > div:nth-child(2){display:none!important}
   .pb6-left > div:nth-child(3){display:flex!important;padding:2px 8px!important;font-size:7px!important;opacity:.25!important;width:100%;max-width:380px;justify-content:space-between}
-  
-  /* DINO MINI ESQUINA INFERIOR DERECHA - OVERLAY */
   .dino-card{position:absolute!important;bottom:8px;right:8px;width:68px;z-index:10;padding:4px!important;background:rgba(21,21,31,0.88)!important;backdrop-filter:blur(12px);border-radius:12px!important;border:1px solid rgba(42,255,138,.18)!important;box-shadow:0 4px 16px rgba(0,0,0,.5)}
   .dino-card .dino-img-bg{padding:2px!important;border-radius:8px!important;background:rgba(21,21,31,0.5)!important}
   #dinoImg{width:48px!important;height:48px!important}
   .dino-card > div:nth-child(2){font-size:7px!important;margin-top:2px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .dino-card > div:nth-child(3){display:none!important}
   #dinoBubble{margin-top:4px!important;padding:4px 5px!important;font-size:7px!important;min-height:20px!important;line-height:1.1!important;border-radius:8px!important}
-}
-@media(max-width:380px){
-  .pb6-canvas{width:calc(100vw - 8px)!important;max-height:calc(100dvh - 100px)}
-  .dino-card{width:60px;bottom:6px;right:6px}
-  #dinoImg{width:42px!important;height:42px!important}
 }
   </style>
   <div class="pb6">
@@ -116,10 +118,11 @@ export function init(container, args){
         <div class="dino-card">
           <div class="dino-img-bg"><img id="dinoImg" src="${DINO_URL}" style="width:160px;height:160px;object-fit:contain;display:block;margin:0 auto;"/></div>
           <div style="font-weight:900;font-size:11px;letter-spacing:.12em;color:#2AFF8A;margin-top:6px">RUZZLE BUBBLE</div>
-          <div style="font-size:9px;opacity:.5;letter-spacing:.1em">LVL <span id="dinoLvl">1</span></div>
+          <div style="font-size:9px;opacity:.5;letter-spacing:.1em">LVL <span id="dinoLvl">1</span> <span id="passBadge" style="display:none;background:linear-gradient(135deg,#A855F7,#7E22CE);color:#fff;padding:1px 6px;border-radius:6px;font-size:8px;margin-left:4px">💎 X5</span></div>
           <div id="dinoBubble" style="margin-top:8px;background:#0e0e14;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:8px 10px;font-size:12px;font-weight:700;min-height:36px;display:grid;place-items:center;line-height:1.2">READY?</div>
         </div>
         <div class="pb6-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div class="pb6-st"><b id="pb6obj">0/30</b><br><span>OBJETIVO</span></div><div class="pb6-st"><b id="pb6tm">45s / 12</b><br><span>TECHO</span></div><div class="pb6-st"><b id="pb6sc">0</b><br><span>SCORE</span></div><div class="pb6-st"><b id="pb6nxt" style="display:inline-block;width:16px;height:16px;border-radius:50%"></b><br><span>SIGUIENTE</span></div></div>
+        <div id="pb6passInfo" style="display:none;background:linear-gradient(135deg,#A855F7,#7E22CE);color:#fff;border-radius:8px;padding:6px;text-align:center;font-weight:900;font-size:10px">💎 PASS X5 ACTIVO - ${REWARD_BASE*5} por nivel</div>
       </div>
     </div></div>
     <div id="pb6ui"></div>
@@ -159,14 +162,14 @@ export function init(container, args){
   }
   const spriteCanvases = PAL.map(col=>{ const s=document.createElement('canvas'); s.width=WE; s.height=WE; const sc=s.getContext('2d'); sc.fillStyle=col; sc.beginPath(); sc.arc(WE/2,WE/2,WE/2-1,0,Math.PI*2); sc.fill(); sc.fillStyle='rgba(255,255,255,.35)'; sc.beginPath(); sc.arc(WE*0.35,WE*0.35,WE*0.18,0,Math.PI*2); sc.fill(); return s; });
   async function startSess(){ try{ const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'start_game_session',email,wallet,device_id,game_slug:'ruzzle-bubble',level})}); const j=await r.json(); if(j.ok) sess=j.session_id; }catch(e){} }
-  async function claim(isDouble, ad){ if(claiming) return {ok:false}; if(!sess) await startSess(); if(!sess) return {ok:false}; claiming=true; try{ const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward',session_id:sess,email,wallet,device_id,game_slug:'ruzzle-bubble',level,ad_watched:ad,double_reward:isDouble,time_taken:30})}); const j=await r.json(); if(j.ok){ const bal=j.wasa_balance??j.guest_balance??0; if(j.is_guest){ localStorage.setItem('wasa_coins_guest',bal); } else localStorage.setItem('wasa_coins',bal); if(window.setCoinsUI) window.setCoinsUI(bal); sess=null; claiming=false; return j; } claiming=false; return {ok:false}; }catch(e){ claiming=false; return {ok:false}; } }
+  async function claim(isDouble, ad){ if(claiming) return {ok:false}; if(!sess) await startSess(); if(!sess) return {ok:false}; claiming=true; try{ const email=localStorage.getItem('wasa_email'), wallet=localStorage.getItem('wasa_wallet'), device_id=getDeviceId(); const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'claim_reward',session_id:sess,email,wallet,device_id,game_slug:'ruzzle-bubble',level,ad_watched:ad,double_reward:isDouble,time_taken:30})}); const j=await r.json(); if(j.ok){ const bal=j.wasa_balance??j.guest_balance??0; if(j.is_guest){ localStorage.setItem('wasa_coins_guest',bal); } else localStorage.setItem('wasa_coins',bal); if(window.setCoinsUI) window.setCoinsUI(bal); sess=null; claiming=false; return j; } claiming=false; return {ok:false, error:j.error}; }catch(e){ claiming=false; return {ok:false}; } }
   function openAd(t){ if(window.vrAd!==0) return; pend=t; window.vrAdType=t; window.vrAd=1; }
   function checkAd(){ if(shotsSinceAd>=SHOTS_PER_AD){ shotsSinceAd=0; if(window.vrAd===0 &&!isShooting){ pend='inter'; window.vrAdType='inter'; window.vrAd=1; } } }
   function doInitGrid(){ let rows=Math.min(7,5+Math.floor(level/3)); grid=Array.from({length:Q},()=>Array(B).fill(null)); for(let r=0;r<rows;r++){ let cols=r%2===1?B-1:B; for(let c=0;c<cols;c++){ if(level===1&&Math.random()<0.12) continue; grid[r][c]=Math.floor(Math.random()*colors()); } } for(let r=0;r<Q;r++) if(r%2===1) grid[r][B-1]=null; popped=0; shot=0; ceilT=maxT(); cur=Math.floor(Math.random()*colors()); nxt=Math.floor(Math.random()*colors()); angle=-90; shooting=null; isShooting=false; ghost=null; traj=[]; score=0; applyLevelTheme(level); const _di=container.querySelector('#dinoImg'); if(_di) _di.src=DINO_URL_IDLE; startSess(); updateUI(); startCeil(); drawBoard(); }
   function showReadyGo(){ const ov=container.querySelector('#readyOverlay'); const txt=container.querySelector('#readyText'); const dinoB=container.querySelector('#dinoBubble'); const lvlEl=container.querySelector('#dinoLvl'); if(lvlEl) lvlEl.textContent=level; if(!ov){ doInitGrid(); return; } ov.style.display='grid'; ov.style.opacity='1'; txt.textContent='READY?'; txt.style.transform='scale(.4)'; unlockAudio(); sfxReady(); if(dinoB) dinoB.textContent='Ready?'; setTimeout(()=>{ txt.style.transform='scale(1.15)'; },80); setTimeout(()=>{ txt.textContent='GO!'; txt.style.color='#2AFF8A'; txt.style.transform='scale(.5)'; sfxGo(); setTimeout(()=>{ txt.style.transform='scale(1.4)'; },40); if(dinoB) dinoB.textContent='GO! 🔥'; },950); setTimeout(()=>{ ov.style.transition='opacity.4s'; ov.style.opacity='0'; setTimeout(()=>{ ov.style.display='none'; doInitGrid(); },420); },1750); }
   function startCeil(){ if(ceilIv) clearInterval(ceilIv); ceilIv=setInterval(()=>{ ceilT--; updateUI(); if(ceilT<=0){ pushCeil(); ceilT=maxT(); } },1000); }
   function pushCeil(){ if(isShooting) return; const old = tu(grid); let ng=Array.from({length:Q},()=>Array(B).fill(null)); for(let r=Q-1;r>0;r--){ let src=old[r-1]; let row=[...src]; if(r%2===1) row[B-1]=null; ng[r]=row; } let nr=Array(B).fill(null); for(let c=0;c<B-1;c++){ if(Math.random()>0.15) nr[c]=Math.floor(Math.random()*colors()); } nr[B-1]=null; ng[0]=nr; let floating=hm(ng); if(floating.length>0){ floating.forEach(([rr,cc])=> ng[rr][cc]=null ); popped+=floating.length; score+=floating.length*5; } if(ng[Q-1].some(v=>v!==null)){ lose(); return; } grid=ng; shot=0; updateUI(); drawBoard(); }
-  function updateUI(){ let {stageName, levelInStage, accent} = getLevelColors(level); container.querySelector('#pb6lvl').textContent=`LVL ${level} • ${stageName} ${levelInStage}/10`; const dl=container.querySelector('#dinoLvl'); if(dl) dl.textContent=level; let titleEl=container.querySelector('#pb6title'); if(titleEl){ titleEl.innerHTML=`RUZZLE BUBBLE • <span style='color:${accent}'>${stageName}</span> • ${levelInStage}/10`; } container.querySelector('#pb6obj').textContent=popped+'/'+target(); container.querySelector('#pb6tm').textContent=ceilT+'s / '+need(); container.querySelector('#pb6sc').textContent=score; container.querySelector('#pb6bar').style.width=Math.min(100,popped/target()*100)+'%'; container.querySelector('#pb6ceil').textContent=ceilT+'s'; const nxtEl=container.querySelector('#pb6nxt'); if(nxtEl) nxtEl.style.background=PAL[nxt]; }
+  function updateUI(){ let {stageName, levelInStage, accent} = getLevelColors(level); container.querySelector('#pb6lvl').textContent=`LVL ${level} • ${stageName} ${levelInStage}/10 ${hasPass?'💎 X5':''}`; const dl=container.querySelector('#dinoLvl'); if(dl) dl.textContent=level; let titleEl=container.querySelector('#pb6title'); if(titleEl){ titleEl.innerHTML=`RUZZLE BUBBLE • <span style='color:${accent}'>${stageName}</span> • ${levelInStage}/10 ${hasPass?'💎':''}`; } container.querySelector('#pb6obj').textContent=popped+'/'+target(); container.querySelector('#pb6tm').textContent=ceilT+'s / '+need(); container.querySelector('#pb6sc').textContent=score; container.querySelector('#pb6bar').style.width=Math.min(100,popped/target()*100)+'%'; container.querySelector('#pb6ceil').textContent=ceilT+'s'; const nxtEl=container.querySelector('#pb6nxt'); if(nxtEl) nxtEl.style.background=PAL[nxt]; const passBadge=container.querySelector('#passBadge'); const passInfo=container.querySelector('#pb6passInfo'); if(hasPass){ if(passBadge) passBadge.style.display='inline-block'; if(passInfo){ passInfo.style.display='block'; passInfo.textContent=`💎 PASS X5 ACTIVO - ${fmt(getReward())} por nivel`; } } else { if(passBadge) passBadge.style.display='none'; if(passInfo){ passInfo.style.display='block'; passInfo.style.background='transparent'; passInfo.style.border='1px dashed #7E22CE'; passInfo.innerHTML=`<a href="/wasa-pass.html" style="color:#A855F7;text-decoration:none;font-weight:900">💎 Con PASS X5 sería ${fmt(REWARD_BASE*5)} → Comprar 5 USDT</a>`; } } }
   function drawBoard(){
     ctx.fillStyle='#0f0f17'; ctx.fillRect(0,0,RN,NU);
     if(traj.length>1){ ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=1; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.moveTo(traj[0].x,traj[0].y); for(let i=1;i<traj.length;i++) ctx.lineTo(traj[i].x,traj[i].y); ctx.stroke(); ctx.setLineDash([]); }
@@ -182,13 +185,15 @@ export function init(container, args){
   function win(){
     if(ceilIv) clearInterval(ceilIv); isShooting=false; shooting=null; if(rafId) cancelAnimationFrame(rafId);
     const dinoB=container.querySelector('#dinoBubble'); if(dinoB) dinoB.textContent='You Rock! 🤘'; sfxWin();
+    const rew=getReward(); const rewX2=getRewardX2();
     container.querySelector('#pb6ui').innerHTML=`
     <div class="pb6-win"><div class="pb6-card">
       <div style="font-size:28px">✓</div>
-      <h2 style="font-size:18px;font-weight:900;margin-top:8px">¡NIVEL ${level}!</h2>
+      <h2 style="font-size:18px;font-weight:900;margin-top:8px">¡NIVEL ${level}! ${hasPass?'💎 X5':''}</h2>
       <div style="margin-top:12px;background:#0e0e14;border-radius:12px;padding:12px">
-        <button id="bCl" style="width:100%;height:44px;border-radius:22px;background:#fff;color:#000;font-weight:900">RECLAMAR +${REWARD_BASE.toFixed(4)} WASA</button>
-        <button id="bX2" style="margin-top:8px;width:100%;height:44px;border-radius:22px;background:linear-gradient(90deg,#2AFF8A,#00D4FF);color:#fff;font-weight:900">X2 ANUNCIO → ${REWARD_X2.toFixed(4)}</button>
+        <div style="background:${hasPass?'linear-gradient(135deg,#A855F7,#7E22CE)':'rgba(42,255,138,.15)'};color:${hasPass?'#fff':'#2AFF8A'};border-radius:8px;padding:6px;font-weight:900;font-size:11px;margin-bottom:8px">${hasPass?'💎 PASS X5 ACTIVO':''} +${fmt(rew)} WASA${hasPass?' 💎':''}</div>
+        <button id="bCl" style="width:100%;height:44px;border-radius:22px;background:#fff;color:#000;font-weight:900">RECLAMAR +${fmt(rew)} WASA ${hasPass?'💎 X5':''}</button>
+        <button id="bX2" style="margin-top:8px;width:100%;height:44px;border-radius:22px;background:linear-gradient(90deg,#2AFF8A,#00D4FF);color:#fff;font-weight:900">X2 ANUNCIO → ${fmt(rewX2)} ${hasPass?'💎 X10':''}</button>
       </div>
     </div></div>`;
     container.querySelector('#bCl').onclick=async()=>{
@@ -196,9 +201,9 @@ export function init(container, args){
       let r=await claim(false,false);
       if(r.ok){
         level++; localStorage.setItem('pb_level',level);
-        container.querySelector('#pb6ui').innerHTML=`<div class="pb6-win"><div class="pb6-card"><div style="font-size:28px">✅</div><div style="font-weight:900;margin:8px 0">+${REWARD_BASE.toFixed(4)} ACREDITADO</div><button id="ok" style="width:100%;height:44px;border-radius:22px;background:#fff;color:#000;font-weight:900">LVL ${level}</button></div></div>`;
+        container.querySelector('#pb6ui').innerHTML=`<div class="pb6-win"><div class="pb6-card"><div style="font-size:28px">✅</div><div style="font-weight:900;margin:8px 0">+${fmt(r.reward||rew)} ACREDITADO ${r.hasPass?'💎 X5':''}</div><button id="ok" style="width:100%;height:44px;border-radius:22px;background:#fff;color:#000;font-weight:900">LVL ${level}</button></div></div>`;
         container.querySelector('#ok').onclick=()=>{ container.querySelector('#pb6ui').innerHTML=''; showReadyGo(); };
-      } else { b.textContent='REINTENTAR'; b.disabled=false; }
+      } else { b.textContent='REINTENTAR '+(r.error||''); b.disabled=false; }
     };
     container.querySelector('#bX2').onclick=()=>{ openAd('double'); container.querySelector('#bX2').textContent='CARGANDO AD...'; };
   }
@@ -208,7 +213,7 @@ export function init(container, args){
   canvas.addEventListener('pointermove', e=>{ if(isShooting) return; let {x,y}=getPos(e); let ang=Math.atan2(y-Dt,x-It)*180/Math.PI; if(ang>-15) ang=-15; if(ang<-165) ang=-165; angle=ang; let g=ym(angle,grid,It,Dt); ghost=g?{x:g.x,y:g.y}:null; traj=gm(angle,grid,It,Dt); drawBoard(); }, {passive:true});
   canvas.addEventListener('pointerdown', e=>{ e.preventDefault(); let {x,y}=getPos(e); let ang=Math.atan2(y-Dt,x-It)*180/Math.PI; if(ang>-15) ang=-15; if(ang<-165) ang=-165; angle=ang; shoot(); }, {passive:false});
   window.addEventListener('keydown', e=>{ if(e.code==='ArrowLeft') angle=Math.max(-165,angle-4); if(e.code==='ArrowRight') angle=Math.min(-15,angle+4); if(e.code==='Space'||e.code==='ArrowUp'){ e.preventDefault(); shoot(); } let g=ym(angle,grid,It,Dt); ghost=g?{x:g.x,y:g.y}:null; traj=gm(angle,grid,It,Dt); drawBoard(); });
-  let adIv=setInterval(async()=>{ if(window.vrAd===4 && pend){ let t=pend; pend=null; window.vrAd=0; window.vrAdType=null; window._gm_shown=false; if(t==='inter'){ shotsSinceAd=0; } else { let r=await claim(true,true); if(r.ok){ level++; localStorage.setItem('pb_level',level); container.querySelector('#pb6ui').innerHTML=`<div class="pb6-win"><div class="pb6-card"><div style="font-size:28px">✅</div><div style="font-weight:900">X2 +${REWARD_X2.toFixed(4)}</div><button id="ok2" style="margin-top:10px;width:100%;height:44px;border-radius:22px;background:#fff;color:#000;font-weight:900">LVL ${level}</button></div></div>`; container.querySelector('#ok2').onclick=()=>{ container.querySelector('#pb6ui').innerHTML=''; showReadyGo(); }; } } } },500);
-  showReadyGo();
+  let adIv=setInterval(async()=>{ if(window.vrAd===4 && pend){ let t=pend; pend=null; window.vrAd=0; window.vrAdType=null; window._gm_shown=false; if(t==='inter'){ shotsSinceAd=0; } else { let r=await claim(true,true); if(r.ok){ level++; localStorage.setItem('pb_level',level); container.querySelector('#pb6ui').innerHTML=`<div class="pb6-win"><div class="pb6-card"><div style="font-size:28px">✅</div><div style="font-weight:900">X2 +${fmt(r.reward||getRewardX2())} ${r.hasPass?'💎 X10':''}</div><button id="ok2" style="margin-top:10px;width:100%;height:44px;border-radius:22px;background:#fff;color:#000;font-weight:900">LVL ${level}</button></div></div>`; container.querySelector('#ok2').onclick=()=>{ container.querySelector('#pb6ui').innerHTML=''; showReadyGo(); }; } else { container.querySelector('#pb6ui').innerHTML=`<div class="pb6-win"><div class="pb6-card"><div>Error: ${r.error||'server'}</div><button id="retry" style="margin-top:8px;width:100%;height:40px;border-radius:20px;background:#fff;color:#000">REINTENTAR</button></div></div>`; container.querySelector('#retry').onclick=()=>{ container.querySelector('#pb6ui').innerHTML=''; updateUI(); drawBoard(); } } } } },500);
+  checkPass().then(()=>{ updateUI(); showReadyGo(); });
   container._cleanup=()=>{ clearInterval(ceilIv); clearInterval(adIv); if(rafId) cancelAnimationFrame(rafId); window.vrAd=0; };
 }
