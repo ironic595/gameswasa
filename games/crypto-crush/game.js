@@ -294,7 +294,7 @@ export function init(container, args){
 .cc-fail-meme{width:min(38vw, 160px);height:min(38vw, 160px);margin:0 auto 12px;filter:drop-shadow(0 6px 16px rgba(0,0,0,.5));animation:memeCry .7s ease-in-out infinite alternate}
 @keyframes memeCry{0%{transform:translateY(0) scale(1)}100%{transform:translateY(6px) scale(1.02)}}
 .cc-menu{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%, #0F0F1A 0%, #1A1A2E 60%, #0F0F1A 100%);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow:auto}
-.cc-menu-card{background:linear-gradient(180deg,#fff,#F5F3FF);border-radius:24px;padding:24px;width:min(420px,96vw);color:#0F172A;box-shadow:0 24px 60px rgba(0,0,0,.5);text-align:center}
+.cc-menu-card{linear-gradient(180deg, #419bdb, #1641e7);border-radius:24px;padding:24px;width:min(420px,96vw);color:#0F172A;box-shadow:0 24px 60px rgba(0,0,0,.5);text-align:center}
 .cc-menu-title{font-size:28px;font-weight:900;letter-spacing:-.02em;margin:4px 0}
 .cc-menu-sub{font-size:12px;opacity:.6;font-weight:700;letter-spacing:.08em}
 .cc-menu-btn{width:100%;height:54px;border-radius:14px;font-weight:900;font-size:14px;border:0;cursor:pointer;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 16px rgba(0,0,0,.15)}
