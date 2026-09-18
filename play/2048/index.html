@@ -1,43 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <script>const GAME_NAME = "2048";</script>
 
 <title>2048 Game - Play Free Online | WASA GAMES</title>
-<meta name="description" content="Play 2048 online free and farm $WASA. Premium wooden puzzle. 100% onchain, no download, play in browser.">
-
-  <meta property="og:title" content="Play 2048 game online free and farm $wasa">
-  <meta property="og:description" content="Play 2048 game online free, farm $wasa, earn crypto">
-  <meta property="og:image" content="https://games.wasa.chat/img/2048.png">
-  <meta property="og:image:width" content="2048">
-  <meta property="og:image:height" content="1152">
-  <meta property="og:url" content="https://games.wasa.chat/play/2048/">
-  <meta property="og:type" content="website">
-
+<meta name="description" content="Play 2048 online free and farm $WASA. Premium wooden puzzle.">
+<meta property="og:title" content="Play 2048 game online free and farm $wasa">
+<meta property="og:description" content="Play 2048 game online free, farm $wasa, earn crypto">
+<meta property="og:image" content="https://games.wasa.chat/img/2048.png">
+<meta property="og:url" content="https://games.wasa.chat/play/2048/">
 <link rel="canonical" href="https://games.wasa.chat/play/2048/">
 <meta name="robots" content="index, follow">
 
-<!-- [El resto de tus metas y tags se mantienen exactamente igual] -->
-
+<style>
+  body{margin:0;background:#0a0f24;color:#e2e8f0;font-family:Inter,sans-serif;display:grid;place-items:center;min-height:100vh;text-align:center}
+  .box{max-width:520px;padding:20px}
+  img{width:100%;border-radius:16px;border:2px solid rgba(56,189,248,0.3);box-shadow:0 20px 40px rgba(0,0,0,0.5)}
+  h1{font-size:28px;font-weight:900;margin:20px 0 10px}
+  p{color:#94a3b8}
+  .play{margin-top:20px;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-weight:900;padding:14px 32px;border-radius:9999px;border:0;font-size:16px;cursor:pointer}
+</style>
 </head>
 <body>
-<script>
-if(GAME_NAME && GAME_NAME !== "" && GAME_NAME !== "x"){
-  // 1. Guardar la cadena "2048" en 'nombreJuego'
-  localStorage.setItem("nombreJuego", GAME_NAME);
-  
-  // 2. Guardar la variable numérica como "1" en 'ejecutarJuego'
-  localStorage.setItem("ejecutarJuego", "1");
+<div class="box">
+  <img src="/img/2048.png" alt="2048">
+  <h1>2048 GAME</h1>
+  <p>The classic 2048 game online. PLAY FREE & FARM $WASA.</p>
+  <button class="play" onclick="playNow()">▶ PLAY NOW</button>
+  <p style="margin-top:20px"><a href="/" style="color:#38bdf8;font-size:12px">← Volver a la consola</a></p>
+</div>
 
-  // 3. Redirigir (reemplazando el historial para que no se quede atrapado al ir atrás)
-  setTimeout(() => {
-    location.replace("https://games.wasa.chat/");
-  }, 120);
+<script>
+function playNow(){
+  // mismo sistema que tenías antes, pero ahora con click
+  localStorage.setItem("nombreJuego", GAME_NAME);
+  localStorage.setItem("ejecutarJuego", "1");
+  // lo mandamos a tu consola que ya arreglamos y no queda en blanco
+  location.href = "/play/?game=" + GAME_NAME.toLowerCase();
 }
 </script>
-
 </body>
 </html>
