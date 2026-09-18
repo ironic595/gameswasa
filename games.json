@@ -3,5 +3,6 @@
   {"slug":"ahorcado", "title": "AHORCADO","cat":"puzzle word","live": true },
   {"slug":"2048","title":"2048 GAME","cat":"puzzle","live":true},
   {"slug":"ruzzle-bubble","title":"RUZZLE BUBBLE","cat":"puzzle arcade","live":true},
-  {"slug":"crypto-crush","title":"CRYPTO CRUSH","cat":"puzzle arcade","live":true}
+  {"slug":"crypto-crush","title":"CRYPTO CRUSH","cat":"puzzle arcade","live":true},
+  {"slug":"banatron-royale","title":"BANATRON ROYALE","cat":"puzzle arcade","live":true}
 ]
