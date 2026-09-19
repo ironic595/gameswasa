@@ -3,9 +3,6 @@ name: Generate Sitemap
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'games.json'
-      - 'generate-sitemap.js'
   workflow_dispatch:
 
 jobs:
