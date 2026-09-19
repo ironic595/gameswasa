@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     paths:
       - 'games.json'
-      - 'games/**'
+      - 'generate-sitemap.js'
   workflow_dispatch:
 
 jobs:
@@ -21,15 +21,16 @@ jobs:
       - name: Generate sitemap.xml
         run: |
           node generate-sitemap.js
+          echo "--- sitemap generado ---"
           cat sitemap.xml
-      - name: Commit if changed
+      - name: Commit sitemap.xml
         run: |
-          if git diff --quiet sitemap.xml; then
-            echo "No changes in sitemap"
-            exit 0
-          fi
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add sitemap.xml
+          git add sitemap.xml -f
+          if git diff --cached --quiet; then
+            echo "Sin cambios"
+            exit 0
+          fi
           git commit -m "auto: update sitemap.xml"
           git push
