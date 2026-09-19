@@ -1,9 +1,8 @@
-// games/crypto-crush/game.js - v7.6 SECURE SERVER VALIDATION + ARROWS integrado + MENU + BOMBA 💣 + RAYO ⚡
+// games/crypto-crush/game.js - v7.7 MOBILE FIX - objetivos debajo del tablero en mobile
 export function init(container, args){
   const WORKER_URL = window.WASA_CONFIG?.WORKER_URL || 'https://games-wasa-worker.javisimes.workers.dev/';
   function getDeviceId(){ let id=localStorage.getItem('wasa_device_id'); if(!id){ id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id);} return id; }
   function fmt(n){ const v=parseFloat(n)||0; if(v===0) return '0'; return (Math.round(v*1e7)/1e7).toFixed(7).replace(/0+$/,'').replace(/\.$/,''); }
-
   function getAssetBases(){
     const bases=[];
     try{
@@ -17,15 +16,11 @@ export function init(container, args){
     bases.push('/games/crypto-crush/assets/','games/crypto-crush/assets/','./games/crypto-crush/assets/','./assets/','assets/','/assets/','./','/');
     return [...new Set(bases)];
   }
-
-  // ---- SOUND SYSTEM v7.3 ----
   let audioCtx=null;
   let muted = localStorage.getItem('wcrush_muted')==='1';
   function getAudio(){
     if(muted) return null;
-    if(!audioCtx){
-      try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch{ return null; }
-    }
+    if(!audioCtx){ try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch{ return null; } }
     if(audioCtx.state==='suspended') audioCtx.resume();
     return audioCtx;
   }
@@ -64,32 +59,16 @@ export function init(container, args){
       else if(len===4){ tone(500,0.1,'sine',0.2); tone(800,0.14,'sine',0.2,0.07); }
       else { tone(550+Math.random()*100,0.12,'sine',0.18); }
     },
-    bomb(){
-      noiseBurst(0.35,0.35); tone(120,0.35,'sine',0.4); tone(60,0.4,'triangle',0.5,0.05);
-    },
-    striped(){
-      tone(800,0.08,'square',0.18); tone(400,0.18,'sawtooth',0.22,0.08);
-    },
-    rayo(){
-      // zap zap
-      for(let i=0;i<5;i++){ tone(900+Math.random()*800,0.06,'sawtooth',0.25, i*0.04); }
-      tone(80,0.6,'triangle',0.35,0.1); noiseBurst(0.2,0.15);
-    },
-    combo(c){
-      const base=400+c*120; tone(base,0.12,'sine',0.22); tone(base*1.5,0.14,'sine',0.22,0.08);
-    },
-    win(){
-      tone(400,0.2,'sine',0.25); tone(500,0.2,'sine',0.25,0.15); tone(600,0.2,'sine',0.25,0.3); tone(800,0.4,'sine',0.3,0.45);
-    },
-    lose(){
-      tone(300,0.25,'sine',0.2); tone(220,0.3,'sine',0.2,0.2); tone(150,0.5,'triangle',0.25,0.4);
-    },
+    bomb(){ noiseBurst(0.35,0.35); tone(120,0.35,'sine',0.4); tone(60,0.4,'triangle',0.5,0.05); },
+    striped(){ tone(800,0.08,'square',0.18); tone(400,0.18,'sawtooth',0.22,0.08); },
+    rayo(){ for(let i=0;i<5;i++){ tone(900+Math.random()*800,0.06,'sawtooth',0.25, i*0.04); } tone(80,0.6,'triangle',0.35,0.1); noiseBurst(0.2,0.15); },
+    combo(c){ const base=400+c*120; tone(base,0.12,'sine',0.22); tone(base*1.5,0.14,'sine',0.22,0.08); },
+    win(){ tone(400,0.2,'sine',0.25); tone(500,0.2,'sine',0.25,0.15); tone(600,0.2,'sine',0.25,0.3); tone(800,0.4,'sine',0.3,0.45); },
+    lose(){ tone(300,0.25,'sine',0.2); tone(220,0.3,'sine',0.2,0.2); tone(150,0.5,'triangle',0.25,0.4); },
     levelStart(){ tone(300,0.15,'sine',0.2); tone(600,0.25,'sine',0.25,0.12); },
     booster(){ tone(700,0.1,'sine',0.2); tone(1000,0.2,'sine',0.25,0.08); },
   };
-
   const ASSET_BASES=getAssetBases();
-
   const ALL_TOKENS = [
     {icon:'₿', name:'BTC',  bg:'#F7931A', bd:'#E67E00', light:'#FFB84D', img:'btc.png'},
     {icon:'Ξ', name:'ETH',  bg:'#627EEA', bd:'#3C5FE3', light:'#8AA0FF', img:'eth.png'},
@@ -107,12 +86,9 @@ export function init(container, args){
   const BASE_REWARD = 0.0001;
   const MEME_LAUGH_FILES = ['doge_laugh.png','shiba_laugh.png','pepe_laugh.png','floki_laugh.png'];
   const MEME_CRY_FILES   = ['doge_cry.png','pepe_cry.png','shiba_cry.png','floki_cry.png'];
-
-  // ---- WASA PASS STATE ----
   let hasPass = localStorage.getItem('wasa_pass_active')==='1';
   let passMultiplier = hasPass ? 5 : 1;
   let checkingPass = false;
-
   async function checkWasaPass(showToast=false){
     if(checkingPass) return hasPass;
     checkingPass=true;
@@ -143,7 +119,6 @@ export function init(container, args){
     updatePassUI();
     return hasPass;
   }
-
   function updatePassUI(){
     const badge = root.querySelector('#passBadge');
     if(badge){
@@ -154,16 +129,8 @@ export function init(container, args){
         badge.style.display='none';
       }
     }
-    const shopBtn = root.querySelector('#cReward');
-    if(shopBtn){
-      // el reward total ya muestra x5 acumulado
-    }
   }
-
-  function getRewardForLevel(base){
-    return base * passMultiplier;
-  }
-
+  function getRewardForLevel(base){ return base * passMultiplier; }
   function getUnlockedTokens(level){ const count=Math.min(11, 5+Math.floor((level-1)/3)); return ALL_TOKENS.slice(0, count); }
   function getActiveTokensForLevel(level){
     const unlocked=getUnlockedTokens(level);
@@ -196,7 +163,7 @@ export function init(container, args){
           lvl.objectives.push({id:token.name+'_'+lvl.objectives.length, type:'collect_color', color:ALL_TOKENS.indexOf(token), token, name:token.name, icon:token.icon, target, current:0});
         } else if(roll<0.86 && !hasSpecial){
           const special=Math.random()<0.5?'bomb':'striped'; const target=Math.floor(1 + n/22);
-          lvl.objectives.push({id:special+'_'+lvl.objectives.length, type:'collect_special', special, name:special==='bomb'?'BOMBAS':'RAYADAS', icon:special==='bomb'?'💣':'↔️', target, current:0}); hasSpecial=true;
+          lvl.objectives.push({id:special+'_'+lvl.objectives.length, type:'collect_special', special, name:special==='bomb'?'BOMBAS':'RAYADAS', icon:special==='bomb'?'💣':'↔', target, current:0}); hasSpecial=true;
         } else if(!hasThunder){
           if(n<8) continue; lvl.objectives.push({id:'thunder_'+lvl.objectives.length, type:'collect_rainbow', name:'RAYO', icon:'⚡', target:1, current:0}); hasThunder=true;
         }
@@ -248,7 +215,9 @@ export function init(container, args){
 .cc-stat-mini.gold{background:linear-gradient(180deg,#FEF08A,#FACC15);border-color:#EAB308}
 .cc-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:10px 10px 6px;overflow:auto;overflow-x:hidden;touch-action:none;width:100%;min-height:0;gap:8px}
 .cc-board{width:min(92vw, 460px);aspect-ratio:1;background:rgba(255,255,255,.98);border-radius:18px;padding:6px;box-shadow:0 24px 60px rgba(0,0,0,.45), 0 0 0 2.5px rgba(255,255,255,.95);position:relative;touch-action:none;user-select:none;contain:layout;flex-shrink:0}
-.cc-grid{display:grid;grid-template-columns:repeat(${SZ},1fr);grid-template-rows:repeat(${SZ},1fr);gap:4px;width:100%;height:100%;touch-action:none}
+.cc-grid{display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);gap:4px;width:100%;height:100%;touch-action:none}
+.cc-obj-mobile{display:none;width:min(92vw, 460px);gap:6px;margin-top:2px}
+.cc-obj-mobile .cc-obj-mini{min-width:0;flex:1}
 .cc-cell{position:relative;border-radius:11px;display:grid;place-items:center;cursor:pointer;touch-action:none}
 .cc-cell.sel{transform:scale(1.1);z-index:5}.cc-cell.sel::after{content:'';position:absolute;inset:-2px;border:3px solid #FACC15;border-radius:12px;box-shadow:0 0 14px #FACC15;pointer-events:none}
 .cc-candy{width:88%;height:88%;border-radius:13px;display:grid;place-items:center;font-weight:900;font-size:15px;position:relative;box-shadow:0 4px 0 rgba(0,0,0,.18), inset 0 2px 0 rgba(255,255,255,.95);border:2px solid rgba(0,0,0,.08);overflow:hidden;background:#fff}
@@ -307,6 +276,18 @@ export function init(container, args){
 .cc-booster-icon{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:26px;background:linear-gradient(180deg,#FEF08A,#FACC15);border:2px solid #EAB308;flex-shrink:0}
 .cc-bottom{width:100%;background:rgba(0,0,0,.25);backdrop-filter:blur(6px);padding:5px 10px;display:flex;justify-content:center;gap:8px;flex-shrink:0;border-top:1px solid rgba(255,255,255,.15)}
 .cc-bottom-info{font-size:8px;opacity:.7;text-align:center}
+
+/* --- MOBILE FIX v7.7 --- */
+@media(max-width:768px){
+  .cc-header-inner{flex-wrap:wrap;gap:6px}
+  .cc-header-center{display:none !important}
+  .cc-header-left{width:100%;justify-content:space-between}
+  .cc-header-right{width:100%;justify-content:space-between}
+  .cc-obj-mobile{display:flex !important;flex-wrap:wrap}
+  .cc-main{padding:8px 8px 10px;gap:6px;overflow:auto}
+  .cc-board{width:96vw;max-width:96vw}
+  .cc-obj-mobile .cc-obj-mini{font-size:11px}
+}
 </style>
 <div class="cc" id="root">
   <div class="cc-header">
@@ -314,7 +295,7 @@ export function init(container, args){
       <div class="cc-header-left">
         <button class="cc-icon-btn" id="btnMute" title="Sonido">🔊</button><button class="cc-icon-btn" id="btnMenu" title="Menú">☰</button>
         <div class="cc-level-badge" id="lvlBadge"><b id="lvlNum">N1</b><span id="lvlUnlock">5/11</span></div>
-        <div class="cc-pass-badge" id="passBadge" style="display:${hasPass?'flex':'none'}"><span style="font-size:10px">💎</span> PASS X5</div>
+        <div class="cc-pass-badge" id="passBadge" style="display:none"><span style="font-size:10px">💎</span> PASS X5</div>
         <div class="cc-tokens" id="activeTokens"></div>
         <div style="font-weight:900;font-size:11px;opacity:.8"><span id="moves">25</span> <span id="movesLabel" style="font-size:8px;opacity:.6">MOVS</span></div>
       </div>
@@ -327,8 +308,8 @@ export function init(container, args){
       </div>
     </div>
   </div>
-  <div class="cc-main" id="mainArea"><div class="cc-board" id="board"><div class="cc-grid" id="grid"></div><div class="cc-thunder-fx" id="thunderFx"></div></div></div>
-  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">v7.6 SECURE SERVER VALIDATION + ARROWS ${hasPass?'✅ ACTIVO':'⏳ verificando...'}</div></div>
+  <div class="cc-main" id="mainArea"><div class="cc-board" id="board"><div class="cc-grid" id="grid"></div><div class="cc-thunder-fx" id="thunderFx"></div></div><div class="cc-obj-mobile" id="objListMobile"></div></div>
+  <div class="cc-bottom"><div class="cc-bottom-info" id="debugInfo">v7.7 MOBILE FIX - objetivos abajo en celular</div></div>
   <div id="ui"></div>
 </div>`;
 
@@ -369,7 +350,7 @@ export function init(container, args){
     checkWasaPass(false);
     const passInfo = hasPass ? `<div style="background:linear-gradient(135deg,#A855F7,#7E22CE);color:#fff;border-radius:12px;padding:10px;font-weight:900;font-size:12px;margin-top:10px;box-shadow:0 0 14px #A855F7">💎 WASA PASS X5 ACTIVO<br><span style="font-size:10px;opacity:.9;font-weight:700">Tu recompensa se multiplica x5 en cada nivel</span></div>` : `<div style="background:#FEF2F2;border:1.5px solid #FECACA;border-radius:12px;padding:10px;font-size:11px;margin-top:10px"><b>💎 ¿Tenés WASA PASS?</b><br>Multiplica x5 todas tus recompensas<br><a href="/wasa-pass.html" target="_blank" style="color:#7E22CE;font-weight:900">Comprar PASS por 5 USDT →</a><br><button id="btnCheckPass" style="margin-top:8px;height:32px;padding:0 12px;border-radius:8px;border:0;background:#2a1a5e;color:#fff;font-weight:800;font-size:11px;cursor:pointer">🔄 Verificar mi PASS</button></div>`;
     ui.innerHTML=`<div class="cc-menu" id="mainMenu">
-      <div class="cc-menu-card">
+      <div class="cc-menu-card" style="background:#fff">
         <div style="font-size:48px">💎</div>
         <div class="cc-menu-title">CRYPTO CRUSH</div>
         <div class="cc-menu-sub">NIVEL ${currentLevelNum} • ${getUnlockedTokens(currentLevelNum).length}/11 TOKENS ${hasPass?'• 💎 PASS X5':''}</div>
@@ -397,10 +378,6 @@ export function init(container, args){
   function showHowToPlay(){
     ui.innerHTML=`<div class="cc-howto" id="howto"><div class="cc-howto-card"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:18px">❓ CÓMO JUGAR</b><button id="closeHow" style="width:32px;height:32px;border-radius:10px;border:1.5px solid #E5E7EB;background:#fff;cursor:pointer">✕</button></div>
         <div style="background:#FEF9C3;border:2px solid #FDE047;border-radius:14px;padding:12px;margin-top:12px;font-size:13px"><b>🎯 Objetivo:</b> Junta los tokens que te pide cada nivel antes de quedarte sin movimientos o tiempo.</div>
-        <div class="cc-howto-item"><div class="cc-howto-icon">💣</div><div><b style="font-size:14px">BOMBA (T o L) - 5 fichas</b><br><span style="font-size:12px;opacity:.8">Hace 5 fichas en forma de T o L. Explota 3x3. Toca para activarla.</span><br><div style="margin-top:6px;font-family:monospace;font-size:12px;background:#000;color:#0f0;padding:6px;border-radius:8px">🟦🟦🟦<br>🟦💣🟦<br>🟦🟦 → 💥 BOOM 3x3</div></div></div>
-        <div class="cc-howto-item"><div class="cc-howto-icon" style="background:linear-gradient(180deg,#FEF08A,#FACC15)">↔️</div><div><b style="font-size:14px">RAYADA (4 en línea)</b><br><span style="font-size:12px;opacity:.8">4 iguales en línea. Horizontal barre fila, Vertical barre columna.</span></div></div>
-        <div class="cc-howto-item" style="border-color:#EAB308;background:linear-gradient(180deg,#FFFBEB,#FEF9C3)"><div class="cc-howto-icon" style="background:radial-gradient(circle,#FEF08A,#FACC15);border-color:#EAB308">⚡</div><div><b style="font-size:14px">RAYO (5 en línea)</b><br><span style="font-size:12px;opacity:.8">5 iguales. Crea RAYO ⚡ que elimina TODOS los del color que elijas. Animación eléctrica.</span></div></div>
-        <div class="cc-howto-item" style="border-color:#A855F7;background:linear-gradient(180deg,#F5F3FF,#EDE9FE)"><div class="cc-howto-icon" style="background:linear-gradient(135deg,#A855F7,#7E22CE);color:#fff">💎</div><div><b style="font-size:14px">WASA PASS X5</b><br><span style="font-size:12px;opacity:.8">Si tenés PASS, tu recompensa base se multiplica x5.<br>Si además ves anuncio, x5 x2 = x10 total.<br><a href="/wasa-pass.html" target="_blank" style="color:#7E22CE;font-weight:900">Comprar PASS →</a></span></div></div>
         <button id="btnGotIt" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:#2a1a5e;color:#fff;margin-top:14px;cursor:pointer">¡ENTENDIDO! ▶</button></div></div>`;
     ui.querySelector('#closeHow').onclick=()=>{ const el=ui.querySelector('#howto'); if(el) el.remove(); };
     ui.querySelector('#btnGotIt').onclick=()=>{ const el=ui.querySelector('#howto'); if(el) el.remove(); };
@@ -409,17 +386,9 @@ export function init(container, args){
   function showBoosterShop(){
     ui.innerHTML=`<div class="cc-howto" id="shop"><div class="cc-howto-card"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:18px">🛒 TIENDA BOOSTERS</b><button id="closeShop" style="width:32px;height:32px;border-radius:10px;border:1.5px solid #E5E7EB;background:#fff;cursor:pointer">✕</button></div>
         <div style="background:#F5F3FF;border:1.5px solid #DDD6FE;border-radius:12px;padding:10px;margin-top:12px;font-size:11px;text-align:center">Tu WASA: <b>${fmt(totalReward)}</b> ${hasPass?'<span style="background:#A855F7;color:#fff;padding:2px 6px;border-radius:6px;font-size:9px">PASS X5</span>':''}</div>
-        <div class="cc-booster"><div class="cc-booster-icon">🔨</div><div style="flex:1"><b>Martillo</b><br><span style="font-size:11px;opacity:.7">Rompe 1 ficha sin gastar movimiento.</span><br><span style="font-size:10px;font-weight:900">Tenés: ${boosters.hammer}</span></div><div style="text-align:right"><button class="buyBtn" data-type="hammer" style="height:36px;padding:0 14px;border-radius:10px;border:0;background:#2a1a5e;color:#fff;font-weight:900;cursor:pointer">0.0001 WASA</button><br><button class="useBtn" data-type="hammer" style="margin-top:6px;height:28px;padding:0 10px;border-radius:8px;border:1.5px solid #22C55E;background:#DCFCE7;color:#065F46;font-weight:800;font-size:10px;cursor:pointer">USAR +1</button></div></div>
-        <div class="cc-booster"><div class="cc-booster-icon" style="background:linear-gradient(180deg,#FECACA,#EF4444)">💣</div><div style="flex:1"><b>Bomba Inicial</b><br><span style="font-size:11px;opacity:.7">Empieza con 1 bomba 💣 en tablero.</span><br><span style="font-size:10px;font-weight:900">Tenés: ${boosters.bomb}</span></div><div style="text-align:right"><button class="buyBtn" data-type="bomb" style="height:36px;padding:0 14px;border-radius:10px;border:0;background:#2a1a5e;color:#fff;font-weight:900;cursor:pointer">0.0002 WASA</button><br><button class="useBtn" data-type="bomb" style="margin-top:6px;height:28px;padding:0 10px;border-radius:8px;border:1.5px solid #EF4444;background:#FEE2E2;color:#991B1B;font-weight:800;font-size:10px;cursor:pointer">USAR +1</button></div></div>
-        <div class="cc-booster"><div class="cc-booster-icon">⚡</div><div style="flex:1"><b>Rayo Inicial</b><br><span style="font-size:11px;opacity:.7">Empieza con 1 rayo ⚡. ¡El más poderoso!</span><br><span style="font-size:10px;font-weight:900">Tenés: ${boosters.rayo}</span></div><div style="text-align:right"><button class="buyBtn" data-type="rayo" style="height:36px;padding:0 14px;border-radius:10px;border:0;background:#2a1a5e;color:#fff;font-weight:900;cursor:pointer">0.0005 WASA</button><br><button class="useBtn" data-type="rayo" style="margin-top:6px;height:28px;padding:0 10px;border-radius:8px;border:1.5px solid #EAB308;background:#FEF9C3;color:#854D0E;font-weight:800;font-size:10px;cursor:pointer">USAR +1</button></div></div>
-        <div class="cc-booster" style="border-color:#A855F7;background:linear-gradient(180deg,#F5F3FF,#EDE9FE)"><div class="cc-booster-icon" style="background:linear-gradient(135deg,#A855F7,#7E22CE);color:#fff">💎</div><div style="flex:1"><b>WASA PASS X5</b><br><span style="font-size:11px;opacity:.7">Multiplica x5 tu recompensa SIEMPRE. ${hasPass?'<b style="color:#22C55E">¡YA LO TENÉS ACTIVO!</b>':'¡Compra y se activa solo!'}</span></div><div style="text-align:right"><a href="/wasa-pass.html" target="_blank" style="height:36px;padding:0 14px;border-radius:10px;background:${hasPass?'#22C55E':'#7E22CE'};color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;text-decoration:none">${hasPass?'✅ ACTIVO':'5 USDT'}</a><br><button id="btnVerifyPass" style="margin-top:6px;height:28px;padding:0 10px;border-radius:8px;border:1.5px solid #A855F7;background:#fff;color:#7E22CE;font-weight:800;font-size:10px;cursor:pointer">🔄 VERIFICAR</button></div></div>
         <button id="btnShopPlay" style="width:100%;height:48px;border-radius:14px;font-weight:900;border:0;background:linear-gradient(135deg,#22C55E,#16A34A);color:#000;margin-top:14px;cursor:pointer">▶ JUGAR CON BOOSTERS ${hasPass?'(X5)':''}</button></div></div>`;
     ui.querySelector('#closeShop').onclick=()=>{ const el=ui.querySelector('#shop'); if(el) el.remove(); };
     ui.querySelector('#btnShopPlay').onclick=()=>{ ui.innerHTML=''; showLevelIntro(true); };
-    const btnVerify = ui.querySelector('#btnVerifyPass');
-    if(btnVerify){ btnVerify.onclick=async()=>{ btnVerify.textContent='Verificando...'; await checkWasaPass(true); showBoosterShop(); }; }
-    ui.querySelectorAll('.buyBtn').forEach(btn=>{ btn.onclick=()=>{ const type=btn.dataset.type; const costs={hammer:0.0001,bomb:0.0002,rayo:0.0005}; const cost=costs[type]; if(totalReward>=cost){ totalReward-=cost; localStorage.setItem('wcrush_wasa', totalReward); boosters[type]=(boosters[type]||0)+1; saveBoosters(); showBoosterShop(); } else { btn.textContent='¡Sin WASA!'; setTimeout(()=>btn.textContent=cost+' WASA',1200); } }; });
-    ui.querySelectorAll('.useBtn').forEach(btn=>{ btn.onclick=()=>{ const type=btn.dataset.type; if((boosters[type]||0)>0){ btn.textContent='✓ ACTIVADO'; btn.style.background='#22C55E'; btn.style.color='#fff'; let pending = JSON.parse(localStorage.getItem('wcrush_pending_boosters')||'{}'); pending[type]=(pending[type]||0)+1; localStorage.setItem('wcrush_pending_boosters', JSON.stringify(pending)); } }; });
   }
 
   function animateThunder(originR, originC, targetKeys){
@@ -445,7 +414,6 @@ export function init(container, args){
     const completeOverlay = document.createElement('div'); completeOverlay.className='cc-obj-complete';
     completeOverlay.innerHTML=`<div style="text-align:center;padding:12px"><img class="cc-obj-complete-meme" src="${laughUrl}" alt="laugh" onerror="this.style.display='none'"><div class="cc-obj-complete-text">⚡ OBJETIVOS<br>COMPLETADOS ⚡</div><div class="cc-obj-complete-sub">¡NIVEL ${currentLevelNum} SUPERADO! ${hasPass?'<br><span style="background:#A855F7;color:#fff;padding:2px 8px;border-radius:8px;font-size:11px">💎 PASS X5 ACTIVO</span>':''}</div></div>`;
     boardEl.appendChild(completeOverlay); debugInfo.textContent=`¡N${currentLevelNum} COMPLETADO! ${hasPass?'PASS X5':''} ${laughFile}`;
-    const objMinis = root.querySelectorAll('.cc-obj-mini'); objMinis.forEach(el=>{ el.style.animation='objBlink .3s ease-in-out 6 alternate'; });
     setTimeout(()=>{ if(completeOverlay.parentNode) completeOverlay.remove(); showWin(laughFile); }, 3000);
   }
 
@@ -455,16 +423,13 @@ export function init(container, args){
     const title = isTimeLevel ? '⏰ NIVEL POR TIEMPO' : '🎯 NIVEL POR MOVIMIENTOS';
     const desc = isTimeLevel ? `¡Alcanza <b style="color:#F59E0B">${level.objectives.find(o=>o.type==='score')?.target || 1000} puntos</b> antes de que se acabe el tiempo!<br>Tienes <b>${level.time} segundos</b>.` : `Consigue los objetivos con solo <b style="color:#F59E0B">${level.moves} movimientos</b>.`;
     const pending = JSON.parse(localStorage.getItem('wcrush_pending_boosters')||'{}');
-    const hasPending = Object.keys(pending).some(k=>pending[k]>0);
     const objsHtml = level.objectives.map(o=>{
       if(o.type==='score'){ return `<div style="min-height:48px;background:#FFFBEB;border:2px solid #F59E0B;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:12px"><div style="width:32px;height:32px;flex-shrink:0;border-radius:9px;background:#fff;border:2px solid #F59E0B;display:flex;align-items:center;justify-content:center;font-size:18px">⭐</div><div style="flex:1;display:flex;align-items:center"><b style="font-size:13px;line-height:32px">${o.target} PUNTOS</b></div></div>`; }
       if(o.type==='collect_color'){ const tok=ALL_TOKENS[o.color]; return `<div style="min-height:48px;background:#F5F3FF;border:2px solid #DDD6FE;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:12px">${createModalTokenIcon(tok)}<div style="flex:1;display:flex;align-items:center"><b style="font-size:13px;line-height:32px;letter-spacing:.02em">${o.name} ${o.target}</b></div></div>`; }
-      if(o.type==='collect_special'){ const isBomb = o.special==='bomb'; return `<div style="min-height:48px;background:#F5F3FF;border:2px solid #DDD6FE;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:12px"><div style="width:32px;height:32px;flex-shrink:0;border-radius:9px;background:#fff;border:2px solid #E5E7EB;display:flex;align-items:center;justify-content:center;font-size:18px">${isBomb?'💣':'↔️'}</div><div style="flex:1;display:flex;align-items:center"><b style="font-size:13px;line-height:32px">${o.name} ${o.target}</b></div></div>`; }
+      if(o.type==='collect_special'){ const isBomb = o.special==='bomb'; return `<div style="min-height:48px;background:#F5F3FF;border:2px solid #DDD6FE;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:12px"><div style="width:32px;height:32px;flex-shrink:0;border-radius:9px;background:#fff;border:2px solid #E5E7EB;display:flex;align-items:center;justify-content:center;font-size:18px">${isBomb?'💣':'↔'}</div><div style="flex:1;display:flex;align-items:center"><b style="font-size:13px;line-height:32px">${o.name} ${o.target}</b></div></div>`; }
       return `<div style="min-height:48px;background:linear-gradient(180deg,#FEF9C3,#FDE047);border:2px solid #EAB308;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:12px"><div style="width:32px;height:32px;flex-shrink:0;border-radius:9px;background:radial-gradient(circle at 30% 30%, #FEF08A, #FACC15 30%, #CA8A04 100%);border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 14px #FACC15, inset 0 0 8px rgba(255,255,255,.9)">⚡</div><div style="flex:1;display:flex;align-items:center"><b style="font-size:13px;line-height:32px;color:#854D0E">${o.name} ${o.target}</b></div></div>`;
     }).join('');
-
-    const passBanner = hasPass ? `<div style="background:linear-gradient(135deg,#A855F7,#7E22CE);color:#fff;border-radius:12px;padding:10px;font-weight:900;font-size:12px;text-align:center;margin-bottom:10px;box-shadow:0 0 14px #A855F7">💎 WASA PASS X5 ACTIVO<br><span style="font-size:10px;font-weight:700;opacity:.9">Recompensa base x5 = ${fmt(getRewardForLevel(level.reward))} WASA (sin anuncio)</span></div>` : `<div style="background:#F5F3FF;border:1.5px dashed #A855F7;border-radius:12px;padding:8px;font-size:11px;text-align:center;margin-bottom:10px">💎 ¿Tenés WASA PASS? Multiplica x5<br><a href="/wasa-pass.html" target="_blank" style="color:#7E22CE;font-weight:900">Comprar por 5 USDT →</a></div>`;
-
+    const passBanner = hasPass ? `<div style="background:linear-gradient(135deg,#A855F7,#7E22CE);color:#fff;border-radius:12px;padding:10px;font-weight:900;font-size:12px;text-align:center;margin-bottom:10px;box-shadow:0 0 14px #A855F7">💎 WASA PASS X5 ACTIVO<br><span style="font-size:10px;font-weight:700;opacity:.9">Recompensa base x5 = ${fmt(getRewardForLevel(level.reward))} WASA</span></div>` : `<div style="background:#F5F3FF;border:1.5px dashed #A855F7;border-radius:12px;padding:8px;font-size:11px;text-align:center;margin-bottom:10px">💎 ¿Tenés WASA PASS? Multiplica x5<br><a href="/wasa-pass.html" target="_blank" style="color:#7E22CE;font-weight:900">Comprar por 5 USDT →</a></div>`;
     ui.innerHTML=`<div id="introModal" style="position:absolute;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(16px);display:grid;place-items:center;z-index:50;padding:16px">
       <div style="background:linear-gradient(180deg,#fff,#FFFBEB);border:3px solid ${isTimeLevel?'#EF4444':'#EAB308'};border-radius:22px;padding:20px;text-align:center;width:min(380px,94vw);color:#0F172A;box-shadow:0 20px 60px rgba(0,0,0,.5)">
         <div style="font-size:11px;font-weight:900;letter-spacing:.12em;opacity:.6;text-transform:uppercase">${title}</div>
@@ -472,19 +437,11 @@ export function init(container, args){
         ${passBanner}
         <div style="background:${isTimeLevel?'#FEF2F2':'#FEF9C3'};border:1.5px solid ${isTimeLevel?'#FECACA':'#FDE047'};border-radius:12px;padding:12px;margin:12px 0;font-size:13px;line-height:1.4">${desc}</div>
         <div style="display:grid;gap:8px;margin:14px 0;text-align:left">${objsHtml}</div>
-        ${hasPending?`<div style="background:#DCFCE7;border:2px solid #22C55E;border-radius:12px;padding:8px;font-size:11px;font-weight:800;margin-bottom:10px">🚀 BOOSTERS ACTIVOS: ${Object.entries(pending).filter(([k,v])=>v>0).map(([k,v])=>k+':'+v).join(', ')}</div>`:''}
-        <div style="font-size:10px;opacity:.5;margin:10px 0;letter-spacing:.02em">Tokens: ${level.activeTokens.map(t=>t.name).join(', ')}</div>
         <button id="btnStart" style="width:100%;height:52px;border-radius:14px;font-weight:900;font-size:15px;border:0;background:${isTimeLevel?'linear-gradient(135deg,#EF4444,#DC2626)':'linear-gradient(135deg,#EAB308,#CA8A04)'};color:#fff;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;gap:8px">▶ ACEPTAR Y EMPEZAR ${hasPass?'💎 X5':''}</button>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-          <button id="btnIntroHow" style="height:38px;border-radius:10px;border:1.5px solid #DDD6FE;background:#fff;font-weight:800;font-size:11px;cursor:pointer">❓ COMO JUGAR</button>
-          <button id="btnIntroShop" style="height:38px;border-radius:10px;border:1.5px solid #EAB308;background:#FFFBEB;font-weight:800;font-size:11px;cursor:pointer">🛒 BOOSTERS</button>
-        </div>
       </div>
     </div>`;
-    const btn=ui.querySelector('#btnStart'); const btnHow=ui.querySelector('#btnIntroHow'); const btnShop=ui.querySelector('#btnIntroShop');
+    const btn=ui.querySelector('#btnStart');
     if(btn){ btn.onclick=()=>{ const modal=ui.querySelector('#introModal'); if(modal) modal.remove(); applyPendingBoosters(); startGameTimer(); }; }
-    if(btnHow) btnHow.onclick=()=>showHowToPlay();
-    if(btnShop) btnShop.onclick=()=>showBoosterShop();
   }
 
   function applyPendingBoosters(){
@@ -498,7 +455,7 @@ export function init(container, args){
     draw();
   }
 
-  function startGameTimer(){ gameStarted=true; busy=false; startTime=Date.now(); SFX.levelStart(); debugInfo.textContent=`N${currentLevelNum} ${level.type==='time'?'⏰ '+level.time+'s':'🎯 '+level.moves+' movs'} ${hasPass?'💎X5':''} 💣⚡`; if(level.type==='time'){ if(timerInt) clearInterval(timerInt); timerInt=setInterval(()=>{ if(!gameStarted) return; timeLeft--; if(timeLeft<=0){ timeLeft=0; clearInterval(timerInt); checkFail(); } updateUI(); },1000); } updateUI(); }
+  function startGameTimer(){ gameStarted=true; busy=false; startTime=Date.now(); SFX.levelStart(); debugInfo.textContent=`N${currentLevelNum} ${level.type==='time'?'⏰ '+level.time+'s':'🎯 '+level.moves+' movs'} ${hasPass?'💎X5':''}`; if(level.type==='time'){ if(timerInt) clearInterval(timerInt); timerInt=setInterval(()=>{ if(!gameStarted) return; timeLeft--; if(timeLeft<=0){ timeLeft=0; clearInterval(timerInt); checkFail(); } updateUI(); },1000); } updateUI(); }
   function loadLevel(n){
     currentLevelNum=n; localStorage.setItem('wcrush_level', n);
     const activeTokens=getActiveTokensForLevel(n); level=generateLevel(n, activeTokens);
@@ -518,15 +475,22 @@ export function init(container, args){
     root.querySelector('#cScore').textContent=score; root.querySelector('#cReward').textContent='+'+fmt(totalReward).slice(0,6);
     updatePassUI();
   }
+  function buildObjMiniElement(obj){
+    const item=document.createElement('div'); item.className='cc-obj-mini'+(obj.current>=obj.target?' done':'')+(obj.type==='score'?' time':'');
+    const icon=document.createElement('div'); icon.className='cc-obj-mini-icon';
+    if(obj.type==='collect_color'){ const tok=ALL_TOKENS[obj.color]; icon.style.background=`linear-gradient(180deg, ${tok.light}, ${tok.bg})`; icon.style.border=`1.5px solid ${tok.bd}`; icon.innerHTML=''; icon.appendChild(createTokenImg(tok, tok.icon)); }
+    else { icon.style.background='#fff'; icon.textContent=obj.icon; }
+    const info=document.createElement('div'); info.className='cc-obj-mini-info'; info.innerHTML=`<div class="cc-obj-mini-name">${obj.name} ${obj.current}/${obj.target}</div><div class="cc-obj-mini-bar"><div class="cc-obj-mini-fill" style="width:${Math.min(100, obj.current/obj.target*100)}%"></div></div>`;
+    item.appendChild(icon); item.appendChild(info); return item;
+  }
   function updateObjectivesUI(){
-    const list=root.querySelector('#objList'); list.innerHTML='';
+    const list=root.querySelector('#objList');
+    const listMobile=root.querySelector('#objListMobile');
+    if(list) list.innerHTML='';
+    if(listMobile) listMobile.innerHTML='';
     level.objectives.forEach(obj=>{
-      const item=document.createElement('div'); item.className='cc-obj-mini'+(obj.current>=obj.target?' done':'')+(obj.type==='score'?' time':'');
-      const icon=document.createElement('div'); icon.className='cc-obj-mini-icon';
-      if(obj.type==='collect_color'){ const tok=ALL_TOKENS[obj.color]; icon.style.background=`linear-gradient(180deg, ${tok.light}, ${tok.bg})`; icon.style.border=`1.5px solid ${tok.bd}`; icon.innerHTML=''; icon.appendChild(createTokenImg(tok, tok.icon)); }
-      else { icon.style.background='#fff'; icon.textContent=obj.icon; }
-      const info=document.createElement('div'); info.className='cc-obj-mini-info'; info.innerHTML=`<div class="cc-obj-mini-name">${obj.name} ${obj.current}/${obj.target}</div><div class="cc-obj-mini-bar"><div class="cc-obj-mini-fill" style="width:${Math.min(100, obj.current/obj.target*100)}%"></div></div>`;
-      item.appendChild(icon); item.appendChild(info); list.appendChild(item);
+      if(list) list.appendChild(buildObjMiniElement(obj));
+      if(listMobile) listMobile.appendChild(buildObjMiniElement(obj));
     });
   }
   function draw(){
@@ -553,7 +517,7 @@ export function init(container, args){
         candy.appendChild(wrap);
         if(tok.name!=='WASA' && tok.name!=='DASH'){ candy.style.background=`linear-gradient(180deg, ${tok.light}, ${tok.bg})`; }
         const stripe=document.createElement('div'); stripe.className='stripe-line'; candy.appendChild(stripe);
-        const arrow=document.createElement('div'); arrow.className='arrow-badge'; arrow.textContent = obj.s==='h' ? '↔️' : '↕️'; candy.appendChild(arrow);
+        const arrow=document.createElement('div'); arrow.className='arrow-badge'; arrow.textContent = obj.s==='h' ? '↔' : '↕'; candy.appendChild(arrow);
       }
       else { candy.innerHTML=''; candy.appendChild(createTokenImg(tok, tok.icon)); if(tok.name!=='WASA' && tok.name!=='DASH'){ candy.style.background=`linear-gradient(180deg, ${tok.light}, ${tok.bg})`; candy.style.borderColor=tok.bd; } }
       cellEl.classList.remove('sel','matched','new'); if(sel && sel.r==r && sel.c==c) cellEl.classList.add('sel');
@@ -646,7 +610,7 @@ export function init(container, args){
     if(countAlready){ keys.forEach(k=>{ const [r,c]=k.split(',').map(Number); const col=board[r]?.[c]?.c; if(col!==undefined) level.objectives.forEach(o=>{ if(o.type==='collect_color' && o.color===col) o.current++; }); }); specialsToCreate.forEach(s=>{ if(s.type==='bomb' || s.type==='h' || s.type==='v') level.objectives.forEach(o=>{ if(o.type==='collect_special') o.current++; }); if(s.type==='color') level.objectives.forEach(o=>{ if(o.type==='collect_rainbow') o.current++; }); }); level.objectives.forEach(o=>{ if(o.type==='score') o.current=score; }); }
     keys.forEach(k=>{ const [r,c]=k.split(',').map(Number); const el=gridEl.querySelector(`[data-r="${r}"][data-c="${c}"]`); if(el){ el.classList.add('matched'); const explo=document.createElement('div'); explo.className='cc-explo'; el.appendChild(explo); } if(board[r] && board[r][c]!==undefined) board[r][c]=null; });
     score+=keys.length*10*combo*(currentLevelNum<20?1:2) + (specialsToCreate.length>0 ? 50*combo : 0);
-    if(keys.length>=3){ if(specialsToCreate.some(s=>s.type==='color')) SFX.rayo(); else if(specialsToCreate.some(s=>s.type==='bomb')) SFX.bomb(); else if(specialsToCreate.some(s=>s.type==='h'||s.type==='v')) SFX.striped(); else SFX.match(Math.max(...[3,...keys.map(k=>3)])); }
+    if(keys.length>=3){ if(specialsToCreate.some(s=>s.type==='color')) SFX.rayo(); else if(specialsToCreate.some(s=>s.type==='bomb')) SFX.bomb(); else if(specialsToCreate.some(s=>s.type==='h'||s.type==='v')) SFX.striped(); else SFX.match(3); }
     if(combo>1) SFX.combo(combo);
     if(combo>1){ const comboEl=document.createElement('div'); comboEl.className='cc-combo'; comboEl.textContent=`COMBO x${combo}!`; root.querySelector('#board').appendChild(comboEl); setTimeout(()=>comboEl.remove(),800); }
     await new Promise(r=>setTimeout(r,300)); for(let c=0;c<SZ;c++){ let write=SZ-1; for(let r=SZ-1;r>=0;r--){ if(board[r][c]!==null){ if(write!==r){ board[write][c]=board[r][c]; board[r][c]=null; } write--; } } for(let r=write;r>=0;r--) board[r][c]=makeCell(randColorFromActive(level.activeTokens)); }
@@ -661,20 +625,9 @@ export function init(container, args){
     totalReward+=finalReward; localStorage.setItem('wcrush_wasa', totalReward);
     if(score>best){ best=score; localStorage.setItem('wcrush_best',best); }
     const laughFile = laughFileFromSeq || pickRandomMeme('laugh'); const laughUrl = getMemeUrl(laughFile);
-    
-    let rewardBox = '';
-    let doubleBox = '';
-    
-    if(hasPass){
-      rewardBox = `<div style="background:linear-gradient(180deg,#DCFCE7,#86EFAC);border:2px solid #22C55E;border-radius:14px;padding:14px;margin:12px 0;font-weight:900;color:#065F46;display:flex;align-items:center;justify-content:center;gap:8px"><span style="font-size:20px">💰</span> +${fmt(finalReward)} WASA <span style="background:linear-gradient(135deg,#A855F7,#7E22CE);color:#fff;padding:3px 8px;border-radius:999px;font-size:9px;letter-spacing:.05em">💎 PASS X5</span></div>`;
-      doubleBox = `<button id="btnDouble" style="width:100%;height:44px;border-radius:14px;font-weight:900;border:2.5px solid #FACC15;background:linear-gradient(135deg,#FEF08A,#FACC15);color:#000;margin-top:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><span>📺</span> X2 = ${fmt(finalReward*2)} WASA <span style="opacity:.6;font-size:10px">→ X10</span></button>`;
-    } else {
-      rewardBox = `<div style="background:linear-gradient(180deg,#DCFCE7,#86EFAC);border:2px solid #22C55E;border-radius:14px;padding:14px;margin:12px 0;font-weight:900;color:#065F46">💰 +${fmt(finalReward)} WASA</div><div style="font-size:10px;margin:-6px 0 10px;opacity:.7">💎 <a href="/wasa-pass.html" target="_blank" style="color:#7E22CE;font-weight:800;text-decoration:none">Con PASS X5 sería ${fmt(baseReward*5)} WASA → 5 USDT</a></div>`;
-      doubleBox = `<button id="btnDouble" style="width:100%;height:44px;border-radius:14px;font-weight:900;border:2.5px solid #FACC15;background:linear-gradient(135deg,#FEF08A,#FACC15);color:#000;margin-top:8px;cursor:pointer">📺 X2 = ${fmt(finalReward*2)} WASA</button>`;
-    }
-
-    ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#FFFBEB);border:3px solid #22C55E;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#0F172A"><img src="${laughUrl}" style="width:110px;height:110px;object-fit:contain;margin:0 auto 10px;display:block;filter:drop-shadow(0 4px 12px rgba(0,0,0,.3))" onerror="this.style.display='none'"><div style="font-size:11px;font-weight:900;opacity:.6;letter-spacing:.08em">${level.type==='time'?'⏰ TIEMPO':'🎯 NIVEL'} COMPLETADO</div><div style="font-weight:900;font-size:22px;color:#065F46;margin:4px 0">¡NIVEL ${currentLevelNum}!</div>${rewardBox}<button id="btnNext" style="width:100%;height:48px;border-radius:14px;font-weight:900;border:0;background:linear-gradient(135deg,#22C55E,#16A34A);color:#fff;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.15)">SIGUIENTE NIVEL ${currentLevelNum+1}</button>${doubleBox}<button id="btnMenuAfter" style="width:100%;height:38px;border-radius:10px;border:1.5px solid #DDD6FE;background:#fff;margin-top:8px;font-weight:800;cursor:pointer">☰ MENÚ</button></div></div>`;
-    
+    let rewardBox = hasPass ? `<div style="background:linear-gradient(180deg,#DCFCE7,#86EFAC);border:2px solid #22C55E;border-radius:14px;padding:14px;margin:12px 0;font-weight:900;color:#065F46;display:flex;align-items:center;justify-content:center;gap:8px"><span style="font-size:20px">💰</span> +${fmt(finalReward)} WASA <span style="background:linear-gradient(135deg,#A855F7,#7E22CE);color:#fff;padding:3px 8px;border-radius:999px;font-size:9px">💎 PASS X5</span></div>` : `<div style="background:linear-gradient(180deg,#DCFCE7,#86EFAC);border:2px solid #22C55E;border-radius:14px;padding:14px;margin:12px 0;font-weight:900;color:#065F46">💰 +${fmt(finalReward)} WASA</div>`;
+    let doubleBox = hasPass ? `<button id="btnDouble" style="width:100%;height:44px;border-radius:14px;font-weight:900;border:2.5px solid #FACC15;background:linear-gradient(135deg,#FEF08A,#FACC15);color:#000;margin-top:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><span>📺</span> X2 = ${fmt(finalReward*2)} WASA <span style="opacity:.6;font-size:10px">→ X10</span></button>` : `<button id="btnDouble" style="width:100%;height:44px;border-radius:14px;font-weight:900;border:2.5px solid #FACC15;background:linear-gradient(135deg,#FEF08A,#FACC15);color:#000;margin-top:8px;cursor:pointer">📺 X2 = ${fmt(finalReward*2)} WASA</button>`;
+    ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#FFFBEB);border:3px solid #22C55E;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#0F172A"><img src="${laughUrl}" style="width:110px;height:110px;object-fit:contain;margin:0 auto 10px;display:block" onerror="this.style.display='none'"><div style="font-size:11px;font-weight:900;opacity:.6;letter-spacing:.08em">NIVEL COMPLETADO</div><div style="font-weight:900;font-size:22px;color:#065F46;margin:4px 0">¡NIVEL ${currentLevelNum}!</div>${rewardBox}<button id="btnNext" style="width:100%;height:48px;border-radius:14px;font-weight:900;border:0;background:linear-gradient(135deg,#22C55E,#16A34A);color:#fff;cursor:pointer">SIGUIENTE NIVEL ${currentLevelNum+1}</button>${doubleBox}<button id="btnMenuAfter" style="width:100%;height:38px;border-radius:10px;border:1.5px solid #DDD6FE;background:#fff;margin-top:8px;font-weight:800;cursor:pointer">☰ MENÚ</button></div></div>`;
     const btnNext=ui.querySelector('#btnNext'); const btnDouble=ui.querySelector('#btnDouble'); const btnMenuAfter=ui.querySelector('#btnMenuAfter');
     if(btnNext){ btnNext.onclick=()=>{ btnNext.disabled=true; btnNext.textContent='CARGANDO...'; claim(false,false).catch(()=>{}); ui.innerHTML=''; setTimeout(()=>{ currentLevelNum++; loadLevel(currentLevelNum); },100); }; }
     if(btnDouble){ btnDouble.onclick=()=>{ pendingAd='double_level'; openAd('double_level'); }; }
@@ -682,7 +635,7 @@ export function init(container, args){
   }
   function showFail(){
     gameStarted=false; busy=false; if(timerInt) clearInterval(timerInt); SFX.lose(); const isTimeLevel=level.type==='time'; const reason=isTimeLevel ? `⏰ Tiempo agotado` : `Sin movimientos`; const cryFile = pickRandomMeme('cry'); const cryUrl = getMemeUrl(cryFile);
-    ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#FEF2F2);border:3px solid #EF4444;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#0F172A"><img src="${cryUrl}" class="cc-fail-meme" style="width:130px;height:130px;object-fit:contain;margin:0 auto 12px;display:block" onerror="this.style.display='none'"><div style="font-size:40px">${isTimeLevel?'⏰':'😭'}</div><div style="font-weight:900;font-size:20px;color:#991B1B">${reason}</div><div style="font-size:12px;opacity:.7;margin:8px 0">Te faltó ${level.objectives.filter(o=>o.current<o.target).map(o=>o.name+' '+o.current+'/'+o.target).join(', ')}</div><button id="btnRetry" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:#EF4444;color:#fff;cursor:pointer">REINTENTAR</button><button id="btnSkip" style="width:100%;height:44px;border-radius:14px;border:2.5px solid #DDD6FE;background:#fff;color:#854D0E;margin-top:8px;cursor:pointer">${isTimeLevel?'VER ANUNCIO +15s':'VER ANUNCIO +5 MOVS'}</button><button id="btnFailMenu" style="width:100%;height:38px;border-radius:10px;border:1.5px solid #DDD6FE;background:#fff;margin-top:8px;font-weight:800;cursor:pointer">☰ MENÚ / TIENDA ${hasPass?'💎 X5':''}</button></div></div>`;
+    ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(15,15,26,.92);backdrop-filter:blur(14px);display:grid;place-items:center;z-index:60;padding:16px"><div style="background:linear-gradient(180deg,#fff,#FEF2F2);border:3px solid #EF4444;border-radius:22px;padding:22px;text-align:center;width:min(360px,94vw);color:#0F172A"><img src="${cryUrl}" class="cc-fail-meme" style="width:130px;height:130px;object-fit:contain;margin:0 auto 12px;display:block" onerror="this.style.display='none'"><div style="font-size:40px">${isTimeLevel?'⏰':'😭'}</div><div style="font-weight:900;font-size:20px;color:#991B1B">${reason}</div><div style="font-size:12px;opacity:.7;margin:8px 0">Te faltó ${level.objectives.filter(o=>o.current<o.target).map(o=>o.name+' '+o.current+'/'+o.target).join(', ')}</div><button id="btnRetry" style="width:100%;height:46px;border-radius:14px;font-weight:900;border:0;background:#EF4444;color:#fff;cursor:pointer">REINTENTAR</button><button id="btnSkip" style="width:100%;height:44px;border-radius:14px;border:2.5px solid #DDD6FE;background:#fff;color:#854D0E;margin-top:8px;cursor:pointer">${isTimeLevel?'VER ANUNCIO +15s':'VER ANUNCIO +5 MOVS'}</button><button id="btnFailMenu" style="width:100%;height:38px;border-radius:10px;border:1.5px solid #DDD6FE;background:#fff;margin-top:8px;font-weight:800;cursor:pointer">☰ MENÚ</button></div></div>`;
     const btnRetry=ui.querySelector('#btnRetry'); const btnSkip=ui.querySelector('#btnSkip'); const btnFailMenu=ui.querySelector('#btnFailMenu');
     if(btnRetry) btnRetry.onclick=()=>{ ui.innerHTML=''; loadLevel(currentLevelNum); };
     if(btnSkip) btnSkip.onclick=()=>openAd(isTimeLevel?'extra_time':'extra_moves');
@@ -714,7 +667,6 @@ export function init(container, args){
   root.querySelector('#btnShop').onclick=()=>showBoosterShop();
   const watcher=setInterval(()=>{ if(window.vrAd===4 && pendingAd){ const t=pendingAd; pendingAd=null; window.vrAd=0; window.vrAdType=null; (async()=>{
     if(t==='double_level'){
-      
       ui.innerHTML=`<div style="position:absolute;inset:0;background:rgba(0,0,0,.7);display:grid;place-items:center;z-index:40;color:white">Validando X2 ${hasPass?'X10':''}...</div>`;
       const res=await claim(true,true);
       if(res.ok){ totalReward+= (level.reward*passMultiplier); localStorage.setItem('wcrush_wasa', totalReward); currentLevelNum++; ui.innerHTML=''; setTimeout(()=>loadLevel(currentLevelNum),100); }
@@ -724,7 +676,6 @@ export function init(container, args){
     if(t==='extra_time'){ timeLeft+=15; gameStarted=true; busy=false; startGameTimer(); updateUI(); ui.innerHTML=''; }
   })(); } },150);
   loadLevel(currentLevelNum);
-  // check pass al inicio
   setTimeout(()=>checkWasaPass(false), 500);
   container._cleanup=()=>{ clearInterval(watcher); if(timerInt) clearInterval(timerInt); document.removeEventListener('touchmove', preventScroll); window.vrAd=0; };
 }
