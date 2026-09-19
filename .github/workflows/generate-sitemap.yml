@@ -1,0 +1,35 @@
+name: Generate Sitemap
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'games.json'
+      - 'games/**'
+  workflow_dispatch:
+
+jobs:
+  sitemap:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Generate sitemap.xml
+        run: |
+          node generate-sitemap.js
+          cat sitemap.xml
+      - name: Commit if changed
+        run: |
+          if git diff --quiet sitemap.xml; then
+            echo "No changes in sitemap"
+            exit 0
+          fi
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add sitemap.xml
+          git commit -m "auto: update sitemap.xml"
+          git push
