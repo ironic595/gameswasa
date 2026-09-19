@@ -1,45 +1,84 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<base href="/">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script>const GAME_NAME = "2048";</script>
-
 <title>2048 Game - Play Free Online | WASA GAMES</title>
 <meta name="description" content="Play 2048 online free and farm $WASA. Premium wooden puzzle.">
 <meta property="og:title" content="Play 2048 game online free and farm $wasa">
 <meta property="og:description" content="Play 2048 game online free, farm $wasa, earn crypto">
 <meta property="og:image" content="https://games.wasa.chat/img/2048.png">
+<meta property="og:image:width" content="850">
+<meta property="og:image:height" content="500">
 <meta property="og:url" content="https://games.wasa.chat/play/2048/">
+<meta property="og:type" content="website">
 <link rel="canonical" href="https://games.wasa.chat/play/2048/">
 <meta name="robots" content="index, follow">
-
+<link rel="icon" type="image/png" href="/img/founderswasa.png">
 <style>
-  body{margin:0;background:#0a0f24;color:#e2e8f0;font-family:Inter,sans-serif;display:grid;place-items:center;min-height:100vh;text-align:center}
-  .box{max-width:520px;padding:20px}
-  img{width:100%;border-radius:16px;border:2px solid rgba(56,189,248,0.3);box-shadow:0 20px 40px rgba(0,0,0,0.5)}
-  h1{font-size:28px;font-weight:900;margin:20px 0 10px}
-  p{color:#94a3b8}
-  .play{margin-top:20px;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-weight:900;padding:14px 32px;border-radius:9999px;border:0;font-size:16px;cursor:pointer}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#3b1e9e;color:#e2e8f0;font-family:Inter,system-ui,sans-serif;min-height:100vh}
+button{cursor:pointer;border:0;background:0;color:inherit;font:inherit}
+header{position:sticky;top:0;z-index:10;background:rgba(5,8,20,0.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(56,189,248,0.15);display:flex;align-items:center;gap:16px;padding:12px 20px;height:52px}
+#headerCoins{margin-left:auto;background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);color:#000;font-weight:800;border:none;box-shadow:0 0 12px rgba(251,191,36,0.3);cursor:pointer;display:flex;align-items:center;justify-content:center;height:32px;padding:0 12px;border-radius:20px;font-size:11px}
+.right{display:flex;align-items:center;gap:12px;position:relative}
+.wallet{border:1px solid rgba(56,189,248,0.3);border-radius:20px;padding:5px 12px;font-size:11px;background:linear-gradient(135deg, rgba(56,189,248,0.1), rgba(168,85,247,0.1));white-space:nowrap}
+.wallet.connected{background:linear-gradient(135deg,#38bdf8 0%,#818cf8 100%);color:#0f172a;border-color:transparent;font-weight:600}
+.user-btn{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:800;cursor:pointer;flex-shrink:0}
+.user-btn.disconnected{background:#1e293b;border:1px solid rgba(255,255,255,0.1);color:#64748b}
+.user-btn.connected{background:linear-gradient(135deg,#fbbf24,#f59e0b);border:2px solid rgba(251,191,36,0.6);color:#000}
+.user-dropdown{position:absolute;top:48px;right:0;width:180px;background:#0f172a;border:1px solid rgba(56,189,248,0.25);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.5);display:none;flex-direction:column;overflow:hidden;z-index:90}
+.user-dropdown.open{display:flex}
+.user-dropdown button{padding:12px 14px;text-align:left;font-size:12px;color:#e2e8f0}
+.logo{display:block;width:145px;height:32px;flex-shrink:0;background-image:url('/img/wasagames.png');background-repeat:no-repeat;background-size:contain;background-position:left center}
+.landing{max-width:800px;margin:0 auto;padding:32px 16px 40px;text-align:center;background:radial-gradient(ellipse at 50% 0%, rgba(79,70,229,0.25) 0%, transparent 70%), #3b1e9e;min-height:calc(100vh - 52px)}
+.landing h1{color:#fde8d0;font-size:32px;font-weight:900;letter-spacing:1px;margin:10px 0 20px;text-transform:uppercase}
+.card{position:relative;border-radius:18px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.55);border:3px solid rgba(255,255,255,0.12);background:#000;max-width:720px;margin:0 auto}
+.card img{width:100%;display:block;aspect-ratio:16/9;object-fit:cover}
+.bar{position:absolute;bottom:0;left:0;right:0;background:#1a1a1a;display:flex;align-items:center;justify-content:space-between;padding:12px 14px;gap:12px}
+.bar span{font-size:12px;font-weight:800;color:#fde8d0;text-align:left;line-height:1.15;text-transform:uppercase;letter-spacing:0.3px}
+.start{background:linear-gradient(180deg,#fbbf24,#f59e0b);color:#fff;border:0;padding:10px 28px;border-radius:8px;font-weight:900;font-size:20px;cursor:pointer;box-shadow:0 6px 16px rgba(245,158,11,0.5);flex-shrink:0}
+.seo{margin-top:18px;color:#ddd6fe;font-size:12px;line-height:1.6;max-width:640px;margin-left:auto;margin-right:auto}
+.seo a{color:#38bdf8;text-decoration:none}
+@media(max-width:700px){.landing h1{font-size:26px}}
 </style>
 </head>
 <body>
-<div class="box">
-  <img src="/img/2048.png" alt="2048">
-  <h1>2048 GAME</h1>
-  <p>The classic 2048 game online. PLAY FREE & FARM $WASA.</p>
-  <button class="play" onclick="playNow()">▶ PLAY NOW</button>
-  <p style="margin-top:20px"><a href="/" style="color:#38bdf8;font-size:12px">← Volver a la consola</a></p>
+<header>
+  <a href="/" class="logo" aria-label="Wasa Games"></a>
+  <div id="headerCoins">0 $WASA</div>
+  <div class="right">
+    <button class="wallet" id="walletBtn" onclick="handleWalletBtn && handleWalletBtn()">Connect Wallet</button>
+    <button class="user-btn disconnected" id="userBtn" onclick="handleUserBtn && handleUserBtn()">TO</button>
+    <div id="userDropdown" class="user-dropdown">
+      <button onclick="openUserProfile && openUserProfile()">👤 Datos de Usuario</button>
+      <button onclick="logoutUser && logoutUser()">🚪 Cerrar Sesión</button>
+    </div>
+  </div>
+</header>
+<div class="landing">
+  <h1>PLAY 2048</h1>
+  <div class="card">
+    <img src="/img/2048.png" alt="2048">
+    <div class="bar">
+      <span>FARM $WASA PLAYING 2048 FREE</span>
+      <button class="start" onclick="playNow()">START</button>
+    </div>
+  </div>
+  <div class="seo">
+    <p>Play 2048 online free and farm $WASA. Premium wooden puzzle. <strong>PLAY FREE & FARM $WASA</strong> - 100% onchain, no download.</p>
+    <p style="margin-top:12px"><a href="/play/">← Back to WASA Console</a></p>
+  </div>
 </div>
-
 <script>
 function playNow(){
-  // mismo sistema que tenías antes, pero ahora con click
   localStorage.setItem("nombreJuego", GAME_NAME);
   localStorage.setItem("ejecutarJuego", "1");
-  // lo mandamos a tu consola que ya arreglamos y no queda en blanco
   location.href = "/play/?game=" + GAME_NAME.toLowerCase();
 }
 </script>
+<script src="/wasa-conection.js?v=10.1"></script>
 </body>
 </html>
