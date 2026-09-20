@@ -7,18 +7,6 @@
 <meta name="description" content="Juga arcade onchain y gana $WASA. Banatron, Road Fighter y más - juega gratis en el navegador.">
 <link rel="canonical" href="https://games.wasa.chat/">
 <link rel="icon" type="image/png" href="img/founderswasa.png">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://games.wasa.chat/">
-<meta property="og:title" content="WASA Games - arcade for onchain games">
-<meta property="og:description" content="Juegos online. Farmea $WASA. 100% onchain, jugá gratis desde el navegador.">
-<meta property="og:image" content="https://games.wasa.chat/img/wasa-games.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="WASA Games - arcade for onchain games">
-<meta name="twitter:description" content="Juga online gratis y farmea $WASA. 100% onchain.">
-<meta name="twitter:image" content="https://games.wasa.chat/img/wasa-games.png">
-
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   body{background:radial-gradient(ellipse at 50% 0%, rgba(79, 70, 229, 0.15) 0%, transparent 70%), radial-gradient(ellipse at 100% 80%, rgba(245, 158, 11, 0.10) 0%, transparent 60%), linear-gradient(180deg, #2046a3 0%, #332891 40%, #315bd5 100%);color:#e2e8f0;font-family:Inter,system-ui,sans-serif;font-size:13px;line-height:1.5;overflow-x:hidden;min-height:100vh}
@@ -26,10 +14,8 @@
   header{position:sticky;top:0;z-index:10;background:rgba(5,8,20,0.75);backdrop-filter:blur(12px);border-bottom:1px solid rgba(56,189,248,0.15);display:flex;align-items:center;gap:16px;padding:12px 20px;height:52px}
   .search{flex:1;max-width:420px;margin:0 auto}
   .search input{width:100%;background:#0f172a;border:1px solid rgba(56,189,248,0.2);border-radius:8px;padding:7px 12px;color:#f8fafc;font-size:13px;outline:none}
-  .search input:focus{border-color:#38bdf8;box-shadow:0 0 12px rgba(56,189,248,0.25)}
   #headerCoins{margin-left:auto;background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);color:#000;font-weight:800;border:none;box-shadow:0 0 12px rgba(251,191,36,0.3);cursor:pointer;display:flex;align-items:center;justify-content:center;height:32px;padding:0 12px;border-radius:20px;font-size:11px;order:2}
   .right{display:flex;align-items:center;gap:12px;position:relative;margin-left:0;order:3}
-  .wallet-group{display:flex;align-items:center;gap:10px}
   .wallet{border:1px solid rgba(56,189,248,0.3);border-radius:20px;padding:5px 12px;font-size:11px;background:linear-gradient(135deg, rgba(56,189,248,0.1), rgba(168,85,247,0.1));white-space:nowrap;order:1}
   .wallet.connected{background:linear-gradient(135deg,#38bdf8 0%,#818cf8 100%);color:#0f172a;border-color:transparent;font-weight:600}
   .user-btn{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:800;cursor:pointer;transition:.2s;flex-shrink:0;order:2}
@@ -39,20 +25,15 @@
   .user-dropdown.open{display:flex}
   .user-dropdown button{padding:12px 14px;text-align:left;font-size:12px;color:#e2e8f0;transition:.15s}
   .user-dropdown button:hover{background:rgba(56,189,248,0.12)}
-  .user-dropdown button.danger{color:#f87171}
-  .user-dropdown button.danger:hover{background:rgba(248,113,113,0.12)}
   .wrap{max-width:1400px;margin:0 auto;display:flex}
   aside{width:190px;flex-shrink:0;padding:14px 12px;border-right:1px solid rgba(56,189,248,0.12);position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;justify-content:flex-start;gap:0}
   .aside-top{flex:0 0 auto;overflow:visible}
   main{flex:1;padding:20px;min-width:0}
-  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-  .subtitle{color:#cbd5e1;font-size:12px}
   .filter-title{font-size:10px;letter-spacing:0.08em;color:#94a3b8;text-transform:uppercase;margin:20px 0 8px;font-weight:600}
   .filter{display:flex;flex-direction:column;gap:4px}
   .filter button{text-align:left;padding:4px 6px;border-radius:6px;color:#94a3b8;font-size:12px}
   .filter button.active{background:linear-gradient(135deg, rgba(56,189,248,0.15), rgba(129,140,248,0.15));color:#38bdf8;border:1px solid rgba(56,189,248,0.25)}
   .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-  @media(max-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}}
   .hero-carousel{position:relative;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 100%);border:1px solid rgba(56,189,248,0.25);box-shadow:0 8px 24px rgba(0,0,0,.35);cursor:pointer}
   .hero-slide{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .6s ease;display:flex;flex-direction:column;justify-content:flex-end;padding:14px;background-size:cover;background-position:center}
   .hero-slide::before{content:'';position:absolute;inset:0;background:linear-gradient(0deg, rgba(5,8,20,0.92) 0%, rgba(5,8,20,0.4) 50%, rgba(5,8,20,0.1) 100%);z-index:1}
@@ -68,45 +49,45 @@
   .hero-pc{height:240px;flex-shrink:0;margin-top:18px;display:block;width:100%}
   .hero-pc .hero-title{font-size:13px}
   .hero-mobile{display:none}
+  /* === NUEVO BANNER PEPE - DESKTOP SIDEBAR === */
+  .sidebar-banner{margin-top:16px;border-radius:14px;overflow:hidden;border:1px solid rgba(251,191,36,0.25);background:rgba(15,23,42,0.6);box-shadow:0 8px 24px rgba(0,0,0,.3);position:relative;cursor:pointer;transition:.2s}
+  .sidebar-banner:hover{border-color:#fbbf24;transform:translateY(-2px);box-shadow:0 12px 28px rgba(251,191,36,.25)}
+  .sidebar-banner img{width:100%;height:auto;display:block;object-fit:cover;max-height:220px}
+  .sidebar-banner .banner-label{position:absolute;top:8px;left:8px;font-size:8px;font-weight:800;background:rgba(0,0,0,0.7);color:#fbbf24;padding:3px 8px;border-radius:9999px;border:1px solid rgba(251,191,36,0.3)}
+  .pepe-slide-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
   @media(max-width:700px){
     header{height:auto;padding:12px 16px;display:grid;grid-template-columns:1fr auto;grid-template-areas:"logo walletgroup" "search coins";gap:14px;align-items:center}
     .logo{grid-area:logo}
     .search{grid-area:search;max-width:none;margin:0;width:100%;order:0}
     .search input{background:#1e2a5a;border:none;height:44px;border-radius:22px;padding-left:14px}
     .right{grid-area:walletgroup;justify-self:end;display:flex;gap:8px;position:relative;margin-left:0;order:0}
-    .wallet-group{justify-self:end;display:flex;gap:8px;align-items:center}
-    #headerCoins{grid-area:coins;justify-self:end;align-self:center;height:38px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%)!important;color:#000!important;font-weight:800;border:none;box-shadow:0 0 12px rgba(251,191,36,0.3);cursor:pointer;margin-left:0;order:0}
-    #userDropdown{top:56px;right:0}
+    #headerCoins{grid-area:coins;justify-self:end;align-self:center;height:38px;display:flex}
     .wrap{flex-direction:column}
     aside{width:100%;height:auto;position:static;border-right:0;border-bottom:0;padding:0 16px 8px;background:transparent;overflow:visible;display:block}
     .aside-top{overflow:visible;display:block}
     .hero-pc{display:none!important}
+    .sidebar-banner{display:none} /* en mobile no mostramos banner lateral, solo carrusel */
     .filter-title{margin:16px 0 12px;font-size:11px;font-weight:700;color:#cbd5e1}
     .filter{flex-direction:row;gap:10px;overflow-x:auto;white-space:nowrap;padding-bottom:8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
     .filter::-webkit-scrollbar{display:none}
     .filter button{flex-shrink:0;padding:10px 18px;border-radius:14px;font-size:13px;font-weight:600;background:#2a3a7a;border:1px solid rgba(255,255,255,0.08);color:#cbd5e1}
-    .filter button.active{background:#6b8cff;color:white;border-color:#6b8cff;box-shadow:0 4px 12px rgba(107,140,255,0.3)}
+    .filter button.active{background:#6b8cff;color:white;border-color:#6b8cff}
     main{padding:12px 16px}
     .grid{grid-template-columns:1fr;gap:16px}
-    .hero-pc{display:none}
     .hero-mobile{display:block;height:172px;margin-bottom:16px}
-    .hero-mobile .hero-title{font-size:16px}
-    .hero-mobile .hero-sub{font-size:12px}
   }
   .card{border:1px solid rgba(56,189,248,0.15);border-radius:12px;overflow:hidden;background:rgba(15,23,42,0.6);backdrop-filter:blur(8px);position:relative;transition:all .2s ease;cursor:pointer}
-  .card:hover{border-color:#38bdf8;transform:translateY(-2px);box-shadow:0 8px 24px -6px rgba(56,189,248,0.3)}
+  .card:hover{border-color:#38bdf8;transform:translateY(-2px)}
   .card.live{border-color:rgba(56,189,248,0.25)}
   .thumb{aspect-ratio:16/10;background:#0b1329;display:flex;align-items:center;justify-content:center;font-size:28px;position:relative;overflow:hidden}
-  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
-  .thumb.soon{background:#070a14;color:#334155}
-  .badge{position:absolute;top:8px;left:8px;font-size:9px;letter-spacing:0.05em;padding:2px 6px;border-radius:20px;background:#050814;border:1px solid rgba(56,189,248,0.2);color:#94a3b8;z-index:2}
+  .badge{position:absolute;top:8px;left:8px;font-size:9px;padding:2px 6px;border-radius:20px;background:#050814;border:1px solid rgba(56,189,248,0.2);color:#94a3b8;z-index:2}
   .badge.live{background:linear-gradient(135deg,#38bdf8,#818cf8);color:#0f172a;font-weight:700;border:none}
   .info{padding:10px 12px}
   .title{font-size:13px;font-weight:600;text-transform:uppercase;color:#f1f5f9}
   .meta{font-size:11px;color:#94a3b8;margin-top:2px}
   .play{position:absolute;inset:0;background:rgba(5,8,20,0.85);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;opacity:0;transition:.15s;z-index:3;cursor:pointer}
   .card:hover .play{opacity:1}
-  .play span{border-radius:20px;padding:6px 14px;font-size:12px;background:linear-gradient(135deg,#38bdf8 0%,#818cf8 50%,#c084fc 100%);color:#0f172a;font-weight:700;box-shadow:0 0 16px rgba(56,189,248,0.4);cursor:pointer}
+  .play span{border-radius:20px;padding:6px 14px;font-size:12px;background:linear-gradient(135deg,#38bdf8 0%,#818cf8 50%,#c084fc 100%);color:#0f172a;font-weight:700}
   #modal{display:none;position:fixed;inset:0;z-index:50;background:rgba(3,6,16,0.95);backdrop-filter:blur(10px);flex-direction:column}
   #modal.open{display:flex}
   #modalTop{height:52px;border-bottom:1px solid rgba(56,189,248,0.2);display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:12px;flex-shrink:0;background:#0a0f24}
@@ -133,7 +114,6 @@
   .buy-opt:hover{border-color:#fbbf24}
   .buy-opt b{font-size:15px;color:#fbbf24}
   .input-wasa{width:100%;height:44px;border-radius:10px;border:1px solid rgba(56,189,248,0.2);background:#0f172a;color:white;padding:0 14px;margin-bottom:10px;outline:none}
-  .input-wasa:focus{border-color:#38bdf8}
   .btn-wasa{width:100%;height:48px;border-radius:12px;border:0;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
   .btn-wasa-primary{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000}
   .btn-wasa-secondary{background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.1)}
@@ -150,8 +130,6 @@
   .profile-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:12px}
   .profile-row b{color:#94a3b8;font-weight:500}
   .profile-row span{color:white;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  #gmLoadingText, #gmLogo{display:none}
-  /* === NEW: NUEVOS JUEGOS 12s + FOOTER - SIN TOCAR gmVideo === */
   .section-block{margin-bottom:28px}
   .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(56,189,248,0.12)}
   .section-head h2{font-size:13px;font-weight:900;color:#f8fafc;text-transform:uppercase}
@@ -189,15 +167,8 @@
   .footer-bottom{border-top:1px solid rgba(255,255,255,0.06);padding:14px 20px;display:flex;justify-content:space-between;flex-wrap:wrap;max-width:1400px;margin:0 auto}
   .footer-copy{font-size:10px;color:#64748b}
 </style>
-<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-C49F5WYWV5"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-C49F5WYWV5');
-</script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-C49F5WYWV5');</script>
 <script>
   window.vrAd=0; window.SDK_OPTIONS={gameId:"4kci7og3klgj0ivy2wz3gd9dth5e7n",onEvent:function(a){if(a.name==='SDK_GAME_PAUSE'){window._gm_shown=true;if(window.vrAd===2){window.vrAd=3;}}if(a.name==='SDK_GAME_START'||a.name==='SDK_ERROR'||a.name==='SDK_GAME_END'){if(window.vrAd===3||window.vrAd===2){window.vrAd=4;}}if(a.name==='SDK_READY'){window._gm_ready=true;}}};
   (function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(d.getElementById(id))return;js=d.createElement(s);js.id=id;js.src="https://api.gamemonetize.com/sdk.js";fjs.parentNode.insertBefore(js,fjs);})(document,"script","gamemonetize-sdk");
@@ -243,13 +214,30 @@
       <div class="hero-slide" style="background:linear-gradient(135deg,#422006 0%, #7c2d12 40%, #f59e0b 100%)">
         <div class="hero-content">
           <div class="hero-badge" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000">🔥 WASA PASS • X5 GANANCIAS</div>
-          <div class="hero-title">WASA PASS X5</div>
-          <div class="hero-sub">De 0.0003 a 0.0015 $WASA por partida. 5 USDT</div>
-          <div class="hero-cta" style="background:#fff;color:#000" onclick="window.location.href='/wasa-pass.html'">💎 Comprar por 5 USDT</div>
+          <div class="hero-title" id="heroPassTitle">WASA PASS X5</div>
+          <div class="hero-sub" id="heroPassSub">De 0.0003 a 0.0015 $WASA por partida. <span id="heroPassPrice">5 USDT</span></div>
+          <div class="hero-cta" style="background:#fff;color:#000" onclick="window.location.href='/wasa-pass.html'" id="heroPassBtn">💎 Comprar por <span id="heroPassBtnPrice">5 USDT</span></div>
         </div>
       </div>
-      <div class="hero-dots"><div class="hero-dot active" onclick="setHero(0)"></div><div class="hero-dot" onclick="setHero(1)"></div></div>
+      <!-- === NUEVO SLIDE PEPE.PNG - EDITABLE === -->
+      <div class="hero-slide" style="background:#000">
+        <img src="img/pepe.png" alt="Pepe Promo" class="pepe-slide-img" onerror="this.style.display='none'">
+        <div class="hero-content">
+          <div class="hero-badge" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000">🆕 TU IMAGEN ACA</div>
+          <div class="hero-title">Reemplazá pepe.png</div>
+          <div class="hero-sub">Subí tu imagen a /img/pepe.png - 400x240px recomendado</div>
+          <div class="hero-cta" style="background:#fff;color:#000" onclick="window.open('img/pepe.png','_blank')">🖼️ Ver imagen</div>
+        </div>
+      </div>
+      <div class="hero-dots"><div class="hero-dot active" onclick="setHero(0)"></div><div class="hero-dot" onclick="setHero(1)"></div><div class="hero-dot" onclick="setHero(2)"></div></div>
     </div>
+
+    <!-- === BANNER FIJO SIDEBAR CON PEPE.PNG - REEMPLAZABLE === -->
+    <div class="sidebar-banner" onclick="window.location.href='/wasa-pass.html'" title="Click para ir a WASA PASS - reemplazá pepe.png por tu promo">
+      <span class="banner-label">📢 ESPACIO PROMO - img/pepe.png</span>
+      <img src="img/pepe.png" alt="Pepe Banner" id="sidebarPepeImg" onerror="this.src='https://via.placeholder.com/400x240/1e293b/fbbf24?text=pepe.png+400x240'">
+    </div>
+
   </aside>
   <main>
     <div class="hero-carousel hero-mobile" id="heroMobile">
@@ -264,12 +252,22 @@
       <div class="hero-slide" style="background:linear-gradient(135deg,#422006 0%, #7c2d12 40%, #f59e0b 100%)">
         <div class="hero-content">
           <div class="hero-badge" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000">🔥 WASA PASS • X5 MULTIPLIER</div>
-          <div class="hero-title">WASA PASS X5 — 5 USDT</div>
+          <div class="hero-title" id="heroPassTitleMobile">WASA PASS X5 — <span id="heroPassPriceMobile">5 USDT</span></div>
           <div class="hero-sub">Multiplica por siempre tus recompensas X5</div>
           <div class="hero-cta" style="background:#fff;color:#000" onclick="window.location.href='/wasa-pass.html'">💎 Comprar PASS</div>
         </div>
       </div>
-      <div class="hero-dots"><div class="hero-dot active" onclick="setHero(0)"></div><div class="hero-dot" onclick="setHero(1)"></div></div>
+      <!-- PEPE EN MOBILE TAMBIEN -->
+      <div class="hero-slide" style="background:#000">
+        <img src="img/pepe.png" alt="Pepe Promo Mobile" class="pepe-slide-img" onerror="this.style.display='none'">
+        <div class="hero-content">
+          <div class="hero-badge" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000">🆕 PROMO</div>
+          <div class="hero-title">Tu imagen acá</div>
+          <div class="hero-sub">Reemplazá img/pepe.png</div>
+          <div class="hero-cta" style="background:#fff;color:#000" onclick="window.location.href='/wasa-pass.html'">Ver</div>
+        </div>
+      </div>
+      <div class="hero-dots"><div class="hero-dot active" onclick="setHero(0)"></div><div class="hero-dot" onclick="setHero(1)"></div><div class="hero-dot" onclick="setHero(2)"></div></div>
     </div>
 
     <div id="searchResults" style="display:none">
@@ -301,10 +299,10 @@
   <div class="footer-inner">
     <div class="footer-brand"><div class="logo"></div><div class="footer-desc">Juga arcade onchain y farmeá $WASA. Juegos gratis en el navegador, sin descargas. WASA PASS X5 multiplica tus ganancias x5 para siempre. En BSC, con USDT.</div><div class="footer-badges"><span class="footer-badge">⚡ BSC BEP20</span><span class="footer-badge">💰 USDT</span><span class="footer-badge">🎮 No download</span></div></div>
     <div class="footer-col"><h4>Jugar</h4><a onclick="setCat('all')">Todos</a><a onclick="setCat('arcade')">Arcade</a><a onclick="setCat('puzzle')">Puzzle</a></div>
-    <div class="footer-col"><h4>WASA</h4><a href="/wasa-pass.html">WASA PASS X5 - 5 USDT</a><button onclick="openWasaBuy()">Comprar $WASA</button><button onclick="openReferral()">Referidos 20%</button></div>
+    <div class="footer-col"><h4>WASA</h4><a href="/wasa-pass.html" id="footerPassLink">WASA PASS X5 - 5 USDT</a><button onclick="openWasaBuy()">Comprar $WASA</button><button onclick="openReferral()">Referidos 20%</button></div>
     <div class="footer-col"><h4>Soporte</h4><button onclick="openAuthEmail('register')">Crear cuenta</button><button onclick="openUserProfile()">Mi perfil</button></div>
   </div>
-  <div class="footer-bottom"><div class="footer-copy">© 2026 WASA GAMES • Play Free, Farm $WASA • v9.9 FIX ADS ORIGINAL EXACTO</div></div>
+  <div class="footer-bottom"><div class="footer-copy">© 2026 WASA GAMES • Play Free, Farm $WASA • v11 con slot pepe.png</div></div>
 </footer>
 
 <div id="modal"><div id="modalTop"><div style="display:flex;align-items:center;gap:12px"><div id="modalTitle">WASA</div><div class="pill hd" id="modalQuality">HD</div></div><div id="modalMeta"><div class="pill coins" id="modalCoins">0 $WASA</div><button onclick="shareCurrentGame()" style="border:1px solid rgba(56,189,248,0.4);border-radius:20px;padding:6px 12px;font-size:11px;background:rgba(56,189,248,0.15);color:#38bdf8;cursor:pointer" id="shareBtn">🔗 Compartir</button><button id="modalClose" onclick="closeGame()">✕ Close</button></div></div><div id="modalContainer"></div></div>
@@ -324,13 +322,15 @@
 <div id="wasaBuyModal" class="wasa-overlay" onclick="if(event.target===this) closeWasaBuy()">
   <div class="wasa-box">
     <div class="wasa-head"><b>Comprar $WASA con USDT</b><button class="wasa-close" onclick="closeWasaBuy()">✕</button></div>
-    <div style="font-size:11px;color:#94a3b8;margin-bottom:12px">Red: BSC (BEP20) • Pago con USDT</div>
+    <div style="font-size:11px;color:#94a3b8;margin-bottom:12px">Red: BSC (BEP20) • Pago con USDT • Precios D1 dinámicos</div>
     <div id="buyStatus" class="status-box"></div>
-    <div class="buy-opt" onclick="buyWasa(200)"><div><b>200 WASA</b><br><small>Pack inicial</small></div><div style="text-align:right"><b>2 USDT</b></div></div>
-    <div class="buy-opt" onclick="buyWasa(1000)"><div><b>1000 WASA</b><br><small>Más popular</small></div><div style="text-align:right"><b>10 USDT</b></div></div>
-    <div class="buy-opt" onclick="buyWasa(2000)"><div><b>2000 WASA</b><br><small>Pro gamer</small></div><div style="text-align:right"><b>19 USDT</b></div></div>
+    <div id="buyOptions">
+      <div class="buy-opt" onclick="buyWasa(200)"><div><b>200 WASA</b><br><small>Pack inicial</small></div><div style="text-align:right"><b>2 USDT</b></div></div>
+      <div class="buy-opt" onclick="buyWasa(1000)"><div><b>1000 WASA</b><br><small>Más popular</small></div><div style="text-align:right"><b>10 USDT</b></div></div>
+      <div class="buy-opt" onclick="buyWasa(2000)"><div><b>2000 WASA</b><br><small>Pro gamer</small></div><div style="text-align:right"><b>19 USDT</b></div></div>
+    </div>
     <div style="margin-top:12px"><button class="btn-wasa btn-wasa-secondary" onclick="closeWasaBuy();openWalletChooser()">🔌 Conectar otra billetera</button></div>
-    <div style="font-size:10px;color:#64748b;margin-top:10px;text-align:center" id="configFooter">USDT BSC: cargando config...</div>
+    <div style="font-size:10px;color:#64748b;margin-top:10px;text-align:center" id="configFooter">USDT BSC: cargando config D1...</div>
   </div>
 </div>
 
@@ -370,33 +370,20 @@
 </div>
 
 <script>
-// Este código debe ir en el script principal de games.wasa.chat
-
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. Obtener los valores del localStorage
     const estadoEjecutar = localStorage.getItem("ejecutarJuego");
     const juegoAGuardar = localStorage.getItem("nombreJuego");
-
-    // 2. Verificar si la variable numérica es igual a "1"
     if (estadoEjecutar === "1" && juegoAGuardar) {
-        
-        // 3. Opcional: Limpiar las variables para que no se vuelva a abrir el juego si recarga la página
         localStorage.removeItem("ejecutarJuego");
         localStorage.removeItem("nombreJuego");
-
-        // 4. Ejecutar tu función pasando el nombre del juego ("2048")
         openGame(juegoAGuardar);
     }
 });
-
-
-
- 
 let GAMES=[]; let currentCat='all'; let showAll=false;
 let heroIdx=0;
-let currentGameSlug=null; // variable con nombre del juego
+let currentGameSlug=null;
 function setHero(i){
-  heroIdx=i%2;
+  heroIdx=i%3; // AHORA 3 SLIDES CON PEPE
   document.querySelectorAll('.hero-carousel').forEach(car=>{
     const slides=car.querySelectorAll('.hero-slide');
     const dots=car.querySelectorAll('.hero-dot');
@@ -404,7 +391,7 @@ function setHero(i){
     dots.forEach((d,idx)=>d.classList.toggle('active', idx===heroIdx));
   });
 }
-setInterval(()=>{ setHero((heroIdx+1)%2); },4000);
+setInterval(()=>{ setHero((heroIdx+1)%3); },4000);
 function openReferral(){
   const code = localStorage.getItem('wasa_device_id')||'guest';
   const link = 'https://games.wasa.chat/?ref='+code.slice(-8);
@@ -457,7 +444,7 @@ function getGameSlugFromURL(){
 }
 function shareCurrentGame(){
   if(!currentGameSlug) return;
-  const shareUrl = `https://games.wasa.chat/play/${currentGameSlug}/`; // ruta del index de la carpeta play de cada juego para que utilice esos og:
+  const shareUrl = `https://games.wasa.chat/play/${currentGameSlug}/`;
   if(navigator.clipboard){
     navigator.clipboard.writeText(shareUrl).then(()=>{
       const btn=document.getElementById('shareBtn');
@@ -468,7 +455,7 @@ function shareCurrentGame(){
   }
 }
 async function openGame(slug){
-  currentGameSlug = slug; // guarda variable con nombre del juego
+  currentGameSlug = slug;
   try{
     localStorage.setItem('wasa_last_game', slug);
     sessionStorage.setItem('wasa_last_game_session', slug);
@@ -490,7 +477,7 @@ async function openGame(slug){
   container.innerHTML=`Loading ${slug}...`;
   window.vrAd=0;
   try{
-    const mod=await import(`/games/${slug}/game.js?v=9.9&t=${Date.now()}`, { cache: 'no-store' });
+    const mod=await import(`/games/${slug}/game.js?v=11&t=${Date.now()}`, { cache: 'no-store' });
     container.innerHTML='';
     if(mod.init){ mod.init(container,{quality,getCoins,addCoins,setCoins,slug}); }
   }catch(e){container.innerHTML=`No encontrado /games/${slug}/game.js - ${e.message}`;}
@@ -508,8 +495,6 @@ function closeGame(){
   history.pushState({},'',`/`);
 }
 addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeGame(); closeWalletChooser(); closeWasaBuy(); closeAuthEmail(); closeUserProfile(); const m=document.getElementById('userDropdown'); if(m) m.classList.remove('open'); }});
-
-// Al redirigir si variable de nombre del juego no esta vacia o no es x (osea si tiene el nombre de un juego), simula hacer click en uno de los juegos, para abrirlo
 addEventListener('DOMContentLoaded',()=>{
   if(!localStorage.getItem('wasa_device_id')) localStorage.setItem('wasa_device_id','dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36));
   setCoins(getCoins());
@@ -523,7 +508,6 @@ addEventListener('DOMContentLoaded',()=>{
     }catch(e){}
   }
   if(gameName && gameName!=="" && gameName!=="x"){
-    console.log('[WASA] GAME_NAME:', gameName, '-> abriendo https://games.wasa.chat/play?game='+gameName);
     const tryOpen = () => {
       if(GAMES.length>0){ openGame(gameName); }
       else { setTimeout(tryOpen, 300); }
@@ -532,7 +516,7 @@ addEventListener('DOMContentLoaded',()=>{
   }
 });
 </script>
-<script src="./wasa-conection.js?v=9.9"></script>
+<script src="./wasa-conection.js?v=11"></script>
 <div style="position: absolute; z-index: 99999">
       <input autocomplete="off" type="checkbox" id="aadsstickymtsz2s96" hidden />
       <div style="padding-top: 0; padding-bottom: auto;">
