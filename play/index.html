@@ -1,201 +1,174 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<base href="/">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wasa Games, Play Free Online $WASA farm</title>
 <meta name="description" content="Juga arcade onchain y gana $WASA. Banatron, Road Fighter y más - juega gratis en el navegador.">
-<link rel="canonical" href="https://games.wasa.chat/play/">
-<link rel="icon" type="image/png" href="/img/founderswasa.png">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://games.wasa.chat/play/">
-<meta property="og:title" content="WASA Games - arcade for onchain games">
-<meta property="og:description" content="Juegos online. Farmea $WASA. 100% onchain, jugá gratis desde el navegador.">
-<meta property="og:image" content="https://games.wasa.chat/img/wasa-games.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="WASA Games - arcade for onchain games">
-<meta name="twitter:description" content="Juga online gratis y farmea $WASA. 100% onchain.">
-<meta name="twitter:image" content="https://games.wasa.chat/img/wasa-games.png">
-
+<link rel="canonical" href="https://games.wasa.chat/">
+<link rel="icon" type="image/png" href="img/founderswasa.png">
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   body{background:radial-gradient(ellipse at 50% 0%, rgba(79, 70, 229, 0.15) 0%, transparent 70%), radial-gradient(ellipse at 100% 80%, rgba(245, 158, 11, 0.10) 0%, transparent 60%), linear-gradient(180deg, #2046a3 0%, #332891 40%, #315bd5 100%);color:#e2e8f0;font-family:Inter,system-ui,sans-serif;font-size:13px;line-height:1.5;overflow-x:hidden;min-height:100vh}
   button{cursor:pointer;border:0;background:0;color:inherit;font:inherit}
+  /* === NAV ORIGINAL 100% FUNCIONAL - SIN TOCAR === */
   header{position:sticky;top:0;z-index:10;background:rgba(5,8,20,0.75);backdrop-filter:blur(12px);border-bottom:1px solid rgba(56,189,248,0.15);display:flex;align-items:center;gap:16px;padding:12px 20px;height:52px}
- .search{flex:1;max-width:420px;margin:0 auto}
- .search input{width:100%;background:#0f172a;border:1px solid rgba(56,189,248,0.2);border-radius:8px;padding:7px 12px;color:#f8fafc;font-size:13px;outline:none}
- .search input:focus{border-color:#38bdf8;box-shadow:0 0 12px rgba(56,189,248,0.25)}
+  .search{flex:1;max-width:420px;margin:0 auto}
+  .search input{width:100%;background:#0f172a;border:1px solid rgba(56,189,248,0.2);border-radius:8px;padding:7px 12px;color:#f8fafc;font-size:13px;outline:none}
   #headerCoins{margin-left:auto;background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);color:#000;font-weight:800;border:none;box-shadow:0 0 12px rgba(251,191,36,0.3);cursor:pointer;display:flex;align-items:center;justify-content:center;height:32px;padding:0 12px;border-radius:20px;font-size:11px;order:2}
- .right{display:flex;align-items:center;gap:12px;position:relative;margin-left:0;order:3}
- .wallet-group{display:flex;align-items:center;gap:10px}
- .wallet{border:1px solid rgba(56,189,248,0.3);border-radius:20px;padding:5px 12px;font-size:11px;background:linear-gradient(135deg, rgba(56,189,248,0.1), rgba(168,85,247,0.1));white-space:nowrap;order:1}
- .wallet.connected{background:linear-gradient(135deg,#38bdf8 0%,#818cf8 100%);color:#0f172a;border-color:transparent;font-weight:600}
- .user-btn{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:800;cursor:pointer;transition:.2s;flex-shrink:0;order:2}
- .user-btn.disconnected{background:#1e293b;border:1px solid rgba(255,255,255,0.1);color:#64748b;}
- .user-btn.connected{background:linear-gradient(135deg,#fbbf24,#f59e0b);border:2px solid rgba(251,191,36,0.6);color:#000;box-shadow:0 0 14px rgba(251,191,36,0.4);}
- .user-dropdown{position:absolute;top:48px;right:0;width:180px;background:#0f172a;border:1px solid rgba(56,189,248,0.25);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.5);display:none;flex-direction:column;overflow:hidden;z-index:90}
- .user-dropdown.open{display:flex}
- .user-dropdown button{padding:12px 14px;text-align:left;font-size:12px;color:#e2e8f0;transition:.15s}
- .user-dropdown button:hover{background:rgba(56,189,248,0.12)}
- .user-dropdown button.danger{color:#f87171}
- .user-dropdown button.danger:hover{background:rgba(248,113,113,0.12)}
- .wrap{max-width:1400px;margin:0 auto;display:flex}
+  .right{display:flex;align-items:center;gap:12px;position:relative;margin-left:0;order:3}
+  .wallet{border:1px solid rgba(56,189,248,0.3);border-radius:20px;padding:5px 12px;font-size:11px;background:linear-gradient(135deg, rgba(56,189,248,0.1), rgba(168,85,247,0.1));white-space:nowrap;order:1}
+  .wallet.connected{background:linear-gradient(135deg,#38bdf8 0%,#818cf8 100%);color:#0f172a;border-color:transparent;font-weight:600}
+  .user-btn{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:800;cursor:pointer;transition:.2s;flex-shrink:0;order:2}
+  .user-btn.disconnected{background:#1e293b;border:1px solid rgba(255,255,255,0.1);color:#64748b;}
+  .user-btn.connected{background:linear-gradient(135deg,#fbbf24,#f59e0b);border:2px solid rgba(251,191,36,0.6);color:#000;box-shadow:0 0 14px rgba(251,191,36,0.4);}
+  .user-dropdown{position:absolute;top:48px;right:0;width:180px;background:#0f172a;border:1px solid rgba(56,189,248,0.25);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.5);display:none;flex-direction:column;overflow:hidden;z-index:90}
+  .user-dropdown.open{display:flex}
+  .user-dropdown button{padding:12px 14px;text-align:left;font-size:12px;color:#e2e8f0;transition:.15s}
+  .user-dropdown button:hover{background:rgba(56,189,248,0.12)}
+  .wrap{max-width:1400px;margin:0 auto;display:flex}
   aside{width:190px;flex-shrink:0;padding:14px 12px;border-right:1px solid rgba(56,189,248,0.12);position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;justify-content:flex-start;gap:0}
- .aside-top{flex:0 0 auto;overflow:visible}
+  .aside-top{flex:0 0 auto;overflow:visible}
   main{flex:1;padding:20px;min-width:0}
- .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
- .subtitle{color:#cbd5e1;font-size:12px}
- .filter-title{font-size:10px;letter-spacing:0.08em;color:#94a3b8;text-transform:uppercase;margin:20px 0 8px;font-weight:600}
- .filter{display:flex;flex-direction:column;gap:4px}
- .filter button{text-align:left;padding:4px 6px;border-radius:6px;color:#94a3b8;font-size:12px}
- .filter button.active{background:linear-gradient(135deg, rgba(56,189,248,0.15), rgba(129,140,248,0.15));color:#38bdf8;border:1px solid rgba(56,189,248,0.25)}
- .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-  @media(max-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}}
- .hero-carousel{position:relative;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 100%);border:1px solid rgba(56,189,248,0.25);box-shadow:0 8px 24px rgba(0,0,0,.35);cursor:pointer}
- .hero-slide{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity.6s ease;display:flex;flex-direction:column;justify-content:flex-end;padding:14px;background-size:cover;background-position:center}
- .hero-slide::before{content:'';position:absolute;inset:0;background:linear-gradient(0deg, rgba(5,8,20,0.92) 0%, rgba(5,8,20,0.4) 50%, rgba(5,8,20,0.1) 100%);z-index:1}
- .hero-slide.active{opacity:1;pointer-events:auto}
- .hero-content{position:relative;z-index:2}
- .hero-badge{display:inline-block;font-size:9px;letter-spacing:.08em;padding:3px 8px;border-radius:20px;background:linear-gradient(135deg,#38bdf8,#818cf8);color:#0f172a;font-weight:800;margin-bottom:6px}
- .hero-title{font-size:12px;font-weight:900;line-height:1.1;color:#fff;text-transform:uppercase;margin-bottom:3px}
- .hero-sub{font-size:11px;color:#cbd5e1;line-height:1.3;margin-bottom:8px}
- .hero-cta{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-weight:800;font-size:11px;padding:6px 12px;border-radius:20px;box-shadow:0 4px 12px rgba(251,191,36,.35)}
- .hero-dots{position:absolute;bottom:10px;right:12px;z-index:3;display:flex;gap:5px}
- .hero-dot{width:18px;height:4px;border-radius:10px;background:rgba(255,255,255,.35);transition:.3s;cursor:pointer}
- .hero-dot.active{background:#38bdf8;width:22px}
- .hero-pc{height:240px;flex-shrink:0;margin-top:18px;display:block;width:100%}
- .hero-pc.hero-title{font-size:13px}
- .hero-mobile{display:none}
+  .filter-title{font-size:10px;letter-spacing:0.08em;color:#94a3b8;text-transform:uppercase;margin:20px 0 8px;font-weight:600}
+  .filter{display:flex;flex-direction:column;gap:4px}
+  .filter button{text-align:left;padding:4px 6px;border-radius:6px;color:#94a3b8;font-size:12px}
+  .filter button.active{background:linear-gradient(135deg, rgba(56,189,248,0.15), rgba(129,140,248,0.15));color:#38bdf8;border:1px solid rgba(56,189,248,0.25)}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  /* === CARRUSEL NUEVO - FONDO IMAGEN + FULL VERTICAL === */
+  .hero-carousel{position:relative;border-radius:14px;overflow:hidden;background:#0f172a;border:1px solid rgba(56,189,248,0.25);box-shadow:0 8px 24px rgba(0,0,0,.35);cursor:pointer}
+  .hero-slide{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .6s ease;display:flex;align-items:stretch;justify-content:center;padding:0;background-size:cover;background-position:center;overflow:hidden}
+  .hero-slide.active{opacity:1;pointer-events:auto}
+  .hero-slide::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.18) 50%, rgba(0,0,0,0.32) 100%);z-index:1}
+  .hero-slide::after{display:none}
+  .hero-content{position:relative;z-index:2;width:100%;height:100%;max-width:92%;margin:0 auto;display:flex;flex-direction:column;align-items:center;text-align:center;padding:8px 6px 20px 6px}
+  .hero-top{flex:0 0 auto;width:100%;display:flex;justify-content:center;padding-top:2px}
+  .hero-middle{flex:1 1 auto;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:8px 0}
+  .hero-bottom{flex:0 0 auto;width:100%;display:flex;justify-content:center;padding-bottom:2px}
+  .hero-badge{display:inline-flex;align-items:center;justify-content:center;font-size:7.5px;letter-spacing:.06em;padding:4px 10px;border-radius:20px;font-weight:800;text-transform:uppercase;box-shadow:0 2px 8px rgba(0,0,0,0.4)}
+  .hero-title{font-size:13px;font-weight:900;line-height:1.15;color:#fff;text-transform:uppercase;text-align:center;text-shadow:0 2px 8px rgba(0,0,0,0.7),0 1px 2px rgba(0,0,0,0.9)}
+  .hero-sub{font-size:10.5px;color:#fff;line-height:1.35;text-align:center;text-shadow:0 1px 6px rgba(0,0,0,0.8);opacity:0.95}
+  .hero-cta{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:800;font-size:11px;padding:8px 16px;border-radius:20px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.45)}
+  .hero-dots{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);z-index:3;display:flex;gap:5px}
+  .hero-dot{width:14px;height:3px;border-radius:10px;background:rgba(255,255,255,.5);transition:.3s;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.6)}
+  .hero-dot.active{background:#38bdf8;width:20px}
+  .hero-pc{height:220px;flex-shrink:0;margin-top:18px;display:block;width:100%}
+  .hero-mobile{display:none}
   @media(max-width:700px){
     header{height:auto;padding:12px 16px;display:grid;grid-template-columns:1fr auto;grid-template-areas:"logo walletgroup" "search coins";gap:14px;align-items:center}
-   .logo{grid-area:logo}
-   .search{grid-area:search;max-width:none;margin:0;width:100%;order:0}
-   .search input{background:#1e2a5a;border:none;height:44px;border-radius:22px;padding-left:14px}
-   .right{grid-area:walletgroup;justify-self:end;display:flex;gap:8px;position:relative;margin-left:0;order:0}
-   .wallet-group{justify-self:end;display:flex;gap:8px;align-items:center}
-    #headerCoins{grid-area:coins;justify-self:end;align-self:center;height:38px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%)!important;color:#000!important;font-weight:800;border:none;box-shadow:0 0 12px rgba(251,191,36,0.3);cursor:pointer;margin-left:0;order:0}
-    #userDropdown{top:56px;right:0}
-   .wrap{flex-direction:column}
+    .logo{grid-area:logo}
+    .search{grid-area:search;max-width:none;margin:0;width:100%;order:0}
+    .search input{background:#1e2a5a;border:none;height:44px;border-radius:22px;padding-left:14px}
+    .right{grid-area:walletgroup;justify-self:end;display:flex;gap:8px;position:relative;margin-left:0;order:0}
+    #headerCoins{grid-area:coins;justify-self:end;align-self:center;height:38px;display:flex}
+    .wrap{flex-direction:column}
     aside{width:100%;height:auto;position:static;border-right:0;border-bottom:0;padding:0 16px 8px;background:transparent;overflow:visible;display:block}
-   .aside-top{overflow:visible;display:block}
-   .hero-pc{display:none!important}
-   .filter-title{margin:16px 0 12px;font-size:11px;font-weight:700;color:#cbd5e1}
-   .filter{flex-direction:row;gap:10px;overflow-x:auto;white-space:nowrap;padding-bottom:8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-   .filter::-webkit-scrollbar{display:none}
-   .filter button{flex-shrink:0;padding:10px 18px;border-radius:14px;font-size:13px;font-weight:600;background:#2a3a7a;border:1px solid rgba(255,255,255,0.08);color:#cbd5e1}
-   .filter button.active{background:#6b8cff;color:white;border-color:#6b8cff;box-shadow:0 4px 12px rgba(107,140,255,0.3)}
+    .aside-top{overflow:visible;display:block}
+    .hero-pc{display:none!important}
+    .filter-title{margin:16px 0 12px;font-size:11px;font-weight:700;color:#cbd5e1}
+    .filter{flex-direction:row;gap:10px;overflow-x:auto;white-space:nowrap;padding-bottom:8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+    .filter::-webkit-scrollbar{display:none}
+    .filter button{flex-shrink:0;padding:10px 18px;border-radius:14px;font-size:13px;font-weight:600;background:#2a3a7a;border:1px solid rgba(255,255,255,0.08);color:#cbd5e1}
+    .filter button.active{background:#6b8cff;color:white;border-color:#6b8cff}
     main{padding:12px 16px}
-   .grid{grid-template-columns:1fr;gap:16px}
-   .hero-pc{display:none}
-   .hero-mobile{display:block;height:172px;margin-bottom:16px}
-   .hero-mobile.hero-title{font-size:16px}
-   .hero-mobile.hero-sub{font-size:12px}
+    .grid{grid-template-columns:1fr;gap:16px}
+    .hero-mobile{display:block;height:168px;margin-bottom:16px}
+    .hero-mobile .hero-content{padding:6px 6px 18px 6px}
+    .hero-mobile .hero-middle{gap:8px}
   }
- .card{border:1px solid rgba(56,189,248,0.15);border-radius:12px;overflow:hidden;background:rgba(15,23,42,0.6);backdrop-filter:blur(8px);position:relative;transition:all.2s ease;cursor:pointer}
- .card:hover{border-color:#38bdf8;transform:translateY(-2px);box-shadow:0 8px 24px -6px rgba(56,189,248,0.3)}
- .card.live{border-color:rgba(56,189,248,0.25)}
- .thumb{aspect-ratio:16/10;background:#0b1329;display:flex;align-items:center;justify-content:center;font-size:28px;position:relative;overflow:hidden}
- .thumb img{width:100%;height:100%;object-fit:cover;display:block}
- .thumb.soon{background:#070a14;color:#334155}
- .badge{position:absolute;top:8px;left:8px;font-size:9px;letter-spacing:0.05em;padding:2px 6px;border-radius:20px;background:#050814;border:1px solid rgba(56,189,248,0.2);color:#94a3b8;z-index:2}
- .badge.live{background:linear-gradient(135deg,#38bdf8,#818cf8);color:#0f172a;font-weight:700;border:none}
- .info{padding:10px 12px}
- .title{font-size:13px;font-weight:600;text-transform:uppercase;color:#f1f5f9}
- .meta{font-size:11px;color:#94a3b8;margin-top:2px}
- .play{position:absolute;inset:0;background:rgba(5,8,20,0.85);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;opacity:0;transition:.15s;z-index:3;cursor:pointer}
- .card:hover.play{opacity:1}
- .play span{border-radius:20px;padding:6px 14px;font-size:12px;background:linear-gradient(135deg,#38bdf8 0%,#818cf8 50%,#c084fc 100%);color:#0f172a;font-weight:700;box-shadow:0 0 16px rgba(56,189,248,0.4);cursor:pointer}
+  .card{border:1px solid rgba(56,189,248,0.15);border-radius:12px;overflow:hidden;background:rgba(15,23,42,0.6);backdrop-filter:blur(8px);position:relative;transition:all .2s ease;cursor:pointer}
+  .card:hover{border-color:#38bdf8;transform:translateY(-2px)}
+  .card.live{border-color:rgba(56,189,248,0.25)}
+  .thumb{aspect-ratio:16/10;background:#0b1329;display:flex;align-items:center;justify-content:center;font-size:28px;position:relative;overflow:hidden}
+  .badge{position:absolute;top:8px;left:8px;font-size:9px;padding:2px 6px;border-radius:20px;background:#050814;border:1px solid rgba(56,189,248,0.2);color:#94a3b8;z-index:2}
+  .badge.live{background:linear-gradient(135deg,#38bdf8,#818cf8);color:#0f172a;font-weight:700;border:none}
+  .info{padding:10px 12px}
+  .title{font-size:13px;font-weight:600;text-transform:uppercase;color:#f1f5f9}
+  .meta{font-size:11px;color:#94a3b8;margin-top:2px}
+  .play{position:absolute;inset:0;background:rgba(5,8,20,0.85);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;opacity:0;transition:.15s;z-index:3;cursor:pointer}
+  .card:hover .play{opacity:1}
+  .play span{border-radius:20px;padding:6px 14px;font-size:12px;background:linear-gradient(135deg,#38bdf8 0%,#818cf8 50%,#c084fc 100%);color:#0f172a;font-weight:700}
   #modal{display:none;position:fixed;inset:0;z-index:50;background:rgba(3,6,16,0.95);backdrop-filter:blur(10px);flex-direction:column}
   #modal.open{display:flex}
   #modalTop{height:52px;border-bottom:1px solid rgba(56,189,248,0.2);display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:12px;flex-shrink:0;background:#0a0f24}
   #modalTitle{font-weight:600;font-size:13px;color:#f8fafc}
   #modalMeta{display:flex;align-items:center;gap:10px}
- .pill{border:1px solid rgba(56,189,248,0.25);border-radius:20px;padding:4px 10px;font-size:11px;background:#0f172a}
- .pill.hd{border-color:rgba(56,189,248,0.4);color:#38bdf8}
- .pill.coins{background:linear-gradient(135deg,#38bdf8 0%,#818cf8 100%);color:#0f172a;border:none;font-weight:700}
+  .pill{border:1px solid rgba(56,189,248,0.25);border-radius:20px;padding:4px 10px;font-size:11px;background:#0f172a}
+  .pill.hd{border-color:rgba(56,189,248,0.4);color:#38bdf8}
+  .pill.coins{background:linear-gradient(135deg,#38bdf8 0%,#818cf8 100%);color:#0f172a;border:none;font-weight:700}
   #modalClose{border:1px solid rgba(56,189,248,0.25);border-radius:20px;padding:6px 14px;font-size:11px;background:#0f172a;color:#e2e8f0}
   #modalContainer{flex:1;display:flex;align-items:center;justify-content:center;background:#030712;position:relative;overflow:hidden}
   #gmVideo{position:fixed;z-index:9999;background:#000;display:none}
   #gmVideo.active{display:block}
- .logo{display:block;width:145px;height:32px;flex-shrink:0;background-image:url('/img/wasagames.png');background-repeat:no-repeat;background-size:contain;background-position:left center;}
- .wasa-overlay{position:fixed;inset:0;background:rgba(3,6,16,0.3);backdrop-filter:blur(4px);z-index:80;display:none;align-items:center;justify-content:center;padding:16px}
- .wasa-overlay.open{display:flex}
- .wasa-box{width:100%;max-width:420px;background:linear-gradient(180deg,#101a2e,#0b1329);border:1px solid rgba(56,189,248,0.25);border-radius:20px;padding:20px;box-shadow:0 24px 64px rgba(0,0,0,.6)}
- .wasa-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
- .wasa-head b{font-size:14px;color:#f8fafc}
- .wasa-close{width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:#0f172a;display:grid;place-items:center;cursor:pointer}
- .wallet-opt{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid rgba(56,189,248,0.15);border-radius:14px;margin-bottom:10px;cursor:pointer;background:rgba(255,255,255,0.03)}
- .wallet-opt:hover{background:rgba(56,189,248,0.12);border-color:#38bdf8}
- .wallet-opt img{width:32px;height:32px;border-radius:8px;background:white}
- .buy-opt{display:flex;justify-content:space-between;align-items:center;padding:16px;border:1px solid rgba(251,191,36,0.2);border-radius:14px;margin-bottom:10px;cursor:pointer;background:linear-gradient(135deg,rgba(251,191,36,0.08),rgba(245,158,11,0.05))}
- .buy-opt:hover{border-color:#fbbf24}
- .buy-opt b{font-size:15px;color:#fbbf24}
- .input-wasa{width:100%;height:44px;border-radius:10px;border:1px solid rgba(56,189,248,0.2);background:#0f172a;color:white;padding:0 14px;margin-bottom:10px;outline:none}
- .input-wasa:focus{border-color:#38bdf8}
- .btn-wasa{width:100%;height:48px;border-radius:12px;border:0;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
- .btn-wasa-primary{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000}
- .btn-wasa-secondary{background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.1)}
- .status-box{font-size:11px;padding:8px 12px;border-radius:8px;margin-bottom:10px;display:none;word-break:break-all}
- .status-ok{background:#DCFCE7;color:#166534;border:1px solid #86EFAC}
- .status-err{background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5}
- .status-info{background:rgba(56,189,248,0.1);color:#38bdf8;border:1px solid rgba(56,189,248,0.2)}
- .tabs{display:flex;gap:8px;margin-bottom:16px;background:#0a0f24;padding:4px;border-radius:12px;border:1px solid rgba(56,189,248,0.15)}
- .tab{flex:1;padding:10px;border-radius:8px;text-align:center;font-weight:600;cursor:pointer;color:#94a3b8}
- .tab.active{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000}
- .forgot-link{font-size:11px;color:#38bdf8;cursor:pointer;text-decoration:underline}
- .forgot-box{display:none;margin-top:12px;padding:12px;background:rgba(0,0,0,0.3);border-radius:12px}
- .forgot-box.open{display:block}
- .profile-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:12px}
- .profile-row b{color:#94a3b8;font-weight:500}
- .profile-row span{color:white;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  #gmLoadingText, #gmLogo{display:none}
- .section-block{margin-bottom:28px}
- .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(56,189,248,0.12)}
- .section-head h2{font-size:13px;font-weight:900;color:#f8fafc;text-transform:uppercase}
- .section-head.count{font-size:11px;color:#94a3b8}
- .view-all-wrap{text-align:right;margin-top:14px}
- .view-all-link{color:#38bdf8;cursor:pointer;font-size:12px;font-weight:700;border:1px solid rgba(56,189,248,0.25);padding:6px 14px;border-radius:9999px;background:rgba(56,189,248,0.08);display:inline-flex;gap:6px}
- .section-new{background:linear-gradient(135deg, rgba(15,23,42,0.92) 0%, rgba(30,27,75,0.7) 50%, rgba(49,46,129,0.6) 100%);border:1px solid rgba(251,191,36,0.22);border-radius:20px;overflow:hidden}
- .section-new.section-head{margin:0;padding:14px 18px 12px;border-bottom:1px solid rgba(251,191,36,0.18)}
- .section-new h2{color:#fde68a}
- .new-wrapper{position:relative;overflow:hidden;height:260px;isolation:isolate}
- .new-track{display:flex;width:300%;height:100%;animation:newAuto 36s infinite linear;will-change:transform}
- .new-wrapper:hover.new-track{animation-play-state:paused}
- .new-wrapper:hover.new-progress-bar{animation-play-state:paused}
+  .logo{display:block;width:145px;height:32px;flex-shrink:0;background-image:url('/img/wasagames.png');background-repeat:no-repeat;background-size:contain;background-position:left center;}
+  .wasa-overlay{position:fixed;inset:0;background:rgba(3,6,16,0.3);backdrop-filter:blur(4px);z-index:80;display:none;align-items:center;justify-content:center;padding:16px}
+  .wasa-overlay.open{display:flex}
+  .wasa-box{width:100%;max-width:420px;background:linear-gradient(180deg,#101a2e,#0b1329);border:1px solid rgba(56,189,248,0.25);border-radius:20px;padding:20px;box-shadow:0 24px 64px rgba(0,0,0,.6)}
+  .wasa-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+  .wasa-head b{font-size:14px;color:#f8fafc}
+  .wasa-close{width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:#0f172a;display:grid;place-items:center;cursor:pointer}
+  .wallet-opt{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid rgba(56,189,248,0.15);border-radius:14px;margin-bottom:10px;cursor:pointer;background:rgba(255,255,255,0.03)}
+  .wallet-opt:hover{background:rgba(56,189,248,0.12);border-color:#38bdf8}
+  .wallet-opt img{width:32px;height:32px;border-radius:8px;background:white}
+  .buy-opt{display:flex;justify-content:space-between;align-items:center;padding:16px;border:1px solid rgba(251,191,36,0.2);border-radius:14px;margin-bottom:10px;cursor:pointer;background:linear-gradient(135deg,rgba(251,191,36,0.08),rgba(245,158,11,0.05))}
+  .buy-opt:hover{border-color:#fbbf24}
+  .buy-opt b{font-size:15px;color:#fbbf24}
+  .input-wasa{width:100%;height:44px;border-radius:10px;border:1px solid rgba(56,189,248,0.2);background:#0f172a;color:white;padding:0 14px;margin-bottom:10px;outline:none}
+  .btn-wasa{width:100%;height:48px;border-radius:12px;border:0;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+  .btn-wasa-primary{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000}
+  .btn-wasa-secondary{background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.1)}
+  .status-box{font-size:11px;padding:8px 12px;border-radius:8px;margin-bottom:10px;display:none;word-break:break-all}
+  .status-ok{background:#DCFCE7;color:#166534;border:1px solid #86EFAC}
+  .status-err{background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5}
+  .status-info{background:rgba(56,189,248,0.1);color:#38bdf8;border:1px solid rgba(56,189,248,0.2)}
+  .tabs{display:flex;gap:8px;margin-bottom:16px;background:#0a0f24;padding:4px;border-radius:12px;border:1px solid rgba(56,189,248,0.15)}
+  .tab{flex:1;padding:10px;border-radius:8px;text-align:center;font-weight:600;cursor:pointer;color:#94a3b8}
+  .tab.active{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000}
+  .forgot-link{font-size:11px;color:#38bdf8;cursor:pointer;text-decoration:underline}
+  .forgot-box{display:none;margin-top:12px;padding:12px;background:rgba(0,0,0,0.3);border-radius:12px}
+  .forgot-box.open{display:block}
+  .profile-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:12px}
+  .profile-row b{color:#94a3b8;font-weight:500}
+  .profile-row span{color:white;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .section-block{margin-bottom:28px}
+  .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(56,189,248,0.12)}
+  .section-head h2{font-size:13px;font-weight:900;color:#f8fafc;text-transform:uppercase}
+  .section-head .count{font-size:11px;color:#94a3b8}
+  .view-all-wrap{text-align:right;margin-top:14px}
+  .view-all-link{color:#38bdf8;cursor:pointer;font-size:12px;font-weight:700;border:1px solid rgba(56,189,248,0.25);padding:6px 14px;border-radius:9999px;background:rgba(56,189,248,0.08);display:inline-flex;gap:6px}
+  .section-new{background:linear-gradient(135deg, rgba(15,23,42,0.92) 0%, rgba(30,27,75,0.7) 50%, rgba(49,46,129,0.6) 100%);border:1px solid rgba(251,191,36,0.22);border-radius:20px;overflow:hidden}
+  .section-new .section-head{margin:0;padding:14px 18px 12px;border-bottom:1px solid rgba(251,191,36,0.18)}
+  .section-new h2{color:#fde68a}
+  .new-wrapper{position:relative;overflow:hidden;height:260px;isolation:isolate}
+  .new-track{display:flex;width:300%;height:100%;animation:newAuto 36s infinite linear;will-change:transform}
+  .new-wrapper:hover .new-track{animation-play-state:paused}
+  .new-wrapper:hover .new-progress-bar{animation-play-state:paused}
   @keyframes newAuto{0%{transform:translateX(0)}30.55%{transform:translateX(0)}33.33%{transform:translateX(-33.3333%)}63.88%{transform:translateX(-33.3333%)}66.66%{transform:translateX(-66.6666%)}97.22%{transform:translateX(-66.6666%)}100%{transform:translateX(0)}}
- .new-slide{flex:0 0 33.3333%;display:grid;grid-template-columns:38% 62%;background:linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(30,27,75,0.6) 100%)}
- .new-thumb{position:relative;background:#0b1329;overflow:hidden}
- .new-thumb img{width:100%;height:100%;object-fit:cover;display:block}
- .new-badge{position:absolute;top:12px;left:12px;z-index:2;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-weight:900;font-size:9px;padding:4px 10px;border-radius:9999px}
- .new-content{padding:18px 20px;display:flex;flex-direction:column;justify-content:center;gap:6px}
- .new-cat{font-size:9px;text-transform:uppercase;color:#fbbf24;font-weight:800}
- .new-title{font-size:19px;font-weight:900;color:#fff;text-transform:uppercase;line-height:1.1}
- .new-desc{font-size:11.5px;color:#cbd5e1;line-height:1.45;margin:4px 0 8px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
- .new-cta{display:inline-flex;background:#fff;color:#0f172a;font-weight:900;font-size:11px;padding:9px 18px;border-radius:9999px;width:fit-content;cursor:pointer}
- .new-progress{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.08)}
- .new-progress-bar{height:100%;width:0;background:linear-gradient(90deg,#fbbf24,#f59e0b);animation:newProg 12s linear infinite}
+  .new-slide{flex:0 0 33.3333%;display:grid;grid-template-columns:38% 62%;background:linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(30,27,75,0.6) 100%)}
+  .new-thumb{position:relative;background:#0b1329;overflow:hidden}
+  .new-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .new-badge{position:absolute;top:12px;left:12px;z-index:2;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-weight:900;font-size:9px;padding:4px 10px;border-radius:9999px}
+  .new-content{padding:18px 20px;display:flex;flex-direction:column;justify-content:center;gap:6px}
+  .new-cat{font-size:9px;text-transform:uppercase;color:#fbbf24;font-weight:800}
+  .new-title{font-size:19px;font-weight:900;color:#fff;text-transform:uppercase;line-height:1.1}
+  .new-desc{font-size:11.5px;color:#cbd5e1;line-height:1.45;margin:4px 0 8px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .new-cta{display:inline-flex;background:#fff;color:#0f172a;font-weight:900;font-size:11px;padding:9px 18px;border-radius:9999px;width:fit-content;cursor:pointer}
+  .new-progress{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.08)}
+  .new-progress-bar{height:100%;width:0;background:linear-gradient(90deg,#fbbf24,#f59e0b);animation:newProg 12s linear infinite}
   @keyframes newProg{0%{width:0}100%{width:100%}}
   @media(max-width:700px){.new-wrapper{height:auto;overflow:visible}.new-track{width:100%;flex-direction:column;animation:none}.new-slide{grid-template-columns:1fr;grid-template-rows:180px auto}}
   footer.wasa-footer{background:rgba(5,8,20,0.85);backdrop-filter:blur(12px);border-top:1px solid rgba(56,189,248,0.15);margin-top:32px;padding:0}
- .footer-inner{max-width:1400px;margin:0 auto;padding:28px 20px 20px;display:grid;grid-template-columns:1.4fr 0.8fr 0.8fr 0.9fr;gap:28px}
- .footer-desc{font-size:11px;color:#94a3b8;line-height:1.5;max-width:320px}
- .footer-col h4{font-size:11px;font-weight:800;text-transform:uppercase;color:#f8fafc;margin-bottom:12px}
- .footer-col a,.footer-col button{display:block;text-align:left;font-size:11px;color:#94a3b8;padding:4px 0;text-decoration:none}
- .footer-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
- .footer-badge{font-size:9px;padding:4px 8px;border-radius:20px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:#94a3b8}
- .footer-bottom{border-top:1px solid rgba(255,255,255,0.06);padding:14px 20px;display:flex;justify-content:space-between;flex-wrap:wrap;max-width:1400px;margin:0 auto}
- .footer-copy{font-size:10px;color:#64748b}
+  .footer-inner{max-width:1400px;margin:0 auto;padding:28px 20px 20px;display:grid;grid-template-columns:1.4fr 0.8fr 0.8fr 0.9fr;gap:28px}
+  .footer-desc{font-size:11px;color:#94a3b8;line-height:1.5;max-width:320px}
+  .footer-col h4{font-size:11px;font-weight:800;text-transform:uppercase;color:#f8fafc;margin-bottom:12px}
+  .footer-col a, .footer-col button{display:block;text-align:left;font-size:11px;color:#94a3b8;padding:4px 0;text-decoration:none}
+  .footer-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .footer-badge{font-size:9px;padding:4px 8px;border-radius:20px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:#94a3b8}
+  .footer-bottom{border-top:1px solid rgba(255,255,255,0.06);padding:14px 20px;display:flex;justify-content:space-between;flex-wrap:wrap;max-width:1400px;margin:0 auto}
+  .footer-copy{font-size:10px;color:#64748b}
 </style>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-C49F5WYWV5"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-C49F5WYWV5');
-</script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-C49F5WYWV5');</script>
 <script>
   window.vrAd=0; window.SDK_OPTIONS={gameId:"4kci7og3klgj0ivy2wz3gd9dth5e7n",onEvent:function(a){if(a.name==='SDK_GAME_PAUSE'){window._gm_shown=true;if(window.vrAd===2){window.vrAd=3;}}if(a.name==='SDK_GAME_START'||a.name==='SDK_ERROR'||a.name==='SDK_GAME_END'){if(window.vrAd===3||window.vrAd===2){window.vrAd=4;}}if(a.name==='SDK_READY'){window._gm_ready=true;}}};
   (function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(d.getElementById(id))return;js=d.createElement(s);js.id=id;js.src="https://api.gamemonetize.com/sdk.js";fjs.parentNode.insertBefore(js,fjs);})(document,"script","gamemonetize-sdk");
@@ -229,21 +202,26 @@
         <button data-cat="strategy" onclick="setCat('strategy')">Strategy</button>
       </div>
     </div>
+    <!-- === CARRUSEL FIX FINAL - NAV OK + FULL VERTICAL + FONDO CLARO === -->
     <div class="hero-carousel hero-pc" id="heroPc">
-      <div class="hero-slide active" style="background:linear-gradient(135deg,#0f172a 0%, #1e1b4b 50%, #312e81 100%)">
+      <div class="hero-slide active" style="background-image: url('img/fondotoken.png'); background-color: #0f172a;">
         <div class="hero-content">
-          <div class="hero-badge" style="background:linear-gradient(135deg,#22c55e,#16a34a)">👥 REFERIDOS • 20% COMISIÓN</div>
-          <div class="hero-title">Invitá amigos y ganá $WASA</div>
-          <div class="hero-sub">20% de todo lo que farmeen ellos, para siempre</div>
-          <div class="hero-cta" onclick="openReferral()">🔗 Mi link de referido</div>
+          <div class="hero-top"><div class="hero-badge" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff">💰 REFERIDOS - 20% COMISIÓN</div></div>
+          <div class="hero-middle">
+            <div class="hero-title">INVITÁ AMIGOS Y<br>GANÁ $WASA</div>
+            <div class="hero-sub">20% de todo lo que farmeen ellos,<br>para siempre</div>
+          </div>
+          <div class="hero-bottom"><div class="hero-cta" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff" onclick="openReferral()">🔗 Mi link de referido</div></div>
         </div>
       </div>
-      <div class="hero-slide" style="background:linear-gradient(135deg,#422006 0%, #7c2d12 40%, #f59e0b 100%)">
+      <div class="hero-slide" style="background-image: url('img/fondopass.png'); background-color: #422006;">
         <div class="hero-content">
-          <div class="hero-badge" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000">🔥 WASA PASS • X5 GANANCIAS</div>
-          <div class="hero-title">WASA PASS X5</div>
-          <div class="hero-sub">De 0.0003 a 0.0015 $WASA por partida. 5 USDT</div>
-          <div class="hero-cta" style="background:#fff;color:#000" onclick="window.location.href='/wasa-pass.html'">💎 Comprar por 5 USDT</div>
+          <div class="hero-top"><div class="hero-badge" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000">🔥 WASA PASS • X5 GANANCIAS</div></div>
+          <div class="hero-middle">
+            <div class="hero-title" id="heroPassTitle">WASA PASS X5</div>
+            <div class="hero-sub" id="heroPassSub">De 0.0003 a 0.0015 $WASA<br>por partida. <span id="heroPassPrice">5 USDT</span></div>
+          </div>
+          <div class="hero-bottom"><div class="hero-cta" style="background:#fff;color:#000" onclick="window.location.href='/wasa-pass.html'" id="heroPassBtn">💎 Comprar por <span id="heroPassBtnPrice">5 USDT</span></div></div>
         </div>
       </div>
       <div class="hero-dots"><div class="hero-dot active" onclick="setHero(0)"></div><div class="hero-dot" onclick="setHero(1)"></div></div>
@@ -251,261 +229,76 @@
   </aside>
   <main>
     <div class="hero-carousel hero-mobile" id="heroMobile">
-      <div class="hero-slide active" style="background:linear-gradient(135deg,#0f172a 0%, #1e1b4b 50%, #312e81 100%)">
+      <div class="hero-slide active" style="background-image: url('img/fondotoken.png'); background-color: #0f172a;">
         <div class="hero-content">
-          <div class="hero-badge" style="background:linear-gradient(135deg,#22c55e,#16a34a)">👥 REFERIDOS • 20% COMISIÓN</div>
-          <div class="hero-title">Invitá amigos y ganá $WASA de por vida</div>
-          <div class="hero-sub">Compartí tu link y ganá 20% de lo que farmeen</div>
-          <div class="hero-cta" onclick="openReferral()">🔗 Mi link</div>
+          <div class="hero-top"><div class="hero-badge" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff">💰 REFERIDOS - 20% COMISIÓN</div></div>
+          <div class="hero-middle"><div class="hero-title">INVITÁ AMIGOS Y<br>GANÁ $WASA</div><div class="hero-sub">20% de todo lo que farmeen ellos,<br>para siempre</div></div>
+          <div class="hero-bottom"><div class="hero-cta" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff" onclick="openReferral()">🔗 Mi link</div></div>
         </div>
       </div>
-      <div class="hero-slide" style="background:linear-gradient(135deg,#422006 0%, #7c2d12 40%, #f59e0b 100%)">
+      <div class="hero-slide" style="background-image: url('img/fondopass.png'); background-color: #422006;">
         <div class="hero-content">
-          <div class="hero-badge" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000">🔥 WASA PASS • X5 MULTIPLIER</div>
-          <div class="hero-title">WASA PASS X5 — 5 USDT</div>
-          <div class="hero-sub">Multiplica por siempre tus recompensas X5</div>
-          <div class="hero-cta" style="background:#fff;color:#000" onclick="window.location.href='/wasa-pass.html'">💎 Comprar PASS</div>
+          <div class="hero-top"><div class="hero-badge" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000">🔥 WASA PASS • X5</div></div>
+          <div class="hero-middle"><div class="hero-title" id="heroPassTitleMobile">WASA PASS X5<br><span id="heroPassPriceMobile">5 USDT</span></div><div class="hero-sub">Multiplica por siempre<br>tus recompensas X5</div></div>
+          <div class="hero-bottom"><div class="hero-cta" style="background:#fff;color:#000" onclick="window.location.href='/wasa-pass.html'">💎 Comprar PASS</div></div>
         </div>
       </div>
       <div class="hero-dots"><div class="hero-dot active" onclick="setHero(0)"></div><div class="hero-dot" onclick="setHero(1)"></div></div>
     </div>
-
-    <div id="searchResults" style="display:none">
-      <div class="section-block">
-        <div class="section-head"><h2>🔍 RESULTADOS</h2><span class="count" id="searchCount"></span></div>
-        <div class="grid" id="searchGrid"></div>
-      </div>
-    </div>
-
+    <div id="searchResults" style="display:none"><div class="section-block"><div class="section-head"><h2>🔍 RESULTADOS</h2><span class="count" id="searchCount"></span></div><div class="grid" id="searchGrid"></div></div></div>
     <div id="indexContent">
-      <div id="newSection" class="section-block section-new" style="display:none">
-        <div class="section-head"><h2>🆕 NUEVOS JUEGOS</h2><span class="count">12s por juego • pausa al hover</span></div>
-        <div class="new-wrapper" id="newWrapper">
-          <div class="new-track" id="newTrack"></div>
-          <div class="new-progress"><div class="new-progress-bar"></div></div>
-        </div>
-      </div>
-
-      <div id="allSection" class="section-block">
-        <div class="section-head"><h2>🎮 TODOS LOS JUEGOS</h2><span class="count" id="count">Loading...</span></div>
-        <div class="grid" id="grid"></div>
-        <div class="view-all-wrap" id="viewAllWrap" style="display:none"><a class="view-all-link" onclick="showAllGames()">VER TODOS LOS JUEGOS →</a></div>
-      </div>
+      <div id="newSection" class="section-block section-new" style="display:none"><div class="section-head"><h2>🆕 NUEVOS JUEGOS</h2><span class="count">12s por juego • pausa al hover</span></div><div class="new-wrapper" id="newWrapper"><div class="new-track" id="newTrack"></div><div class="new-progress"><div class="new-progress-bar"></div></div></div></div>
+      <div id="allSection" class="section-block"><div class="section-head"><h2>🎮 TODOS LOS JUEGOS</h2><span class="count" id="count">Loading...</span></div><div class="grid" id="grid"></div><div class="view-all-wrap" id="viewAllWrap" style="display:none"><a class="view-all-link" onclick="showAllGames()">VER TODOS LOS JUEGOS →</a></div></div>
     </div>
   </main>
 </div>
-
-<footer class="wasa-footer">
-  <div class="footer-inner">
-    <div class="footer-brand"><div class="logo"></div><div class="footer-desc">Juga arcade onchain y farmeá $WASA. Juegos gratis en el navegador, sin descargas. WASA PASS X5 multiplica tus ganancias x5 para siempre. En BSC, con USDT.</div><div class="footer-badges"><span class="footer-badge">⚡ BSC BEP20</span><span class="footer-badge">💰 USDT</span><span class="footer-badge">🎮 No download</span></div></div>
-    <div class="footer-col"><h4>Jugar</h4><a onclick="setCat('all')">Todos</a><a onclick="setCat('arcade')">Arcade</a><a onclick="setCat('puzzle')">Puzzle</a></div>
-    <div class="footer-col"><h4>WASA</h4><a href="/wasa-pass.html">WASA PASS X5 - 5 USDT</a><button onclick="openWasaBuy()">Comprar $WASA</button><button onclick="openReferral()">Referidos 20%</button></div>
-    <div class="footer-col"><h4>Soporte</h4><button onclick="openAuthEmail('register')">Crear cuenta</button><button onclick="openUserProfile()">Mi perfil</button></div>
-  </div>
-  <div class="footer-bottom"><div class="footer-copy">© 2026 WASA GAMES • Play Free, Farm $WASA • v9.9 FIX PLAY FOLDER</div></div>
-</footer>
-
+<footer class="wasa-footer"><div class="footer-inner"><div class="footer-brand"><div class="logo"></div><div class="footer-desc">Juga arcade onchain y farmeá $WASA. Juegos gratis en el navegador, sin descargas. WASA PASS X5 multiplica tus ganancias x5 para siempre. En BSC, con USDT.</div><div class="footer-badges"><span class="footer-badge">⚡ BSC BEP20</span><span class="footer-badge">💰 USDT</span><span class="footer-badge">🎮 No download</span></div></div><div class="footer-col"><h4>Jugar</h4><a onclick="setCat('all')">Todos</a><a onclick="setCat('arcade')">Arcade</a><a onclick="setCat('puzzle')">Puzzle</a></div><div class="footer-col"><h4>WASA</h4><a href="/wasa-pass.html" id="footerPassLink">WASA PASS X5 - 5 USDT</a><button onclick="openWasaBuy()">Comprar $WASA</button><button onclick="openReferral()">Referidos 20%</button></div><div class="footer-col"><h4>Soporte</h4><button onclick="openAuthEmail('register')">Crear cuenta</button><button onclick="openUserProfile()">Mi perfil</button></div></div><div class="footer-bottom"><div class="footer-copy">© 2026 WASA GAMES • v18 NAV FIX + FULL VERTICAL + FONDO CLARO</div></div></footer>
 <div id="modal"><div id="modalTop"><div style="display:flex;align-items:center;gap:12px"><div id="modalTitle">WASA</div><div class="pill hd" id="modalQuality">HD</div></div><div id="modalMeta"><div class="pill coins" id="modalCoins">0 $WASA</div><button onclick="shareCurrentGame()" style="border:1px solid rgba(56,189,248,0.4);border-radius:20px;padding:6px 12px;font-size:11px;background:rgba(56,189,248,0.15);color:#38bdf8;cursor:pointer" id="shareBtn">🔗 Compartir</button><button id="modalClose" onclick="closeGame()">✕ Close</button></div></div><div id="modalContainer"></div></div>
-
-<div id="walletChooser" class="wasa-overlay" onclick="if(event.target===this) closeWalletChooser()">
-  <div class="wasa-box">
-    <div class="wasa-head"><b>Conectar billetera</b><button class="wasa-close" onclick="closeWalletChooser()">✕</button></div>
-    <div id="walletConnectedInfo" class="status-box status-info" style="display:none"></div>
-    <div class="wallet-opt" onclick="connectWith('metamask')"><img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg"><div><b>MetaMask</b></div></div>
-    <div class="wallet-opt" onclick="connectWith('trust')"><img src="https://trustwallet.com/assets/images/media/assets/trust_platform.svg"><div><b>Trust Wallet</b></div></div>
-    <div class="wallet-opt" onclick="connectWith('rabby')"><img src="https://rabby.io/assets/images/logo.png"><div><b>Rabby</b></div></div>
-    <div class="wallet-opt" onclick="connectWith('okx')"><img src="https://static.okx.com/cdn/assets/imgs/221/6FEEB1A3C4A6B5A.png"><div><b>OKX Wallet</b></div></div>
-    <div class="wallet-opt" onclick="openAuthEmail()"><div style="width:32px;height:32px;border-radius:8px;background:#0f172a;display:grid;place-items:center">📧</div><div><b>Email / Contraseña</b></div></div>
-  </div>
-</div>
-
-<div id="wasaBuyModal" class="wasa-overlay" onclick="if(event.target===this) closeWasaBuy()">
-  <div class="wasa-box">
-    <div class="wasa-head"><b>Comprar $WASA con USDT</b><button class="wasa-close" onclick="closeWasaBuy()">✕</button></div>
-    <div style="font-size:11px;color:#94a3b8;margin-bottom:12px">Red: BSC (BEP20) • Pago con USDT</div>
-    <div id="buyStatus" class="status-box"></div>
-    <div class="buy-opt" onclick="buyWasa(200)"><div><b>200 WASA</b><br><small>Pack inicial</small></div><div style="text-align:right"><b>2 USDT</b></div></div>
-    <div class="buy-opt" onclick="buyWasa(1000)"><div><b>1000 WASA</b><br><small>Más popular</small></div><div style="text-align:right"><b>10 USDT</b></div></div>
-    <div class="buy-opt" onclick="buyWasa(2000)"><div><b>2000 WASA</b><br><small>Pro gamer</small></div><div style="text-align:right"><b>19 USDT</b></div></div>
-    <div style="margin-top:12px"><button class="btn-wasa btn-wasa-secondary" onclick="closeWasaBuy();openWalletChooser()">🔌 Conectar otra billetera</button></div>
-    <div style="font-size:10px;color:#64748b;margin-top:10px;text-align:center" id="configFooter">USDT BSC: cargando config...</div>
-  </div>
-</div>
-
-<div id="authModal" class="wasa-overlay">
-  <div class="wasa-box">
-    <div class="wasa-head"><b>Mi Cuenta</b><button class="wasa-close" onclick="closeAuthEmail()">✕</button></div>
-    <div class="tabs"><div id="tabLogin" class="tab active" onclick="switchAuthTab('login')">Entrar</div><div id="tabRegister" class="tab" onclick="switchAuthTab('register')">Crear cuenta</div></div>
-    <div id="loginForm"><input id="authEmail" class="input-wasa" placeholder="Email"><input id="authPass" class="input-wasa" type="password" placeholder="Contraseña"><span class="forgot-link" onclick="openForgot()">¿Olvidaste tu contraseña?</span><div id="authStatus" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="doLogin()">Entrar</button><div id="forgotBox" class="forgot-box"><div id="forgotStep1"><input id="forgotEmail" class="input-wasa" placeholder="Tu email"><div id="forgotStatus" class="status-box"></div><button class="btn-wasa btn-wasa-secondary" onclick="requestPasswordReset()">Enviar código</button></div><div id="forgotStep2" style="display:none"><input id="forgotCode" class="input-wasa" placeholder="Código 6 dígitos" maxlength="6"><input id="forgotNewPass" class="input-wasa" type="password" placeholder="Nueva contraseña"><button class="btn-wasa btn-wasa-primary" onclick="verifyPasswordReset()">Cambiar contraseña</button></div></div></div>
-    <div id="registerForm" style="display:none"><input id="authEmailReg" class="input-wasa" placeholder="Email"><input id="authPassReg" class="input-wasa" type="password" placeholder="Contraseña"><input id="authNickReg" class="input-wasa" placeholder="Apodo"><div id="authStatusReg" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="doRegister()">Crear cuenta</button></div>
-  </div>
-</div>
-
-<div id="userProfileModal" class="wasa-overlay" onclick="if(event.target===this) closeUserProfile()">
-  <div class="wasa-box">
-    <div class="wasa-head"><b>👤 Mi Perfil</b><button class="wasa-close" onclick="closeUserProfile()">✕</button></div>
-    <div style="text-align:center;margin-bottom:16px"><div style="width:72px;height:72px;margin:0 auto;border-radius:50%;border:3px solid #fbbf24;background:linear-gradient(135deg,#fbbf24,#f59e0b);display:grid;place-items:center;font-size:32px">👤</div><div id="profileDisplayName" style="margin-top:8px;font-weight:700;color:#fbbf24;font-size:14px">Invitado</div></div>
-    <div class="profile-row"><b>Email</b><span id="profileEmail">No logeado</span></div>
-    <div class="profile-row"><b>Wallet</b><span id="profileWallet">No conectada</span></div>
-    <div class="profile-row"><b>$WASA</b><span id="profileCoins">0</span></div>
-    <div style="margin-top:10px"><label style="font-size:11px;color:#94a3b8">Wallets linkeadas</label><div id="profileWalletsList" style="background:rgba(0,0,0,0.2);border-radius:8px;padding:6px 10px;margin-top:4px"></div></div>
-    <div style="margin-top:16px"><label style="font-size:11px;color:#94a3b8">Apodo</label><input id="profileNickname" class="input-wasa" placeholder="Tu apodo" maxlength="20"><div id="profileStatus" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="saveProfile()">💾 Guardar apodo</button><button class="btn-wasa btn-wasa-secondary" style="margin-top:8px" onclick="logoutUser()">🚪 Cerrar Sesión</button></div>
-  </div>
-</div>
-
-<div id="verifyEmailModal" class="wasa-overlay">
-  <div class="wasa-box">
-    <div class="wasa-head"><b>✉ Verifica tu email</b><button class="wasa-close" onclick="closeVerifyModal()">✕</button></div>
-    <div style="padding:12px 0">
-      <p style="font-size:12px;color:#cbd5e1;margin-bottom:8px">Enviamos un código de 6 dígitos a <b id="verifyEmailLabel" style="color:#fbbf24">tu email</b></p>
-      <p style="font-size:10px;color:#64748b;margin-bottom:12px">Revisá spam. Expira en 15 min.</p>
-      <input id="verifyCodeInput" class="input-wasa" placeholder="Código 6 dígitos" maxlength="6" style="letter-spacing:4px;text-align:center;font-size:18px;font-weight:800">
-      <div id="verifyStatus" class="status-box"></div>
-      <button class="btn-wasa btn-wasa-primary" onclick="doVerifyEmail()">✅ Verificar y activar cuenta</button>
-      <button class="btn-wasa btn-wasa-secondary" style="margin-top:8px" onclick="resendVerifyCode()">📨 Reenviar código</button>
-    </div>
-  </div>
-</div>
-
+<div id="walletChooser" class="wasa-overlay" onclick="if(event.target===this) closeWalletChooser()"><div class="wasa-box"><div class="wasa-head"><b>Conectar billetera</b><button class="wasa-close" onclick="closeWalletChooser()">✕</button></div><div id="walletConnectedInfo" class="status-box status-info" style="display:none"></div><div class="wallet-opt" onclick="connectWith('metamask')"><img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg"><div><b>MetaMask</b></div></div><div class="wallet-opt" onclick="connectWith('trust')"><img src="/img/trust.webp"><div><b>Trust Wallet</b></div></div><div class="wallet-opt" onclick="connectWith('rabby')"><img src="/img/rabby.svg"><div><b>Rabby</b></div></div><div class="wallet-opt" onclick="connectWith('okx')"><img src="/img/okx.png"><div><b>OKX Wallet</b></div></div><div class="wallet-opt" onclick="openAuthEmail()"><div style="width:32px;height:32px;border-radius:8px;background:#0f172a;display:grid;place-items:center">📧</div><div><b>Email / Contraseña</b></div></div></div></div>
+<div id="wasaBuyModal" class="wasa-overlay" onclick="if(event.target===this) closeWasaBuy()"><div class="wasa-box"><div class="wasa-head"><b>Comprar $WASA con USDT</b><button class="wasa-close" onclick="closeWasaBuy()">✕</button></div><div style="font-size:11px;color:#94a3b8;margin-bottom:12px">Red: BSC (BEP20) • Pago con USDT • Precios D1 dinámicos</div><div id="buyStatus" class="status-box"></div><div id="buyOptions"></div><div style="margin-top:12px"><button class="btn-wasa btn-wasa-secondary" onclick="closeWasaBuy();openWalletChooser()">🔌 Conectar otra billetera</button></div><div style="font-size:10px;color:#64748b;margin-top:10px;text-align:center" id="configFooter">USDT BSC: cargando config D1...</div></div></div>
+<div id="authModal" class="wasa-overlay"><div class="wasa-box"><div class="wasa-head"><b>Mi Cuenta</b><button class="wasa-close" onclick="closeAuthEmail()">✕</button></div><div class="tabs"><div id="tabLogin" class="tab active" onclick="switchAuthTab('login')">Entrar</div><div id="tabRegister" class="tab" onclick="switchAuthTab('register')">Crear cuenta</div></div><div id="loginForm"><input id="authEmail" class="input-wasa" placeholder="Email"><input id="authPass" class="input-wasa" type="password" placeholder="Contraseña"><span class="forgot-link" onclick="openForgot()">¿Olvidaste tu contraseña?</span><div id="authStatus" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="doLogin()">Entrar</button><div id="forgotBox" class="forgot-box"><div id="forgotStep1"><input id="forgotEmail" class="input-wasa" placeholder="Tu email"><div id="forgotStatus" class="status-box"></div><button class="btn-wasa btn-wasa-secondary" onclick="requestPasswordReset()">Enviar código</button></div><div id="forgotStep2" style="display:none"><input id="forgotCode" class="input-wasa" placeholder="Código 6 dígitos" maxlength="6"><input id="forgotNewPass" class="input-wasa" type="password" placeholder="Nueva contraseña"><button class="btn-wasa btn-wasa-primary" onclick="verifyPasswordReset()">Cambiar contraseña</button></div></div></div><div id="registerForm" style="display:none"><input id="authEmailReg" class="input-wasa" placeholder="Email"><input id="authPassReg" class="input-wasa" type="password" placeholder="Contraseña"><input id="authNickReg" class="input-wasa" placeholder="Apodo"><div id="authStatusReg" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="doRegister()">Crear cuenta</button></div></div></div>
+<div id="userProfileModal" class="wasa-overlay" onclick="if(event.target===this) closeUserProfile()"><div class="wasa-box"><div class="wasa-head"><b>👤 Mi Perfil</b><button class="wasa-close" onclick="closeUserProfile()">✕</button></div><div style="text-align:center;margin-bottom:16px"><div style="width:72px;height:72px;margin:0 auto;border-radius:50%;border:3px solid #fbbf24;background:linear-gradient(135deg,#fbbf24,#f59e0b);display:grid;place-items:center;font-size:32px">👤</div><div id="profileDisplayName" style="margin-top:8px;font-weight:700;color:#fbbf24;font-size:14px">Invitado</div></div><div class="profile-row"><b>Email</b><span id="profileEmail">No logeado</span></div><div class="profile-row"><b>Wallet</b><span id="profileWallet">No conectada</span></div><div class="profile-row"><b>$WASA</b><span id="profileCoins">0</span></div><div style="margin-top:10px"><label style="font-size:11px;color:#94a3b8">Wallets linkeadas</label><div id="profileWalletsList" style="background:rgba(0,0,0,0.2);border-radius:8px;padding:6px 10px;margin-top:4px"></div></div><div style="margin-top:16px"><label style="font-size:11px;color:#94a3b8">Apodo</label><input id="profileNickname" class="input-wasa" placeholder="Tu apodo" maxlength="20"><div id="profileStatus" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="saveProfile()">💾 Guardar apodo</button><button class="btn-wasa btn-wasa-secondary" style="margin-top:8px" onclick="logoutUser()">🚪 Cerrar Sesión</button></div></div></div>
+<div id="verifyEmailModal" class="wasa-overlay"><div class="wasa-box"><div class="wasa-head"><b>✉ Verifica tu email</b><button class="wasa-close" onclick="closeVerifyModal()">✕</button></div><div style="padding:12px 0"><p style="font-size:12px;color:#cbd5e1;margin-bottom:8px">Enviamos un código de 6 dígitos a <b id="verifyEmailLabel" style="color:#fbbf24">tu email</b></p><p style="font-size:10px;color:#64748b;margin-bottom:12px">Revisá spam. Expira en 15 min.</p><input id="verifyCodeInput" class="input-wasa" placeholder="Código 6 dígitos" maxlength="6" style="letter-spacing:4px;text-align:center;font-size:18px;font-weight:800"><div id="verifyStatus" class="status-box"></div><button class="btn-wasa btn-wasa-primary" onclick="doVerifyEmail()">✅ Verificar y activar cuenta</button><button class="btn-wasa btn-wasa-secondary" style="margin-top:8px" onclick="resendVerifyCode()">📨 Reenviar código</button></div></div></div>
 <script>
-let GAMES=[]; let currentCat='all'; let showAll=false;
-let heroIdx=0;
-let currentGameSlug=null;
-function setHero(i){
-  heroIdx=i%2;
-  document.querySelectorAll('.hero-carousel').forEach(car=>{
-    const slides=car.querySelectorAll('.hero-slide');
-    const dots=car.querySelectorAll('.hero-dot');
-    slides.forEach((s,idx)=>s.classList.toggle('active', idx===heroIdx));
-    dots.forEach((d,idx)=>d.classList.toggle('active', idx===heroIdx));
-  });
-}
-setInterval(()=>{ setHero((heroIdx+1)%2); },4000);
-function openReferral(){
-  const code = localStorage.getItem('wasa_device_id')||'guest';
-  const link = 'https://games.wasa.chat/?ref='+code.slice(-8);
-  prompt('Tu link de referido (20% comisión):', link);
-}
-function fmtWASA(n){ const v=parseFloat(n)||0; if(v===0) return '0'; if(v<0.001) return v.toFixed(6).replace(/0+$/,'').replace(/\.$/,''); if(v<1) return (Math.round(v*1000000)/1000000).toString(); return (Math.round(v*1000)/1000).toString(); }
-function getCoins(){ return window.getCoins? window.getCoins() : parseFloat(localStorage.getItem('wasa_coins')||'0'); }
-function setCoins(n){ return window.setCoins? window.setCoins(n) : localStorage.setItem('wasa_coins',n); }
-function addCoins(n){ return window.addCoins? window.addCoins(n) : setCoins(getCoins()+n); }
-function setCoinsUI(n){ return window.setCoinsUI? window.setCoinsUI(n) : null; }
+document.addEventListener("DOMContentLoaded", () => {
+    const estadoEjecutar = localStorage.getItem("ejecutarJuego");
+    const juegoAGuardar = localStorage.getItem("nombreJuego");
+    if (estadoEjecutar === "1" && juegoAGuardar) {
+        localStorage.removeItem("ejecutarJuego");
+        localStorage.removeItem("nombreJuego");
+        openGame(juegoAGuardar);
+    }
+});
+let GAMES=[]; let currentCat='all'; let showAll=false; let heroIdx=0; let currentGameSlug=null;
+function setHero(i){heroIdx=i%2;document.querySelectorAll('.hero-carousel').forEach(car=>{const slides=car.querySelectorAll('.hero-slide');const dots=car.querySelectorAll('.hero-dot');slides.forEach((s,idx)=>s.classList.toggle('active',idx===heroIdx));dots.forEach((d,idx)=>d.classList.toggle('active',idx===heroIdx));});}
+setInterval(()=>{setHero((heroIdx+1)%2);},4000);
+function openReferral(){const code=localStorage.getItem('wasa_device_id')||'guest';const link='https://games.wasa.chat/?ref='+code.slice(-8);prompt('Tu link de referido (20% comisión):',link);}
+function fmtWASA(n){const v=parseFloat(n)||0;if(v===0)return'0';if(v<0.001)return v.toFixed(6).replace(/0+$/,'').replace(/\.$/,'');if(v<1)return(Math.round(v*1000000)/1000000).toString();return(Math.round(v*1000)/1000).toString();}
+function getCoins(){return window.getCoins?window.getCoins():parseFloat(localStorage.getItem('wasa_coins')||'0');}
+function setCoins(n){return window.setCoins?window.setCoins(n):localStorage.setItem('wasa_coins',n);}
+function addCoins(n){return window.addCoins?window.addCoins(n):setCoins(getCoins()+n);}
+function setCoinsUI(n){return window.setCoinsUI?window.setCoinsUI(n):null;}
 function setCat(cat){currentCat=cat;document.querySelectorAll('#catFilter button').forEach(b=>b.classList.toggle('active',b.dataset.cat===cat));renderGrid();}
 function filterGames(){renderGrid();}
 function gameCardHTML(g){return `<div class="card ${g.live?'live':''}" onclick="openGame('${g.slug}')"><div class="thumb"><img src="/img/${g.slug}.png" alt="${g.title}" loading="lazy" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;z-index:1"><span class="badge ${g.live?'live':''}">${g.live?'LIVE':'SOON'}</span></div><div class="info"><div class="title">${g.title}</div><div class="meta"><span>${(g.cat||'').split(' ')[0]}</span></div></div><div class="play"><span>Play Now</span></div></div>`;}
 function getDesc(g){const d={'ruzzle-bubble':'¡Explota burbujas con la rana más divertida! Puzzle arcade rápido.','2048-madera':'El clásico 2048 con estilo madera premium.','ahorcado':'Adiviná la palabra oculta con IA.','banatron-revelation':'Laberinto neón arcade puro.'};return d[g.slug]||`Juga ${g.title} gratis y gana $WASA.`;}
-function renderNewCarousel(){const track=document.getElementById('newTrack');const section=document.getElementById('newSection');if(!GAMES.length){if(section) section.style.display='none';return;}const lastThree=[...GAMES].slice(-3).reverse();if(!lastThree.length||!track){if(section) section.style.display='none';return;}section.style.display='block';track.innerHTML=lastThree.map((g)=>`<div class="new-slide"><div class="new-thumb"><span class="new-badge">🆕 NUEVO</span><img src="/img/${g.slug}.png" alt="${g.title}" loading="lazy"></div><div class="new-content"><div class="new-cat">${g.cat||'puzzle'} • recién agregado</div><h3 class="new-title">${g.title}</h3><p class="new-desc">${getDesc(g)}</p><button class="new-cta" onclick="openGame('${g.slug}')">▶ JUGAR AHORA</button></div></div>`).join('');}
-async function loadGames(){ try{const r=await fetch('/games.json?t='+Date.now());GAMES=await r.json();}catch(e){GAMES=[{slug:'ruzzle-bubble',title:'RUZZLE BUBBLE',cat:'puzzle',live:true},{slug:'2048-madera',title:'2048 GAME',cat:'puzzle',live:true},{slug:'ahorcado',title:'AHORCADO',cat:'puzzle',live:true},{slug:'banatron-revelation',title:'BANATRON REVELATION',cat:'arcade',live:true}];} renderNewCarousel(); renderGrid(); }
-function showAllGames(){showAll=true; renderGrid(); const el=document.getElementById('viewAllWrap'); if(el) el.style.display='none';}
-function renderGrid(){
-  const q=(document.getElementById('q').value||'').toLowerCase().trim();
-  const isSearching = q!=='' || currentCat!=='all';
-  const searchResultsEl=document.getElementById('searchResults');
-  const indexContentEl=document.getElementById('indexContent');
-  const gridEl=document.getElementById('grid');
-  const searchGridEl=document.getElementById('searchGrid');
-  const countEl=document.getElementById('count');
-  const searchCountEl=document.getElementById('searchCount');
-  const viewAllWrapEl=document.getElementById('viewAllWrap');
-  const filtered=GAMES.filter(g=>{
-    const mq=!q||g.slug.includes(q)||g.title.toLowerCase().includes(q)||(g.cat||'').includes(q);
-    const mc=currentCat==='all'||(g.cat||'').includes(currentCat);
-    return mq&&mc;
-  });
-  if(isSearching){
-    if(indexContentEl) indexContentEl.style.display='none';
-    if(searchResultsEl) searchResultsEl.style.display='block';
-    if(searchCountEl) searchCountEl.textContent=filtered.length+' GAMES';
-    if(searchGridEl) searchGridEl.innerHTML=filtered.map(g=>gameCardHTML(g)).join('') || '<div style="color:#94a3b8;padding:20px">No se encontraron juegos</div>';
-    return;
-  }
-  if(searchResultsEl) searchResultsEl.style.display='none';
-  if(indexContentEl) indexContentEl.style.display='block';
-  if(countEl) countEl.textContent=GAMES.length+' GAMES';
-  const toShow = showAll? filtered : filtered.slice(0,15);
-  if(gridEl) gridEl.innerHTML=toShow.map(g=>gameCardHTML(g)).join('');
-  if(viewAllWrapEl) viewAllWrapEl.style.display = (!showAll && filtered.length>15)? 'block' : 'none';
-}
-function getGameSlugFromURL(){
-  const p = new URLSearchParams(location.search).get('game');
-  return p? p.trim().toLowerCase() : "";
-}
-function shareCurrentGame(){
-  if(!currentGameSlug) return;
-  const shareUrl = `https://games.wasa.chat/play/${currentGameSlug}/`;
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(shareUrl).then(()=>{
-      const btn=document.getElementById('shareBtn');
-      const old=btn.textContent; btn.textContent='✅ Copiado!'; setTimeout(()=>btn.textContent=old,1500);
-    });
-  } else {
-    prompt('Copia el link (tiene og:image):', shareUrl);
-  }
-}
-async function openGame(slug){
-  currentGameSlug = slug;
-  try{
-    localStorage.setItem('wasa_last_game', slug);
-    sessionStorage.setItem('wasa_last_game_session', slug);
-    sessionStorage.setItem('wasa_in_game', '1');
-  }catch(e){}
-  const modal=document.getElementById('modal');
-  const container=document.getElementById('modalContainer');
-  const titleEl=document.getElementById('modalTitle');
-  const qualityEl=document.getElementById('modalQuality');
-  const isLow=(navigator.deviceMemory||4)<=2; const isMob=innerWidth<900;
-  const quality=isLow||isMob?'lite':'hd';
-  const game=GAMES.find(g=>g.slug===slug);
-  titleEl.textContent=(game?.title||slug).toUpperCase();
-  qualityEl.textContent=quality.toUpperCase();
-  setCoins(getCoins());
-  modal.classList.add('open');
-  document.body.style.overflow='hidden';
-  history.pushState({},'',`/play/?game=${slug}`);
-  container.innerHTML=`Loading ${slug}...`;
-  window.vrAd=0;
-  try{
-    const mod=await import(`/games/${slug}/game.js?v=9.9&t=${Date.now()}`);
-    container.innerHTML='';
-    if(mod.init){ mod.init(container,{quality,getCoins,addCoins,setCoins,slug}); }
-  }catch(e){container.innerHTML=`No encontrado /games/${slug}/game.js - ${e.message}`;}
-}
-function closeGame(){
-  document.getElementById('modal').classList.remove('open');
-  document.getElementById('modalContainer').innerHTML='';
-  document.body.style.overflow='';
-  currentGameSlug=null;
-  try{
-    localStorage.removeItem('wasa_last_game');
-    sessionStorage.removeItem('wasa_last_game_session');
-    sessionStorage.removeItem('wasa_in_game');
-  }catch(e){}
-  history.pushState({},'',`/play/`);
-}
-addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeGame(); closeWalletChooser(); closeWasaBuy(); closeAuthEmail(); closeUserProfile(); const m=document.getElementById('userDropdown'); if(m) m.classList.remove('open'); }});
-
-addEventListener('DOMContentLoaded',()=>{
-  if(!localStorage.getItem('wasa_device_id')) localStorage.setItem('wasa_device_id','dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36));
-  setCoins(getCoins());
-  loadGames();
-  let gameName = getGameSlugFromURL();
-  if(!gameName){
-    try{
-      const last=sessionStorage.getItem('wasa_last_game_session');
-      const was=sessionStorage.getItem('wasa_in_game');
-      if(was==='1' && last && last!=="" && last!=="x") gameName=last;
-    }catch(e){}
-  }
-  if(gameName && gameName!=="" && gameName!=="x"){
-    const tryOpen = () => {
-      if(GAMES.length>0){ openGame(gameName); }
-      else { setTimeout(tryOpen, 300); }
-    };
-    setTimeout(tryOpen, 600);
-  }
-});
+function renderNewCarousel(){const track=document.getElementById('newTrack');const section=document.getElementById('newSection');if(!GAMES.length){if(section)section.style.display='none';return;}const lastThree=[...GAMES].slice(-3).reverse();if(!lastThree.length||!track){if(section)section.style.display='none';return;}section.style.display='block';track.innerHTML=lastThree.map((g)=>`<div class="new-slide"><div class="new-thumb"><span class="new-badge">🆕 NUEVO</span><img src="/img/${g.slug}.png" alt="${g.title}" loading="lazy"></div><div class="new-content"><div class="new-cat">${g.cat||'puzzle'} • recién agregado</div><h3 class="new-title">${g.title}</h3><p class="new-desc">${getDesc(g)}</p><button class="new-cta" onclick="openGame('${g.slug}')">▶ JUGAR AHORA</button></div></div>`).join('');}
+async function loadGames(){try{const r=await fetch('/games.json?t='+Date.now());GAMES=await r.json();}catch(e){GAMES=[{slug:'ruzzle-bubble',title:'RUZZLE BUBBLE',cat:'puzzle',live:true},{slug:'2048-madera',title:'2048 GAME',cat:'puzzle',live:true},{slug:'ahorcado',title:'AHORCADO',cat:'puzzle',live:true},{slug:'banatron-revelation',title:'BANATRON REVELATION',cat:'arcade',live:true}];}renderNewCarousel();renderGrid();}
+function showAllGames(){showAll=true;renderGrid();const el=document.getElementById('viewAllWrap');if(el)el.style.display='none';}
+function renderGrid(){const q=(document.getElementById('q').value||'').toLowerCase().trim();const isSearching=q!==''||currentCat!=='all';const searchResultsEl=document.getElementById('searchResults');const indexContentEl=document.getElementById('indexContent');const gridEl=document.getElementById('grid');const searchGridEl=document.getElementById('searchGrid');const countEl=document.getElementById('count');const searchCountEl=document.getElementById('searchCount');const viewAllWrapEl=document.getElementById('viewAllWrap');const filtered=GAMES.filter(g=>{const mq=!q||g.slug.includes(q)||g.title.toLowerCase().includes(q)||(g.cat||'').includes(q);const mc=currentCat==='all'||(g.cat||'').includes(currentCat);return mq&&mc;});if(isSearching){if(indexContentEl)indexContentEl.style.display='none';if(searchResultsEl)searchResultsEl.style.display='block';if(searchCountEl)searchCountEl.textContent=filtered.length+' GAMES';if(searchGridEl)searchGridEl.innerHTML=filtered.map(g=>gameCardHTML(g)).join('')||'<div style="color:#94a3b8;padding:20px">No se encontraron juegos</div>';return;}if(searchResultsEl)searchResultsEl.style.display='none';if(indexContentEl)indexContentEl.style.display='block';if(countEl)countEl.textContent=GAMES.length+' GAMES';const toShow=showAll?filtered:filtered.slice(0,15);if(gridEl)gridEl.innerHTML=toShow.map(g=>gameCardHTML(g)).join('');if(viewAllWrapEl)viewAllWrapEl.style.display=(!showAll&&filtered.length>15)?'block':'none';}
+function getGameSlugFromURL(){const p=new URLSearchParams(location.search).get('game');return p?p.trim().toLowerCase():"";}
+function shareCurrentGame(){if(!currentGameSlug)return;const shareUrl=`https://games.wasa.chat/play/${currentGameSlug}/`;if(navigator.clipboard){navigator.clipboard.writeText(shareUrl).then(()=>{const btn=document.getElementById('shareBtn');const old=btn.textContent;btn.textContent='✅ Copiado!';setTimeout(()=>btn.textContent=old,1500);});}else{prompt('Copia el link (tiene og:image):',shareUrl);}}
+async function openGame(slug){currentGameSlug=slug;try{localStorage.setItem('wasa_last_game',slug);sessionStorage.setItem('wasa_last_game_session',slug);sessionStorage.setItem('wasa_in_game','1');}catch(e){}const modal=document.getElementById('modal');const container=document.getElementById('modalContainer');const titleEl=document.getElementById('modalTitle');const qualityEl=document.getElementById('modalQuality');const isLow=(navigator.deviceMemory||4)<=2;const isMob=innerWidth<900;const quality=isLow||isMob?'lite':'hd';const game=GAMES.find(g=>g.slug===slug);titleEl.textContent=(game?.title||slug).toUpperCase();qualityEl.textContent=quality.toUpperCase();setCoins(getCoins());modal.classList.add('open');document.body.style.overflow='hidden';history.pushState({},'',`/play?game=${slug}`);container.innerHTML=`Loading ${slug}...`;window.vrAd=0;try{const mod=await import(`/games/${slug}/game.js?v=18&t=${Date.now()}`,{cache:'no-store'});container.innerHTML='';if(mod.init){mod.init(container,{quality,getCoins,addCoins,setCoins,slug});}}catch(e){container.innerHTML=`No encontrado /games/${slug}/game.js - ${e.message}`;}}
+function closeGame(){document.getElementById('modal').classList.remove('open');document.getElementById('modalContainer').innerHTML='';document.body.style.overflow='';currentGameSlug=null;try{localStorage.removeItem('wasa_last_game');sessionStorage.removeItem('wasa_last_game_session');sessionStorage.removeItem('wasa_in_game');}catch(e){}history.pushState({},'',`/}`);}
+function handleWalletBtn(){if(typeof openWalletChooser==='function')openWalletChooser();}
+function handleUserBtn(){const dd=document.getElementById('userDropdown');if(dd)dd.classList.toggle('open');}
+function openUserProfile(){const dd=document.getElementById('userDropdown');if(dd)dd.classList.remove('open');if(typeof window.openUserProfileModal==='function')window.openUserProfileModal(); else {const m=document.getElementById('userProfileModal'); if(m)m.classList.add('open');}}
+function closeUserProfile(){const m=document.getElementById('userProfileModal'); if(m)m.classList.remove('open');}
+function logoutUser(){if(typeof window.logoutUserImpl==='function')window.logoutUserImpl(); else {localStorage.clear(); location.reload();}}
+addEventListener('keydown',e=>{if(e.key==='Escape'){closeGame();const wc=document.getElementById('walletChooser'); if(wc)wc.classList.remove('open'); const wb=document.getElementById('wasaBuyModal'); if(wb)wb.classList.remove('open'); const am=document.getElementById('authModal'); if(am)am.classList.remove('open'); closeUserProfile(); const m=document.getElementById('userDropdown'); if(m)m.classList.remove('open');}});
+addEventListener('DOMContentLoaded',()=>{if(!localStorage.getItem('wasa_device_id'))localStorage.setItem('wasa_device_id','dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36));if(typeof setCoins==='function')setCoins(getCoins());loadGames();let gameName=getGameSlugFromURL();if(!gameName){try{const last=sessionStorage.getItem('wasa_last_game_session');const was=sessionStorage.getItem('wasa_in_game');if(was==='1'&&last&&last!==""&&last!=="x")gameName=last;}catch(e){}}if(gameName&&gameName!==""&&gameName!=="x"){const tryOpen=()=>{if(GAMES.length>0){openGame(gameName);}else{setTimeout(tryOpen,300);}};setTimeout(tryOpen,600);}});
+document.addEventListener('click',e=>{const dd=document.getElementById('userDropdown'); const ub=document.getElementById('userBtn'); if(dd&&ub&&!dd.contains(e.target)&&!ub.contains(e.target)){dd.classList.remove('open');}});
 </script>
-<script src="/wasa-conection.js?v=9.9"></script>
+<script src="./wasa-conection.js?v=18"></script>
 </body>
 </html>
