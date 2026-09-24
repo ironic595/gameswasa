@@ -19,10 +19,10 @@
 <link rel="icon" type="image/png" href="/img/founderswasa.png">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#3b1e9e;color:#e2e8f0;font-family:Inter,system-ui,sans-serif;min-height:100vh}
+body{background:#3b1e9e;color:#e2e8f0;font-family:Inter,system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
 .top{height:48px;background:#121212;display:flex;align-items:center;padding:0 16px}
 .logo{display:block;width:145px;height:32px;background-image:url('/img/wasagames.png');background-repeat:no-repeat;background-size:contain;background-position:left center}
-.landing{max-width:800px;margin:0 auto;padding:32px 16px 40px;text-align:center;background:radial-gradient(ellipse at 50% 0%, rgba(79,70,229,0.25) 0%, transparent 70%), #3b1e9e;min-height:calc(100vh - 48px)}
+.landing{max-width:800px;margin:0 auto;padding:32px 16px 40px;text-align:center;background:radial-gradient(ellipse at 50% 0%, rgba(79,70,229,0.25) 0%, transparent 70%), #3b1e9e;flex:1;width:100%}
 .landing h1{color:#fde8d0;font-size:34px;font-weight:900;letter-spacing:1px;margin:10px 0 22px;text-transform:uppercase}
 .card{position:relative;border-radius:18px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.55);border:3px solid rgba(255,255,255,0.12);background:#000;max-width:720px;margin:0 auto}
 .card img{width:100%;display:block;aspect-ratio:16/9;object-fit:cover}
@@ -31,41 +31,34 @@ body{background:#3b1e9e;color:#e2e8f0;font-family:Inter,system-ui,sans-serif;min
 .start{background:linear-gradient(180deg,#fbbf24,#f59e0b);color:#fff;border:0;padding:10px 28px;border-radius:8px;font-weight:900;font-size:20px;cursor:pointer;box-shadow:0 6px 16px rgba(245,158,11,0.5)}
 .seo{margin-top:18px;color:#ddd6fe;font-size:12px;line-height:1.6;max-width:640px;margin-left:auto;margin-right:auto}
 .seo a{color:#38bdf8;text-decoration:none}
- .seo-content-block {
-    max-width: 720px;
-    margin: 40px auto 20px;
-    text-align: left;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 24px;
-  }
-  .seo-content-block h2 {
-    color: #fde8d0;
-    font-size: 20px;
-    font-weight: 800;
-    margin-bottom: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  .seo-content-block p {
-    color: #cbd5e1;
-    font-size: 14px;
-    line-height: 1.6;
-    margin-bottom: 14px;
-  }
-  .seo-content-block p:last-child {
-    margin-bottom: 0;
-  }
-  .seo-content-block strong {
-    color: #fbbf24;
-    font-weight: 700;
-  }  
-@media(max-width:700px){.landing h1{font-size:26px}}
+.seo-content-block{max-width:720px;margin:40px auto 20px;text-align:left;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:24px}
+.seo-content-block h2{color:#fde8d0;font-size:20px;font-weight:800;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px}
+.seo-content-block p{color:#cbd5e1;font-size:14px;line-height:1.6;margin-bottom:14px}
+.seo-content-block p:last-child{margin-bottom:0}
+.seo-content-block strong{color:#fbbf24;font-weight:700}
+
+/* FOOTER FROM SECOND PAGE */
+footer.wasa-footer{background:rgba(5,8,20,0.85);backdrop-filter:blur(12px);border-top:1px solid rgba(56,189,248,0.15);margin-top:32px;padding:0}
+.footer-inner{max-width:1400px;margin:0 auto;padding:28px 20px 20px;display:grid;grid-template-columns:1.4fr 0.8fr 0.8fr 0.9fr;gap:28px}
+.footer-desc{font-size:11px;color:#94a3b8;line-height:1.5;max-width:320px}
+.footer-col h4{font-size:11px;font-weight:800;text-transform:uppercase;color:#f8fafc;margin-bottom:12px}
+.footer-col a, .footer-col button{display:block;text-align:left;font-size:11px;color:#94a3b8;padding:4px 0;text-decoration:none;background:none;border:0;cursor:pointer;font-family:inherit}
+.footer-col a:hover, .footer-col button:hover{color:#fbbf24}
+.footer-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.footer-badge{font-size:9px;padding:4px 8px;border-radius:20px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:#94a3b8}
+.footer-bottom{border-top:1px solid rgba(255,255,255,0.06);padding:14px 20px;display:flex;justify-content:space-between;flex-wrap:wrap;max-width:1400px;margin:0 auto}
+.footer-copy{font-size:10px;color:#64748b}
+
+@media(max-width:700px){
+  .landing h1{font-size:26px}
+  .footer-inner{grid-template-columns:1fr;gap:20px}
+  .footer-bottom{justify-content:center;text-align:center}
+}
 </style>
 </head>
 <body>
 <div class="top"><a href="/play/" class="logo" aria-label="Wasa Games"></a></div>
+
 <div class="landing">
   <h1>PLAY 2048</h1>
   <div class="card">
@@ -79,21 +72,56 @@ body{background:#3b1e9e;color:#e2e8f0;font-family:Inter,system-ui,sans-serif;min
     <p>Play 2048 online free and farm $WASA. Premium wooden puzzle. <strong>PLAY FREE & FARM $WASA</strong> - 100% onchain, no download, play in browser.</p>
 
     <div class="seo-content-block">
-  <h2>Juega a 2048 online gratis.</h2>
-  <p>
-    Disfruta de uno de los desafíos matemáticos más adictivos de la web directamente desde tu navegador. El objetivo en <strong>2048</strong> es simple pero requiere una gran estrategia: debes deslizar las baldosas numeradas sobre el tablero para combinar los números iguales. Cada vez que dos piezas con el mismo valor se tocan, se fusionan en una sola sumando sus potencias (2, 4, 8, 16, 32, hasta alcanzar la ansiada cifra de 2048). Es un puzzle numérico premium que pondrá a prueba tu lógica en cada movimiento.
-  </p>
-  <p>
-    En <strong>WASA GAMES</strong> hemos llevado esta experiencia clásica a un nuevo nivel. Ya no juegas solo por diversión o para romper récords locales: nuestra plataforma te permite <strong>ganar y farmear $WASA</strong> mientras juegas de forma 100% gratuita. Todo el sistema está integrado de manera nativa y corre de forma totalmente onchain, lo que garantiza transparencia y seguridad sin necesidad de realizar descargas molestas ni registros complejos. 
-  </p>
-  <p>
-    Para empezar a acumular recompensas, simplemente haz clic en el botón de inicio. La partida se ejecutará de forma dinámica en nuestra consola web optimizada, permitiéndote conectar con el ecosistema cripto mientras resuelves el rompecabezas. Suma puntos, fusiona bloques de madera digital y empieza a generar valor con tu habilidad mental hoy mismo.
-  </p>
-</div>
+      <h2>Play 2048 Online for Free.</h2>
+      <p>
+        Enjoy one of the most addictive math challenges on the web directly from your browser. The goal in <strong>2048</strong> is simple but requires great strategy: you must slide the numbered tiles across the board to combine equal numbers. Every time two tiles with the same value touch, they merge into one by adding their powers (2, 4, 8, 16, 32, up to the coveted 2048 number). It's a premium number puzzle that will test your logic with every move.
+      </p>
+      <p>
+        At <strong>WASA GAMES</strong> we have taken this classic experience to a new level. You no longer play just for fun or to break local records: our platform allows you to <strong>earn and farm $WASA</strong> while you play 100% for free. The entire system is natively integrated and runs fully onchain, guaranteeing transparency and security without the need for annoying downloads or complex registrations.
+      </p>
+      <p>
+        To start accumulating rewards, simply click the start button. The game will run dynamically in our optimized web console, allowing you to connect with the crypto ecosystem while solving the puzzle. Score points, merge digital wooden blocks and start generating value with your mental skill today.
+      </p>
+    </div>
     
     <p style="margin-top:14px"><a href="/play/">← Back to WASA Console</a></p>
   </div>
 </div>
+
+<footer class="wasa-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a href="/" class="logo" aria-label="Wasa Games"></a>
+      <div class="footer-desc">Play onchain arcade and farm $WASA. Free games in your browser, no downloads. WASA PASS X5 multiplies your earnings x5 forever. On BSC, with USDT.</div>
+      <div class="footer-badges">
+        <span class="footer-badge">⚡ BSC BEP20</span>
+        <span class="footer-badge">💰 USDT</span>
+        <span class="footer-badge">🎮 No download</span>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Play</h4>
+      <a href="/play/">All Games</a>
+      <a href="/play/">Arcade</a>
+      <a href="/play/">Puzzle</a>
+    </div>
+    <div class="footer-col">
+      <h4>WASA</h4>
+      <a href="/wasa-pass.html" id="footerPassLink">WASA PASS X5 - 5 USDT</a>
+      <a href="/">Buy $WASA</a>
+      <a href="/">20% Referrals</a>
+    </div>
+    <div class="footer-col">
+      <h4>Support</h4>
+      <a href="/">Create account</a>
+      <a href="/">My profile</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2026 WASA GAMES • Play Free & Farm $WASA • On BSC</div>
+  </div>
+</footer>
+
 <script>
 function playNow(){
   localStorage.setItem("nombreJuego", GAME_NAME);
