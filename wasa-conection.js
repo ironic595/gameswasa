@@ -10,6 +10,16 @@ const WASA_CONFIG = {
   PASS_PRICE: 5, // fallback, se actualiza desde D1
   _loaded: false
 };
+
+// FIX decimales 0.01 -> BigInt
+function usdtToWei(price) {
+  const str = String(price).trim();
+  if (!str) return 0n;
+  const [whole, fraction = ""] = str.split(".");
+  const fracPadded = (fraction + "000000000000000000").slice(0, 18);
+  return (BigInt(whole || "0") * 1000000000000000000n) + BigInt(fracPadded || "0");
+}
+
 let connectedWallet = null; let connectedNickname = null; let connectedEmail = null;
 let authTab = 'login'; let userMenuOpen = false; let linkedWallets = []; let pendingVerifyEmail = null;
 
@@ -234,7 +244,7 @@ async function buyWasa(wasaAmount){
     const receiver = WASA_CONFIG.RECEIVER;
     if(!receiver) throw new Error('Receiver no configurado');
     try{ await window.ethereum.request({method:'wallet_switchEthereumChain', params:[{chainId:'0x38'}]}); }catch(e){ if(e.code===4902){ await window.ethereum.request({method:'wallet_addEthereumChain', params:[{chainId:'0x38', chainName:'BNB Smart Chain', rpcUrls:['https://bsc-dataseed.binance.org/'], nativeCurrency:{name:'BNB',symbol:'BNB',decimals:18}, blockExplorerUrls:['https://bscscan.com']}]}) } }
-    const amount = BigInt(usdt) * BigInt("1000000000000000000");
+    conconst amount = usdtToWei(usdt);
     const pad = (h)=>h.replace(/^0x/,'').toLowerCase().padStart(64,'0');
     const data='0xa9059cbb'+pad(receiver)+pad(amount.toString(16));
     const txHash = await window.ethereum.request({method:'eth_sendTransaction', params:[{from:wallet, to:WASA_CONFIG.USDT_CONTRACT, data}]});
