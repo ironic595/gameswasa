@@ -244,7 +244,7 @@ async function buyWasa(wasaAmount){
     const receiver = WASA_CONFIG.RECEIVER;
     if(!receiver) throw new Error('Receiver no configurado');
     try{ await window.ethereum.request({method:'wallet_switchEthereumChain', params:[{chainId:'0x38'}]}); }catch(e){ if(e.code===4902){ await window.ethereum.request({method:'wallet_addEthereumChain', params:[{chainId:'0x38', chainName:'BNB Smart Chain', rpcUrls:['https://bsc-dataseed.binance.org/'], nativeCurrency:{name:'BNB',symbol:'BNB',decimals:18}, blockExplorerUrls:['https://bscscan.com']}]}) } }
-    conconst amount = usdtToWei(usdt);
+    const amount = usdtToWei(usdt);
     const pad = (h)=>h.replace(/^0x/,'').toLowerCase().padStart(64,'0');
     const data='0xa9059cbb'+pad(receiver)+pad(amount.toString(16));
     const txHash = await window.ethereum.request({method:'eth_sendTransaction', params:[{from:wallet, to:WASA_CONFIG.USDT_CONTRACT, data}]});
