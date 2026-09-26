@@ -11,6 +11,9 @@ const WASA_CONFIG = {
   _loaded: false
 };
 
+let connectedWallet = null; let connectedNickname = null; let connectedEmail = null;
+let authTab = 'login'; let userMenuOpen = false; let linkedWallets = []; let pendingVerifyEmail = null;
+
 // FIX decimales 0.01 -> BigInt
 function usdtToWei(price) {
   const str = String(price).trim();
@@ -19,9 +22,6 @@ function usdtToWei(price) {
   const fracPadded = (fraction + "000000000000000000").slice(0, 18);
   return (BigInt(whole || "0") * 1000000000000000000n) + BigInt(fracPadded || "0");
 }
-
-let connectedWallet = null; let connectedNickname = null; let connectedEmail = null;
-let authTab = 'login'; let userMenuOpen = false; let linkedWallets = []; let pendingVerifyEmail = null;
 
 function getDeviceId(){ let id=localStorage.getItem('wasa_device_id'); if(!id){ id='dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('wasa_device_id',id); } return id; }
 function cleanStored(v){ if(v==null) return null; const s=String(v).trim(); if(!s || s==="undefined" || s==="null" || s==="") return null; return s; }
