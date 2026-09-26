@@ -299,6 +299,6 @@ addEventListener('keydown',e=>{if(e.key==='Escape'){closeGame();const wc=documen
 addEventListener('DOMContentLoaded',()=>{if(!localStorage.getItem('wasa_device_id'))localStorage.setItem('wasa_device_id','dev_'+Math.random().toString(36).slice(2)+Date.now().toString(36));if(typeof setCoins==='function')setCoins(getCoins());loadGames();let gameName=getGameSlugFromURL();if(!gameName){try{const last=sessionStorage.getItem('wasa_last_game_session');const was=sessionStorage.getItem('wasa_in_game');if(was==='1'&&last&&last!==""&&last!=="x")gameName=last;}catch(e){}}if(gameName&&gameName!==""&&gameName!=="x"){const tryOpen=()=>{if(GAMES.length>0){openGame(gameName);}else{setTimeout(tryOpen,300);}};setTimeout(tryOpen,600);}});
 document.addEventListener('click',e=>{const dd=document.getElementById('userDropdown'); const ub=document.getElementById('userBtn'); if(dd&&ub&&!dd.contains(e.target)&&!ub.contains(e.target)){dd.classList.remove('open');}});
 </script>
-<script src="./wasa-conection.js?v=18"></script>
+<script src="./wasa-conection.js?v=19"></script>
 </body>
 </html>
